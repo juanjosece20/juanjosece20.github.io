@@ -3,11 +3,190 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Juan José Corzo</title>
+  <title>Juan José Corzo Echeverría</title>
+  <meta name="description" content="Administrador de Empresas y Especialista en Inteligencia Artificial. Operaciones, logística y gestión del recurso hídrico en Bucaramanga.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --papel: #F7F9F8;
+      --tinta: #1B2A2F;
+      --tenue: #56676C;
+      --rio: #1F6F8B;
+      --musgo: #4E7A45;
+      --linea: #D5DFDD;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --papel: #13201F;
+        --tinta: #E8EFEE;
+        --tenue: #9DB0AF;
+        --rio: #6CB8D4;
+        --musgo: #9CC48F;
+        --linea: #2C3D3C;
+      }
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--papel);
+      color: var(--tinta);
+      font-family: "Public Sans", system-ui, sans-serif;
+      font-size: 1.0625rem;
+      line-height: 1.6;
+    }
+    main { max-width: 46rem; margin: 0 auto; padding: 4rem 1.5rem 3rem; }
+    h1, h2, h3 { font-family: "Bricolage Grotesque", system-ui, sans-serif; line-height: 1.15; margin: 0; }
+    a { color: var(--rio); }
+    a:focus-visible { outline: 3px solid var(--rio); outline-offset: 3px; border-radius: 2px; }
+
+    .hero h1 { font-size: clamp(2.4rem, 7vw, 4rem); font-weight: 700; letter-spacing: -0.02em; }
+    .hero .rol { font-size: 1.25rem; margin: 1rem 0 0.25rem; }
+    .hero .lugar { color: var(--tenue); margin: 0; }
+    .contacto {
+      display: inline-block; margin-top: 1.75rem; padding: 0.7rem 1.2rem;
+      background: var(--rio); color: var(--papel); text-decoration: none;
+      font-weight: 600; border-radius: 6px;
+    }
+
+    section { margin-top: 4rem; }
+    h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 1.25rem; }
+
+    .logros { list-style: none; padding: 0; margin: 1.5rem 0 0; display: grid; gap: 1rem; }
+    .logros li { border-left: 4px solid var(--musgo); padding-left: 1rem; }
+    .logros strong { font-family: "Bricolage Grotesque", sans-serif; font-size: 1.35rem; display: block; }
+
+    .recorrido { list-style: none; padding: 0; margin: 0; position: relative; }
+    .recorrido::before {
+      content: ""; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+      width: 3px; background: linear-gradient(var(--rio), var(--musgo)); border-radius: 2px;
+    }
+    .recorrido > li { position: relative; padding-left: 2.25rem; margin-bottom: 2.25rem; }
+    .recorrido > li::before {
+      content: ""; position: absolute; left: 0; top: 0.4rem; width: 1.05rem; height: 1.05rem;
+      border-radius: 50%; background: var(--papel); border: 3px solid var(--rio);
+    }
+    .recorrido > li:first-child::before { background: var(--rio); }
+    .recorrido h3 { font-size: 1.2rem; font-weight: 500; }
+    .recorrido .donde { color: var(--tenue); margin: 0.2rem 0 0.5rem; font-size: 0.95rem; }
+    .recorrido ul { margin: 0; padding-left: 1.1rem; }
+    .recorrido ul li { margin-bottom: 0.3rem; }
+
+    .etiquetas { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .etiquetas li { border: 1px solid var(--linea); padding: 0.3rem 0.8rem; border-radius: 999px; font-size: 0.95rem; }
+
+    .estudios { padding-left: 1.1rem; margin: 0; }
+    .estudios li { margin-bottom: 0.5rem; }
+
+    footer { max-width: 46rem; margin: 0 auto; padding: 2rem 1.5rem 3rem; color: var(--tenue); font-size: 0.9rem; border-top: 1px solid var(--linea); }
+
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
 </head>
 <body>
-  <h1>Juan José Corzo Echeverría</h1>
-  <p>Especialista en Inteligencia Artificial</p>
-  <p>Gestión integral del recurso hídrico · Bucaramanga, Colombia</p>
+  <main>
+    <header class="hero">
+      <h1>Juan José Corzo Echeverría</h1>
+      <p class="rol">Administrador de Empresas y Especialista en Inteligencia Artificial</p>
+      <p class="lugar">Bucaramanga, Colombia</p>
+      <a class="contacto" href="mailto:juanjosece20@gmail.com">Escribirme un correo</a>
+    </header>
+
+    <section>
+      <h2>Perfil</h2>
+      <p>Tengo experiencia en coordinación de operaciones, logística, administración y cadena de suministro en los sectores de alimentos, aeroportuario, infraestructura y proyectos públicos. He gestionado centros de distribución, rutas de transporte nacionales, compras y equipos operativos de más de 50 personas, siempre con foco en indicadores, control operativo y mejora de procesos.</p>
+      <p>Hoy aplico esa experiencia, junto con la inteligencia artificial, a la gestión integral del recurso hídrico en la Alcaldía de Bucaramanga.</p>
+      <ul class="logros">
+        <li><strong>De 200 a 1.000 toneladas al mes</strong>Crecimiento de la operación logística que coordiné en dos centros de distribución.</li>
+        <li><strong>Mermas del 3% al 1,2%</strong>Reducción de pérdidas de almacenamiento en la operación de alimentos.</li>
+        <li><strong>20.000 porciones diarias</strong>Operación del Programa de Alimentación Escolar en todo el Quindío, con más de 300 personas en nómina.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Experiencia</h2>
+      <ol class="recorrido">
+        <li>
+          <h3>Contratista de prestación de servicios</h3>
+          <p class="donde">Alcaldía de Bucaramanga, Secretaría de Salud y Ambiente · Agosto 2026 – actualidad</p>
+          <ul>
+            <li>Asistencia técnica en proyectos de mejoramiento, protección y uso eficiente del recurso hídrico.</li>
+            <li>Informes de gestión e indicadores para el Observatorio Ambiental Municipal.</li>
+            <li>Documentación de ejecución contractual ante la Plataforma Integrada de Inversión Pública (PIIP).</li>
+            <li>Apoyo a la supervisión de contratos y convenios del programa.</li>
+          </ul>
+        </li>
+        <li>
+          <h3>Supervisor de operaciones</h3>
+          <p class="donde">Servicios Aeroportuarios Integrados SAI, Aeropuerto El Dorado · Marzo – junio 2026</p>
+          <ul>
+            <li>Supervisión de operaciones de aeronaves en tierra y cumplimiento de tiempos de turnaround.</li>
+            <li>Validación de peso y balance, y manejo de mercancías peligrosas bajo estándares IATA.</li>
+            <li>Liderazgo del equipo operativo en plataforma.</li>
+          </ul>
+        </li>
+        <li>
+          <h3>Coordinador logístico y de operaciones</h3>
+          <p class="donde">Inveraves Norte / Alimentos Solari, Bogotá · Enero 2022 – octubre 2025</p>
+          <ul>
+            <li>Gestión operativa y logística de dos centros de distribución.</li>
+            <li>Planificación de rutas de transporte nacionales, optimizando entregas, combustible y costos.</li>
+            <li>Liderazgo de equipos de más de 50 personas y gestión de proveedores.</li>
+          </ul>
+        </li>
+        <li>
+          <h3>Director administrativo</h3>
+          <p class="donde">Procescar, Barranquilla · Febrero 2020 – marzo 2021</p>
+          <ul>
+            <li>Dirección financiera y administrativa con un equipo de 35 personas.</li>
+            <li>Compras nacionales e internacionales de materia prima, tesorería y flujo de caja.</li>
+          </ul>
+        </li>
+        <li>
+          <h3>Coordinador administrativo</h3>
+          <p class="donde">Alianco, Quindío · Enero 2019 – enero 2020</p>
+          <ul>
+            <li>Coordinación del PAE en el departamento y de una red de 20 proveedores.</li>
+          </ul>
+        </li>
+        <li>
+          <h3>Inicios en proyectos de ingeniería</h3>
+          <p class="donde">Ingenierías y Servicios, Santander y Antioquia · 2013 – 2018</p>
+          <ul>
+            <li>Gestión administrativa, control de materiales y apoyo logístico en campo.</li>
+          </ul>
+        </li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Competencias</h2>
+      <ul class="etiquetas">
+        <li>IA aplicada a organizaciones</li>
+        <li>Operaciones y logística</li>
+        <li>Centros de distribución</li>
+        <li>Indicadores (KPI)</li>
+        <li>Power BI</li>
+        <li>Excel avanzado</li>
+        <li>Negociación con proveedores</li>
+        <li>Planeación estratégica</li>
+        <li>Liderazgo de equipos</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Formación</h2>
+      <ul class="estudios">
+        <li>Especialista en Inteligencia Artificial, Universidad Piloto de Colombia, 2026</li>
+        <li>Administrador de Empresas, Universidad Autónoma de Bucaramanga (UNAB), 2022</li>
+        <li>Inglés, nivel B1</li>
+      </ul>
+    </section>
+  </main>
+  <footer>
+    <p>Contacto: <a href="mailto:juanjosece20@gmail.com">juanjosece20@gmail.com</a></p>
+  </footer>
 </body>
 </html>
