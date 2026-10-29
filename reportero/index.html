@@ -387,7 +387,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
       <div class="b b-k3" id="kInter"></div>
       <div class="b b-ins"><h3>Conclusiones clave</h3><ul class="ins" id="ins"></ul><div class="ins-pie" id="insPie"></div></div>
       <div class="b b-vis"><h3>Vistas de la cuenta por día <small id="visNota"></small></h3><div class="ch"><canvas id="cVistasDia"></canvas></div></div>
-      <div class="b b-seg"><h3>Seguidores ganados y perdidos</h3><div class="ch" style="height:168px"><canvas id="cSegDia"></canvas></div>
+      <div class="b b-seg"><h3>Seguidores ganados y perdidos <small id="segNota"></small></h3><div class="ch" style="height:168px"><canvas id="cSegDia"></canvas></div>
         <div class="ley"><span><i style="background:#12a15f"></i>Nuevos</span><span><i style="background:#e8191b"></i>Dejaron de seguir</span></div></div>
       <div class="b b-pub"><h3>Público <small>total de seguidores</small></h3>
         <div class="pub-sexo"><div class="dona"><canvas id="cSexo"></canvas></div><div class="ley" id="leySexo"></div></div>
@@ -710,7 +710,7 @@ function renderHoy() {
   const cHoy = D.cuenta.find(c => c.f === hoy);
   const total = D.seguidores[D.seguidores.length - 1];
   // Comparado con la última lectura de ayer (se toma cada hora)
-  const ganados = sHoy && sAyer ? sHoy.n - sAyer.n : null;
+  const ganados = netoDeHoy();
   const pubsHoy = sHoy && sAyer ? Math.max(0, sHoy.pubs - sAyer.pubs) : D.posts.filter(p => p.dia === hoy).length;
   const hd = (l, v, cls) => `<div class="hd"><div class="l">${l}</div><div class="v ${cls || ''}">${v}</div></div>`;
   $('hoyDatos').innerHTML =
@@ -765,10 +765,23 @@ function medidor(titulo, partes) {
     '<div class="ley">' + partes.filter(p => p[1] > 0).map(p => `<span><i style="background:${p[2]}"></i>${esc(p[0])} ${pct(p[1], tot)} %</span>`).join('') + '</div></div>';
 }
 
+const RETRASO = 'Instagram entrega este dato con unas horas de retraso';
+
+// Seguidores ganados hoy: última lectura de hoy menos la de ayer (null si falta alguna)
+function netoDeHoy() {
+  const ayer = ymd(new Date(new Date(D.hoy + 'T12:00') - 864e5));
+  const sHoy = D.seguidores.find(s => s.f === D.hoy), sAyer = D.seguidores.find(s => s.f === ayer);
+  return sHoy && sAyer ? sHoy.n - sAyer.n : null;
+}
+
 function renderGeneral(desde, hasta, posts) {
   const cu = D.cuenta.filter(c => c.f >= desde && c.f <= hasta);
   const dias = diasEntre(desde, hasta);
-  const nuevos = sum(cu, 'nuevos'), perdidos = sum(cu, 'perdidos'), neto = nuevos - perdidos;
+  // El día de hoy no ha terminado: Instagram aún no entrega nuevos y perdidos, así que el neto de hoy
+  // es el mismo del recuadro Hoy (total de seguidores ahora menos el de ayer)
+  const segHoy = netoDeHoy();
+  const netoDia = c => c.f === D.hoy && segHoy !== null ? segHoy : c.nuevos - c.perdidos;
+  const neto = cu.reduce((a, c) => a + netoDia(c), 0);
   const vistas = sum(cu, 'vistas'), vSeg = sum(cu, 'vSeg'), vNoSeg = sum(cu, 'vNoSeg'), inter = sum(cu, 'interacciones');
 
   // Mismo número de días justo antes, solo si hay datos de todos esos días
@@ -780,9 +793,14 @@ function renderGeneral(desde, hasta, posts) {
   const ant = k => enCurso ? 'en curso' : cuPrev.length >= dias ? sum(cuPrev, k) : null;
   const vPrev = ant('vistas'), netoPrev = enCurso || ant('nuevos') === null ? ant('nuevos') : ant('nuevos') - ant('perdidos');
 
-  $('kVistas').innerHTML = kpi('Vistas de la cuenta', fmt(vistas), compara(vistas, vPrev, dias), spark(cu.map(c => c.vistas), C.electrico));
-  $('kSeg').innerHTML = kpi('Seguidores netos', (neto >= 0 ? '+' : '−') + fmt(Math.abs(neto)), compara(neto, netoPrev, dias, true), spark(cu.map(c => c.nuevos - c.perdidos), C.verde));
-  $('kInter').innerHTML = kpi('Interacciones', fmt(inter), compara(inter, ant('interacciones'), dias), spark(cu.map(c => c.interacciones), C.magenta));
+  // Solo hoy y en cero: es el retraso de Instagram, no que no haya pasado nada
+  const tarde = v => enCurso && !v;
+  $('kVistas').innerHTML = tarde(vistas) ? kpi('Vistas de la cuenta', '—', RETRASO, '')
+    : kpi('Vistas de la cuenta', fmt(vistas), compara(vistas, vPrev, dias), spark(cu.map(c => c.vistas), C.electrico));
+  $('kSeg').innerHTML = kpi('Seguidores netos', (neto >= 0 ? '+' : '−') + fmt(Math.abs(neto)),
+    enCurso && segHoy !== null ? 'Total de seguidores ahora menos el de ayer' : compara(neto, netoPrev, dias, true), spark(cu.map(netoDia), C.verde));
+  $('kInter').innerHTML = tarde(inter) ? kpi('Interacciones', '—', RETRASO, '')
+    : kpi('Interacciones', fmt(inter), compara(inter, ant('interacciones'), dias), spark(cu.map(c => c.interacciones), C.magenta));
 
   // Conclusiones clave (de 3 a 5 frases)
   const tipos = [['Reels', sum(cu, 'reels'), C.electrico], ['Fotos y carruseles', sum(cu, 'pubs'), C.magenta], ['Historias', sum(cu, 'historias'), C.naranja], ['Otras', sum(cu, 'otras'), C.gray]];
@@ -816,6 +834,7 @@ function renderGeneral(desde, hasta, posts) {
   });
 
   // Seguidores ganados (arriba) y perdidos (abajo)
+  $('segNota').textContent = enCurso && !cu.some(c => c.nuevos || c.perdidos) ? RETRASO.replace('este dato', 'estos datos') : '';
   grafica('cSegDia', {
     type: 'bar',
     data: { labels: cu.map(c => corto(c.f)), datasets: [
