@@ -78,12 +78,12 @@ main.in{padding-bottom:28px}
 
 /* ---------- Cuadrícula del Resumen ---------- */
 .grid{display:grid;gap:12px;grid-template-columns:250px repeat(3,minmax(0,1fr)) 290px;
-  grid-template-areas:"hoy k1 k2 k3 ins" "pub vis vis seg ins" "lle pos pos ciu ins"}
+  grid-template-areas:"hoy k1 k2 k3 ins" "pub vis vis seg ins" "lle pos pos ciu ins" "com com com com com"}
 .b{background:var(--card);border:1px solid var(--linea);border-radius:var(--radio);padding:14px 16px;min-width:0;position:relative}
 .b h3{font:400 19px/1 var(--titulo);letter-spacing:.5px;margin:0 0 10px;color:var(--ink)}
 .b h3 small{font:500 11px var(--ui);letter-spacing:0;color:var(--muted);margin-left:6px}
 .b-hoy{grid-area:hoy}.b-k1{grid-area:k1}.b-k2{grid-area:k2}.b-k3{grid-area:k3}.b-ins{grid-area:ins}
-.b-pub{grid-area:pub}.b-vis{grid-area:vis}.b-seg{grid-area:seg}.b-lle{grid-area:lle}.b-pos{grid-area:pos}.b-ciu{grid-area:ciu}
+.b-com{grid-area:com}.b-pub{grid-area:pub}.b-vis{grid-area:vis}.b-seg{grid-area:seg}.b-lle{grid-area:lle}.b-pos{grid-area:pos}.b-ciu{grid-area:ciu}
 
 /* Hoy */
 .b-hoy{background:linear-gradient(150deg,var(--navy),var(--blue));color:#fff;border:0}
@@ -144,6 +144,25 @@ main.in{padding-bottom:28px}
 /* Miniaturas */
 .posts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
 .posts .empty{grid-column:1/-1}
+.compartidas{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px 16px}
+.compartidas .empty{grid-column:1/-1}
+.comp{display:grid;grid-template-columns:56px minmax(0,1fr);gap:4px 10px;text-decoration:none;color:var(--ink);align-items:start}
+.comp-img{width:56px;height:56px;border-radius:8px;overflow:hidden;background:var(--linea);grid-row:span 2}
+.comp-img img{width:100%;height:100%;object-fit:cover;display:block}
+.comp-t{font-size:12px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.comp-m{font-size:11px;color:var(--muted);line-height:1.35}
+.comp-m b{color:var(--ink);font-size:13px}
+.cifra-2{margin-top:18px}
+.chart.alta{height:260px}
+.tablaP th[data-k=cpm]{white-space:normal;min-width:96px;line-height:1.3}
+.munis table{width:100%;border-collapse:collapse;font-size:12.5px}
+.munis th{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--linea)}
+.munis td{padding:7px 8px;border-bottom:1px solid var(--linea);color:var(--ink)}
+.munis .n{text-align:right;font-variant-numeric:tabular-nums}
+.munis td.pv{color:var(--muted)}
+.munis th{white-space:normal;vertical-align:bottom;line-height:1.3}
+.munis tr.poco td.n.med{color:var(--muted)}
+.munis details summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--blue);padding:10px 8px;list-style:none}
 .post{text-decoration:none;color:var(--ink);min-width:0}
 .post-img{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--degradado);display:flex;align-items:center;justify-content:center;color:#fff;font:400 16px var(--titulo);letter-spacing:.5px}
 .post-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
@@ -273,7 +292,8 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
 @media (max-width:1199px){
   .grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:none;grid-auto-flow:dense}
   .grid>.b{grid-area:auto}
-  .grid>.b-ins,.grid>.b-vis,.grid>.b-pos{grid-column:span 2}
+  .grid>.b-ins,.grid>.b-vis,.grid>.b-pos,.grid>.b-com{grid-column:span 2}
+  .compartidas{grid-template-columns:repeat(2,minmax(0,1fr))}
   .portada{grid-template-columns:1fr;gap:20px}
   .cifra{border-left:0;padding-left:0}
   .cifra-n{font-size:clamp(52px,18cqi,104px)}
@@ -290,7 +310,10 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .salir{position:absolute;top:10px;right:16px;padding:6px 10px}
   .filters{margin-left:0}
   .grid{grid-template-columns:minmax(0,1fr)}
-  .grid>.b-ins,.grid>.b-vis,.grid>.b-pos{grid-column:auto}
+  .grid>.b-ins,.grid>.b-vis,.grid>.b-pos,.grid>.b-com{grid-column:auto}
+  .compartidas{grid-template-columns:1fr}
+  .munis td.pv,.munis th.pv{display:none}
+  .munis th,.munis td{padding:6px 4px}
   .posts{grid-template-columns:repeat(3,minmax(0,1fr))}
   .encifras{grid-template-columns:1fr 1fr}
   .dato{padding:14px 12px 14px 0}
@@ -349,6 +372,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
     <input type="date" id="desde" aria-label="Desde"> <input type="date" id="hasta" aria-label="Hasta">
     <select id="cat" class="solopubs" aria-label="Tipo de noticia"></select>
     <select id="form" class="solopubs" aria-label="Formato"></select>
+    <select id="prov" class="solopubs" aria-label="Provincia"></select>
   </div>
 </div></nav>
 
@@ -371,6 +395,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
       <div class="b b-lle"><h3>Cómo llegan las vistas</h3><div id="llegada"></div></div>
       <div class="b b-pos"><h3>Lo más visto <small>publicadas en el periodo · vistas acumuladas</small></h3><div class="posts" id="top5"></div></div>
       <div class="b b-ciu"><h3>Principales ciudades</h3><div class="barras" id="ciudades"></div><div class="ley" id="ciuNota"></div></div>
+      <div class="b b-com"><h3>Lo más compartido <small id="comNota"></small></h3><div class="compartidas" id="topCom"></div></div>
     </div>
   </section>
 
@@ -385,6 +410,9 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
         <div class="cifra-n" id="pCifra"></div>
         <div class="cifra-l">vistas típicas por publicación (mediana)</div>
         <div class="cifra-c" id="pCifraC"></div>
+        <div class="cifra-n cifra-2" id="pCpm"></div>
+        <div class="cifra-l">compartidos por cada 1.000 vistas</div>
+        <div class="cifra-c" id="pCpmC"></div>
       </aside>
     </div>
     <div class="alertas" id="alertas" style="display:none"></div>
@@ -398,10 +426,14 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
         <div class="chart"><canvas id="cCat"></canvas></div></article>
       <article class="nota ancha"><h3>Vistas típicas (mediana) por formato</h3><p id="pForm"></p>
         <div class="chart"><canvas id="cForm"></canvas></div></article>
+      <article class="nota"><h3>Vistas típicas (mediana) por provincia</h3><p id="pProv"></p>
+        <div class="chart alta"><canvas id="cProv"></canvas></div></article>
+      <article class="nota ancha"><h3>Por municipio</h3><p id="pMuni"></p>
+        <div class="munis" id="tMuni"></div></article>
     </div>
 
     <h2 class="cintillo">Todas las publicaciones</h2>
-    <div class="sub2" id="subTabla">Haz clic en el título de una columna para ordenar. «Vistas por día»: cuántas vistas ganó cada día (toca las barras para ver el detalle). «A los 2 / 7 días»: vistas acumuladas al cierre de ese día después de publicada (aproximado), para comparar publicaciones a la misma edad. «—»: Instagram no da ese dato en los reels.</div>
+    <div class="sub2" id="subTabla">Haz clic en el título de una columna para ordenar. «Vistas por día»: cuántas vistas ganó cada día (toca las barras para ver el detalle). «A los 2 / 7 días»: vistas acumuladas al cierre de ese día después de publicada (aproximado), para comparar publicaciones a la misma edad. «Compart. por 1.000 vistas»: de cada 1.000 vistas, cuántas terminaron en un compartido. «—»: Instagram no da ese dato en los reels. El lugar se corrige en la pestaña Lugares del Sheet.</div>
     <label class="ordenar">Ordenar por<select id="ordenSel"></select></label>
     <div class="tbl"><table class="tablaP">
       <thead><tr id="thP"></tr></thead>
@@ -420,23 +452,32 @@ const CATEGORIAS = [
 const OTRA = { nombre: 'Sin clasificar', color: '#8a93ab' };
 const C = { navy: '#09163d', blue: '#103db0', red: '#e8191b', electrico: '#2f5bea', magenta: '#e8458b', naranja: '#f07a2e', gray: '#8a93ab', verde: '#12a15f', grid: '#edf0f6', tick: '#66708c' };
 const COLS = [
-  ['vistas', 'Vistas'], ['a2', 'A los 2 días'], ['a7', 'A los 7 días'], ['alcance', 'Alcance'], ['likes', 'Likes'], ['comentarios', 'Coment.'],
-  ['compartidos', 'Compart.'], ['guardados', 'Guard.'], ['segGanados', 'Seg. ganados'], ['visitas', 'Visitas perfil'], ['reprod', 'Reprod. (s)']
+  ['vistas', 'Vistas'], ['compartidos', 'Compart.'], ['cpm', 'Compart. por 1.000 vistas'], ['a2', 'A los 2 días'], ['a7', 'A los 7 días'],
+  ['alcance', 'Alcance'], ['likes', 'Likes'], ['comentarios', 'Coment.'], ['guardados', 'Guard.'], ['segGanados', 'Seg. ganados'], ['visitas', 'Visitas perfil'], ['reprod', 'Reprod. (s)']
 ];
 // Cómo se nombran en una frase
 const PLURAL = { 'Denuncia': 'las denuncias', 'Información': 'las publicaciones de información', 'Sin clasificar': 'las publicaciones sin clasificar',
   'Reel': 'los reels', 'Carrusel': 'los carruseles', 'Imagen': 'las imágenes', 'Video': 'los videos' };
+// Provincias en el orden del filtro (las que llegan de la pestaña Lugares del Sheet)
+const PROVINCIAS = ['Metropolitana', 'Soto Norte', 'García Rovira', 'Guanentá', 'Comunera', 'Vélez', 'Mares'];
+const SIN_LUGAR = 'Sin identificar';
+PROVINCIAS.forEach(p => PLURAL[p] = 'las publicaciones de la provincia ' + p);
+PLURAL[SIN_LUGAR] = 'las publicaciones sin lugar identificado';
 const TIPOS_VISTA = { 'Reels': 'los reels', 'Publicaciones': 'las fotos y carruseles', 'Historias': 'las historias', 'Otras': 'otros formatos' };
 
 // Alerta "En crecimiento": el último día gana al menos MULT_CRECE veces lo normal para su edad y al menos MIN_CRECE vistas
 const MULT_CRECE = 3, MIN_CRECE = 1000, MIN_MUESTRAS = 5, DIAS_BARRAS = 14;
 
 let compEdad = 'vistas';
-let D = null, charts = {}, tab = 'general', orden = 'vistas', nSpark = 0;
+let D = null, charts = {}, tab = 'general', orden = 'compartidos', nSpark = 0;
 const $ = id => document.getElementById(id);
 const fmt = n => Math.round(n).toLocaleString('es-CO');
 const corta = n => n >= 1e6 ? String(Math.round(n / 1e5) / 10).replace('.', ',') + ' M' : n >= 1000 ? String(Math.round(n / 100) / 10).replace('.', ',') + ' mil' : fmt(n);
 const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+// Con un decimal por debajo de 10: "4,2"
+const dec = n => n < 10 ? String(Math.round(n * 10) / 10).replace('.', ',') : fmt(n);
+// Compartidos por cada 1.000 vistas de un grupo (suma de compartidos sobre suma de vistas)
+const cpmDe = l => { const c = l.filter(p => p.vistas > 0), v = sum(c, 'vistas'); return v ? sum(c, 'compartidos') / v * 1000 : null; };
 const norm = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
 const ymd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 const colorCat = n => (CATEGORIAS.find(c => c.nombre === n) || OTRA).color;
@@ -583,12 +624,15 @@ else if (ficha) salirDeSesion('Tu sesión terminó. Vuelve a entrar.');
 else mostrarLogin();
 
 function preparar(refresco) {
-  const filtros = { cat: $('cat').value, form: $('form').value };
+  const filtros = { cat: $('cat').value, form: $('form').value, prov: $('prov').value };
   D.posts.forEach(p => {
     const d = new Date(p.f);
     p.dia = ymd(d); p.fechaObj = d; p.cat = categoria(p);
     p.inter = p.interacciones || (p.likes + p.comentarios + p.compartidos + p.guardados);
     p.titulo = (p.texto.split('\n').find(l => l.trim()) || '(sin texto)').trim();
+    p.cpm = p.vistas > 0 ? p.compartidos / p.vistas * 1000 : null;
+    p.prov = p.provincia || SIN_LUGAR;
+    p.lugar = p.municipio || (p.provincia ? 'Toda la provincia ' + p.provincia : SIN_LUGAR);
   });
   const H = D.historial || {};
   D.posts.forEach(p => { p.diario = diario(p, H[p.id] || []); Object.assign(p, aLaEdad(p, H[p.id] || [])); });
@@ -598,6 +642,7 @@ function preparar(refresco) {
 
   $('cat').innerHTML = ['Todas las noticias'].concat(CATEGORIAS.map(c => c.nombre), OTRA.nombre).map(x => `<option>${x}</option>`).join('');
   $('form').innerHTML = ['Todos los formatos'].concat([...new Set(D.posts.map(p => p.formato))].sort()).map(x => `<option>${esc(x)}</option>`).join('');
+  $('prov').innerHTML = ['Todas las provincias'].concat(PROVINCIAS, SIN_LUGAR).map(x => `<option>${x}</option>`).join('');
   $('thP').innerHTML = '<th>Publicación</th><th>Tipo</th><th>Vistas por día</th>' + COLS.map(c => `<th class="n s" data-k="${c[0]}">${c[1]}</th>`).join('');
   document.querySelectorAll('#thP th.s').forEach(th => th.onclick = () => { orden = th.dataset.k; render(); });
   $('ordenSel').innerHTML = COLS.map(c => `<option value="${c[0]}">${c[1]}</option>`).join('');
@@ -609,7 +654,7 @@ function preparar(refresco) {
     render();
   });
   document.querySelectorAll('.chip[data-r]').forEach(b => b.onclick = () => rango(b.dataset.r));
-  ['cat', 'form'].forEach(id => $(id).onchange = render);
+  ['cat', 'form', 'prov'].forEach(id => $(id).onchange = render);
   document.querySelectorAll('.comparar .chip').forEach(b => b.onclick = () => {
     compEdad = b.dataset.e;
     document.querySelectorAll('.comparar .chip').forEach(x => x.classList.toggle('on', x === b));
@@ -621,7 +666,7 @@ function preparar(refresco) {
   renderHoy();
   if (!refresco) { rango('30'); return; }
   // Al refrescar se conservan los filtros elegidos
-  ['cat', 'form'].forEach(id => { if ([...$(id).options].some(o => o.value === filtros[id])) $(id).value = filtros[id]; });
+  ['cat', 'form', 'prov'].forEach(id => { if ([...$(id).options].some(o => o.value === filtros[id])) $(id).value = filtros[id]; });
   render();
 }
 
@@ -749,6 +794,8 @@ function renderGeneral(desde, hasta, posts) {
   if (typeof vPrev === 'number' && vPrev) ins.push(`Las vistas de la cuenta ${vistas >= vPrev ? 'subieron' : 'bajaron'} <b>${Math.abs(Math.round((vistas - vPrev) / vPrev * 100))} %</b> frente ${dias === 1 ? 'al día anterior' : 'a los ' + dias + ' días anteriores'}.`);
   else if (vistas) ins.push(`La cuenta sumó <b>${fmt(vistas)} vistas</b> ${desde === D.hoy && dias === 1 ? 'hoy, hasta ahora' : dias === 1 ? 'ese día' : 'en ' + dias + ' días'}.`);
   if (cc) ins.push(fraseComp('Por publicación, ', cc));
+  const cpmPer = cpmDe(posts);
+  if (cpmPer !== null && posts.length) ins.push(`Compartidos: <b>${dec(cpmPer)} por cada 1.000 vistas</b> en las publicaciones del periodo (${fmt(sum(posts, 'compartidos'))} en total).`);
   if (totT) ins.push(`${mayus(TIPOS_VISTA[topT[0]] || 'los ' + topT[0].toLowerCase())} concentran el <b>${pct(topT[1], totT)} %</b> de las vistas de la cuenta.`);
   if (vSeg + vNoSeg) ins.push(`<b>${Math.round(vNoSeg / (vSeg + vNoSeg) * 10)} de cada 10</b> vistas vienen de personas que no siguen la cuenta.`);
   if (dias > 1 && mejor && mejor.vistas) ins.push(`Mejor día de la cuenta: <b>${diaMes(mejor.f)}</b>, con ${fmt(mejor.vistas)} vistas en total ese día.`);
@@ -809,12 +856,23 @@ function renderGeneral(desde, hasta, posts) {
     <div class="post-v" title="${fmt(p.vistas)} vistas acumuladas desde que se publicó">${corta(p.vistas)}<small>acumuladas</small></div>
     <div class="post-m"><i style="background:${colorCat(p.cat)}" title="${p.cat}"></i>${fechaPost(p)}</div></a>`).join('')
     || `<div class="empty">No hay publicaciones en este periodo.</div>`;
+
+  // Lo más compartido: lo que más lleva las noticias a gente nueva
+  const comp = posts.filter(p => p.compartidos > 0).sort((a, b) => b.compartidos - a.compartidos).slice(0, 5);
+  $('comNota').textContent = 'publicadas en el periodo · compartidos acumulados';
+  $('topCom').innerHTML = comp.map(p => `<a class="comp" href="${esc(p.enlace)}" title="${esc(p.titulo)}">
+    <div class="comp-img">${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}</div>
+    <div class="comp-t">${esc(recortar(p.titulo, 90))}</div>
+    <div class="comp-m"><b>${fmt(p.compartidos)}</b> compartidos · ${dec(p.cpm)} por 1.000 vistas<br>${fechaPost(p)} · ${esc(p.municipio || p.provincia || SIN_LUGAR)}</div></a>`).join('')
+    || `<div class="empty">No hay publicaciones compartidas en este periodo.</div>`;
 }
 
 function renderPubs(desde, hasta, todos) {
   renderAlertas();
-  const cat = $('cat').value, form = $('form').value;
-  const posts = todos.filter(p => (cat === 'Todas las noticias' || p.cat === cat) && (form === 'Todos los formatos' || p.formato === form));
+  const cat = $('cat').value, form = $('form').value, prov = $('prov').value;
+  const posts = todos.filter(p => (cat === 'Todas las noticias' || p.cat === cat) && (form === 'Todos los formatos' || p.formato === form) &&
+    (prov === 'Todas las provincias' || p.prov === prov));
+  const cpm = cpmDe(posts);
   // Interacciones por cada 1.000 vistas (el alcance sumado contaría varias veces a la misma persona)
   const conVistas = posts.filter(p => p.vistas > 0);
   const porMil = sum(conVistas, 'vistas') ? sum(conVistas, 'inter') / sum(conVistas, 'vistas') * 1000 : null;
@@ -826,12 +884,16 @@ function renderPubs(desde, hasta, todos) {
   const cc = extremos(posts, 'cat', OTRA.nombre), cf = extremos(posts, 'formato');
   if (cc) l.push(fraseComp('Por tipo de noticia, ', cc));
   if (cf) l.push(fraseComp('Por formato, ', cf));
+  const cp = extremos(posts, 'prov', SIN_LUGAR);
+  if (cp) l.push(fraseComp('Por lugar, ', cp));
+  const masComp = posts.filter(p => p.compartidos > 0).sort((a, b) => b.compartidos - a.compartidos)[0];
+  if (masComp) l.push(`La más compartida fue «${esc(recortar(masComp.titulo, 80))}», con <b>${fmt(masComp.compartidos)} compartidos</b> (${dec(masComp.cpm)} por cada 1.000 vistas).`);
   const mejor = posts.slice().sort((a, b) => b.vistas - a.vistas)[0];
   if (mejor) l.push(`La más vista fue «${esc(recortar(mejor.titulo, 80))}», con <b>${fmt(mejor.vistas)} vistas acumuladas</b>.`);
   if (porMil !== null) l.push(`Interacción: <b>${porMilTxt} por cada 1.000 vistas</b>. De cada 1.000 vistas, ${porMilTxt} terminan en un like, comentario, compartido o guardado.`);
   if (!posts.length) l.push('No hay publicaciones con estos filtros.');
 
-  const filtros = [cat === 'Todas las noticias' ? '' : cat, form === 'Todos los formatos' ? '' : form].filter(Boolean);
+  const filtros = [cat === 'Todas las noticias' ? '' : cat, form === 'Todos los formatos' ? '' : form, prov === 'Todas las provincias' ? '' : prov].filter(Boolean);
   $('pAnte').textContent = periodo(desde, hasta) + (filtros.length ? ' · ' + filtros.join(' · ') : '');
   $('pPuntos').innerHTML = puntos(l);
   $('pCifra').textContent = fmt(tipica);
@@ -839,6 +901,9 @@ function renderPubs(desde, hasta, todos) {
     ? `La mitad de las ${fmt(posts.length)} publicaciones con estos filtros tuvo más de ${fmt(tipica)} vistas y la otra mitad menos.` +
       (prom > tipica * 1.1 ? ` El promedio es ${fmt(prom)} porque lo suben las más virales.` : ` El promedio es ${fmt(prom)}.`)
     : 'Sobre ' + fmt(posts.length) + (posts.length === 1 ? ' publicación' : ' publicaciones') + ' con estos filtros.';
+  // En un medio de noticias, compartir es lo que más lleva el contenido a gente nueva
+  $('pCpm').textContent = cpm === null ? '—' : dec(cpm);
+  $('pCpmC').textContent = cpm === null ? '' : `De cada 1.000 vistas, ${dec(cpm)} terminaron en un compartido: ${fmt(sum(posts, 'compartidos'))} compartidos en total.`;
 
   // Instagram no da seguidores ganados ni visitas al perfil en los reels
   const conDato = posts.filter(p => p.segGanados !== null || p.visitas !== null).length;
@@ -873,6 +938,8 @@ function renderPubs(desde, hasta, todos) {
   };
   grupo('cat', 'cCat', 'pCat', g => g.map(x => colorCat(x[0])));
   grupo('formato', 'cForm', 'pForm', g => g.map((x, i) => i ? C.blue : C.electrico));
+  grupo('prov', 'cProv', 'pProv', g => g.map((x, i) => x[0] === SIN_LUGAR ? C.gray : i ? C.blue : C.electrico));
+  renderMunicipios(posts);
 
   // Las publicaciones sin el dato van al final al ordenar
   const valor = (p, k) => p[k] === null ? -1 : p[k];
@@ -881,10 +948,31 @@ function renderPubs(desde, hasta, todos) {
   $('tablaP').innerHTML = posts.slice().sort((a, b) => valor(b, orden) - valor(a, orden)).map(p => `<tr>${celdaTitulo(p)}<td class="tipo">${etiquetaCat(p)}</td>` +
     `<td class="vpd" data-l="Vistas por día">${celdaDias(p)}</td>` +
     COLS.map(c => `<td class="n${c[0] === orden ? ' fuerte' : ''}" data-l="${c[1]}">${celda(p, c[0])}</td>`).join('') + '</tr>').join('')
-    || '<tr><td colspan="14" class="empty">No hay publicaciones con estos filtros.</td></tr>';
+    || '<tr><td colspan="15" class="empty">No hay publicaciones con estos filtros.</td></tr>';
+}
+
+// Tabla por municipio: publicaciones, vistas típicas y compartidos por 1.000 vistas
+// Si sobra solo uno, se muestran todos
+const MAX_MUNIS = 10;
+function renderMunicipios(posts) {
+  const g = {};
+  posts.forEach(p => (g[p.lugar] = g[p.lugar] || []).push(p));
+  const filas = Object.entries(g).map(([lugar, l]) => ({ lugar: lugar, prov: l[0].prov, n: l.length, med: mediana(l.map(p => p.vistas)), cpm: cpmDe(l) }))
+    .sort((a, b) => (a.lugar === SIN_LUGAR) - (b.lugar === SIN_LUGAR) || b.n - a.n || b.med - a.med);
+  if (!filas.length) { $('pMuni').textContent = 'Sin publicaciones con estos filtros.'; $('tMuni').innerHTML = ''; return; }
+  const munis = filas.filter(f => f.lugar !== SIN_LUGAR && !f.lugar.startsWith('Toda la provincia')).length;
+  $('pMuni').innerHTML = `Publicaciones de <b>${munis} ${munis === 1 ? 'municipio' : 'municipios'}</b>, de más a menos publicaciones. ` +
+    'Con 1 o 2 publicaciones la mediana todavía dice poco. Los lugares mal detectados se corrigen en la pestaña Lugares del Sheet.';
+  const fila = f => `<tr${f.n < 3 ? ' class="poco"' : ''}><td>${esc(f.lugar)}</td><td class="pv">${f.lugar === SIN_LUGAR || f.lugar.startsWith('Toda') ? '' : esc(f.prov)}</td>` +
+    `<td class="n">${fmt(f.n)}</td><td class="n med">${fmt(f.med)}</td><td class="n">${f.cpm === null ? '—' : dec(f.cpm)}</td></tr>`;
+  const tabla = l => `<table><thead><tr><th>Lugar</th><th class="pv">Provincia</th><th class="n">Publ.</th><th class="n">Vistas típicas</th><th class="n">Compart. por 1.000</th></tr></thead><tbody>${l.map(fila).join('')}</tbody></table>`;
+  const corte = filas.length > MAX_MUNIS + 1 ? MAX_MUNIS : filas.length;
+  $('tMuni').innerHTML = tabla(filas.slice(0, corte)) +
+    (filas.length > corte ? `<details><summary>Ver los ${filas.length - corte} lugares restantes</summary>${tabla(filas.slice(corte))}</details>` : '');
 }
 
 function celda(p, k) {
+  if (k === 'cpm') return p.cpm === null ? '—' : dec(p.cpm);
   if (p[k] === null && (k === 'a2' || k === 'a7')) return '<span class="nd" title="Aún no hay historial de esta publicación a esa edad">—</span>';
   if (p[k] === null) return '<span class="nd" title="Instagram no da este dato en los reels">—</span>';
   if (k === 'reprod') return p.reprod ? p.reprod.toString().replace('.', ',') : '—';
@@ -897,7 +985,7 @@ const etiquetaCat = p => `<span class="cat"><i style="background:${colorCat(p.ca
 
 function celdaTitulo(p) {
   return `<td class="titulo"><a href="${esc(p.enlace)}">${esc(recortar(p.titulo, 90))}</a>${p.crece ? '<span class="crece">▲ En crecimiento</span>' : ''}
-    <div class="fecha">${fechaPost(p)} · ${esc(p.formato)}</div></td>`;
+    <div class="fecha">${fechaPost(p)} · ${esc(p.formato)} · ${esc(p.municipio || p.provincia || SIN_LUGAR)}</div></td>`;
 }
 
 // ---------- Historial: vistas por día de cada publicación ----------
@@ -1010,7 +1098,7 @@ function opciones(o) {
       x: { stacked: !!apilado, border: { display: false }, grid: { display: !!horizontal, color: C.grid },
         ticks: { color: C.tick, font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: horizontal ? 5 : 7, callback: function (v) { return horizontal ? corta(v) : this.getLabelForValue(v); } } },
       y: { stacked: !!apilado, border: { display: false }, grid: { display: !horizontal, color: C.grid }, beginAtZero: true,
-        ticks: { color: horizontal ? C.navy : C.tick, font: { size: 10, weight: horizontal ? '600' : '400' }, maxTicksLimit: 5, callback: function (v) { return horizontal ? this.getLabelForValue(v) : corta(Math.abs(v)); } } }
+        ticks: { color: horizontal ? C.navy : C.tick, font: { size: 10, weight: horizontal ? '600' : '400' }, maxTicksLimit: horizontal ? 20 : 5, autoSkip: !horizontal, callback: function (v) { return horizontal ? this.getLabelForValue(v) : corta(Math.abs(v)); } } }
     }
   }, o.interaction ? { interaction: o.interaction } : {});
 }
