@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel de métricas · El Reportero Ciudadano</title>
+<meta name="description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
+<meta name="robots" content="noindex">
+<!-- Solo se permite cargar código de este sitio y de cdnjs, y hablar solo con la API de Apps Script -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<base target="_blank">
+
+<!-- Vista previa al compartir (WhatsApp, Facebook, Telegram, X) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="El Reportero Ciudadano">
+<meta property="og:title" content="Panel de métricas · El Reportero Ciudadano">
+<meta property="og:description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
+<meta property="og:url" content="https://juanjosece20.github.io/reportero/">
+<meta property="og:image" content="https://juanjosece20.github.io/reportero/compartir.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Logo de El Reportero Ciudadano">
+<meta property="og:locale" content="es_CO">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Panel de métricas · El Reportero Ciudadano">
+<meta name="twitter:image" content="https://juanjosece20.github.io/reportero/compartir.png">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Identidad del Reportero */
+  --navy:#09163d;--navy2:#061236;--blue:#103db0;--red:#e8191b;--arc:#0f2266;
+  /* Paleta moderna */
+  --fondo:#f3f5fa;--card:#fff;--linea:#e4e8f2;--line:#e4e8f2;--ink:#09163d;--muted:#66708c;--texto:#2a3350;
+  --electrico:#2f5bea;--magenta:#e8458b;--naranja:#f07a2e;--gris:#8a93ab;--verde:#12a15f;--coral:#ff5a5a;--green:#12a15f;
+  --degradado:linear-gradient(160deg,#103db0 0%,#a0249a 55%,#e8191b 100%);
+  --titulo:"Bebas Neue",sans-serif;--ui:Montserrat,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --radio:14px}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--ui);background:var(--fondo);color:var(--ink);-webkit-text-size-adjust:100%}
+.in{max-width:1400px;margin:0 auto;padding:0 24px}
+
+/* Barra superior compacta */
+.barra{background:var(--card);border-bottom:1px solid var(--linea)}
+.barra .in{display:flex;align-items:center;gap:20px;padding-top:8px;padding-bottom:8px}
+.barra img{height:80px;display:block;flex:none}
+.barra-tit{display:flex;flex-direction:column;gap:2px;padding-left:20px;border-left:1px solid var(--linea)}
+.barra-tit b{font:400 26px/1 var(--titulo);letter-spacing:.6px}
+.barra-tit span{font-size:12px;color:var(--muted)}
+.tabs{display:flex;gap:4px;margin-left:auto;background:var(--fondo);border-radius:10px;padding:4px}
+.tab{font:600 13px var(--ui);background:none;border:0;color:var(--muted);padding:9px 16px;border-radius:8px;cursor:pointer}
+.tab.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(9,22,61,.12)}
+.salir{font:600 12px var(--ui);background:none;border:1px solid var(--linea);border-radius:8px;color:var(--ink);padding:8px 12px;cursor:pointer}
+.salir:hover{border-color:var(--red);color:var(--red)}
+
+/* Filtros */
+.filtros .in{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;padding-top:12px;padding-bottom:12px}
+.periodo{font-size:13px;color:var(--muted)}
+.periodo b{color:var(--ink)}
+.filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-left:auto}
+.filters input,.filters select,.chip{font:500 12px var(--ui);padding:7px 11px;border:1px solid var(--linea);border-radius:8px;background:var(--card);color:var(--ink);min-width:0}
+.chip{cursor:pointer}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.solopubs{display:none}
+
+main.in{padding-bottom:28px}
+
+/* ---------- Cuadrícula del Resumen ---------- */
+.grid{display:grid;gap:12px;grid-template-columns:250px repeat(3,minmax(0,1fr)) 290px;
+  grid-template-areas:"hoy k1 k2 k3 ins" "pub vis vis seg ins" "lle pos pos ciu ins"}
+.b{background:var(--card);border:1px solid var(--linea);border-radius:var(--radio);padding:14px 16px;min-width:0;position:relative}
+.b h3{font:400 19px/1 var(--titulo);letter-spacing:.5px;margin:0 0 10px;color:var(--ink)}
+.b h3 small{font:500 11px var(--ui);letter-spacing:0;color:var(--muted);margin-left:6px}
+.b-hoy{grid-area:hoy}.b-k1{grid-area:k1}.b-k2{grid-area:k2}.b-k3{grid-area:k3}.b-ins{grid-area:ins}
+.b-pub{grid-area:pub}.b-vis{grid-area:vis}.b-seg{grid-area:seg}.b-lle{grid-area:lle}.b-pos{grid-area:pos}.b-ciu{grid-area:ciu}
+
+/* Hoy */
+.b-hoy{background:linear-gradient(150deg,var(--navy),var(--blue));color:#fff;border:0}
+.b-hoy h3{color:#fff;display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px}
+.b-hoy h3 small{color:rgba(255,255,255,.7);margin:0;text-align:right}
+.hoy-datos{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.hd .l{font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:rgba(255,255,255,.7)}
+.hd .v{font:400 26px/1.05 var(--titulo);letter-spacing:.5px}
+.hd .v.up{color:#5fe0a0}.hd .v.down{color:#ff8a8a}
+
+/* Cifras con comparación y mini-gráfica */
+.k-lbl{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.k-val{font:400 40px/1 var(--titulo);letter-spacing:.5px;margin-top:6px}
+.k-cmp{font-size:12px;color:var(--muted);margin-top:4px;min-height:16px}
+.k-spark{height:34px;margin-top:6px}
+.k-spark svg{width:100%;height:100%;display:block}
+.up{color:var(--verde);font-weight:700}.down{color:var(--red);font-weight:700}
+
+/* Conclusiones clave */
+.b-ins{background:var(--degradado);color:#fff;border:0;padding:20px 20px 16px;display:flex;flex-direction:column}
+.b-ins h3{color:#fff;font-size:24px;display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.b-ins h3:before{content:"";width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z'/%3E%3C/svg%3E") center/16px no-repeat}
+.ins{list-style:none;margin:0;padding:0 0 0 18px;border-left:1px solid rgba(255,255,255,.35);display:flex;flex-direction:column;gap:18px;flex:1}
+.ins li{position:relative;font-size:14px;line-height:1.5}
+.ins li:before{content:"";position:absolute;left:-23px;top:.45em;width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.25)}
+.ins b{font-weight:700}
+.ins-pie{font-size:11px;color:rgba(255,255,255,.75);margin-top:16px}
+
+/* Gráficas */
+.ch{position:relative;height:190px}
+.ley{display:flex;gap:4px 14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:8px}
+.ley i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.empty{font-size:13px;color:var(--muted);padding:16px 0}
+
+/* Público */
+.pub-sexo{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.dona{position:relative;width:84px;height:84px;flex:none}
+.pub-sexo .ley{flex-direction:column;margin:0;gap:4px}
+.barras{display:flex;flex-direction:column;gap:5px}
+.barra-f{display:grid;grid-template-columns:50px minmax(0,1fr) 38px;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+.barra-f .t{height:8px;border-radius:8px;background:var(--fondo);overflow:hidden}
+.barra-f .t div{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--blue),var(--electrico))}
+.barra-f.top .t div{background:linear-gradient(90deg,var(--electrico),var(--magenta))}
+.barra-f .p{text-align:right;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.b-ciu .barra-f{grid-template-columns:minmax(70px,96px) minmax(40px,1fr) 38px;font-size:12px}
+.b-ciu .barras{gap:9px}
+.b-ciu .barra-f .t{height:10px}
+.b-ciu .barra-f span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);font-weight:500}
+
+/* Cómo llegan las vistas */
+.medidor+.medidor{margin-top:14px}
+.medidor .l{font-size:11px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.meter{display:flex;gap:2px;height:14px}
+.meter div{min-width:0}
+.meter div:first-child{border-radius:7px 0 0 7px}.meter div:last-child{border-radius:0 7px 7px 0}
+.meter div:only-child{border-radius:7px}
+
+/* Miniaturas */
+.posts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.post{text-decoration:none;color:var(--ink);min-width:0}
+.post-img{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--degradado);display:flex;align-items:center;justify-content:center;color:#fff;font:400 16px var(--titulo);letter-spacing:.5px}
+.post-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.post:hover .post-img{outline:3px solid var(--electrico);outline-offset:2px}
+.post-v{font:400 18px/1 var(--titulo);letter-spacing:.4px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.post-v small{display:block;font:500 10px var(--ui);letter-spacing:0;color:var(--muted);margin-top:2px}
+.post-m{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden}
+.post-m i{width:7px;height:7px;border-radius:50%;flex:none}
+
+/* ---------- Pestaña Publicaciones ---------- */
+.pubs-in{padding-top:6px}
+.portada{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:32px;padding-bottom:22px;border-bottom:1px solid var(--linea)}
+.antetitulo{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--red);margin-bottom:6px}
+.titular{font:400 34px/1 var(--titulo);letter-spacing:.5px;margin:0 0 14px;color:var(--ink)}
+.puntos{list-style:none;margin:0;padding:0}
+.puntos li{position:relative;padding:0 0 10px 20px;font-size:15px;line-height:1.55;color:var(--texto)}
+.puntos li:before{content:"";position:absolute;left:0;top:.55em;width:8px;height:8px;border-radius:2px;background:var(--red)}
+.puntos b{color:var(--ink);font-weight:700}
+.cifra{container-type:inline-size;border-left:1px solid var(--linea);padding-left:28px;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.cifra-n{font:400 clamp(52px,24cqi,112px)/.9 var(--titulo);color:var(--navy);letter-spacing:1px;border-top:6px solid var(--red);padding-top:12px;white-space:nowrap}
+.cifra-l{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink);margin-top:8px}
+.cifra-c{font-size:13px;line-height:1.45;color:var(--muted);margin-top:6px}
+.encifras{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));border-bottom:1px solid var(--linea);margin-bottom:8px}
+.dato{padding:16px 18px 16px 0;min-width:0}
+.dato+.dato{border-left:1px solid var(--linea);padding-left:18px}
+.lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.val{font:400 38px/1 var(--titulo);letter-spacing:.5px;margin-top:6px;color:var(--ink)}
+.note{font-size:12px;line-height:1.4;color:var(--muted);margin-top:4px}
+.notas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 32px}
+.nota{border-top:2px solid var(--navy);padding:14px 0 26px;margin-top:20px;min-width:0}
+.nota.ancha{grid-column:span 2}
+.nota h3{font:400 24px/1.05 var(--titulo);letter-spacing:.5px;margin:0 0 6px;color:var(--ink)}
+.nota p{font-size:13px;line-height:1.55;color:var(--texto);margin:0 0 14px}
+.nota p b{color:var(--ink)}
+.chart{position:relative;height:230px}
+.cintillo{display:flex;align-items:center;gap:12px;font:400 28px/1 var(--titulo);letter-spacing:.6px;margin:30px 0 4px;color:var(--ink)}
+.cintillo:after{content:"";flex:1;border-top:1px solid var(--navy)}
+.sub2{font-size:13px;color:var(--muted);margin:6px 0 10px}
+.cat{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap}
+.cat i{width:9px;height:9px;border-radius:50%;flex:none}
+.ordenar{display:none;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.ordenar select{font:500 13px var(--ui);padding:7px 10px;border:1px solid var(--linea);border-radius:8px;background:#fff;color:var(--ink);margin-left:6px}
+.tbl{overflow-x:auto;background:var(--card);border:1px solid var(--linea);border-radius:var(--radio);padding:4px 12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--ink);font-weight:700;font-size:10px;letter-spacing:.8px;text-transform:uppercase;padding:10px 8px;white-space:nowrap;border-bottom:2px solid var(--navy)}
+th.s{cursor:pointer}
+th.s:hover{color:var(--blue)}
+th.act{color:var(--red)}
+th.act:after{content:" ▼"}
+td{padding:12px 8px;border-bottom:1px solid var(--linea);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+td.fuerte{font-weight:700}
+.nd{color:var(--muted)}
+.titulo{min-width:260px}
+.titulo a{font-size:13px;font-weight:600;line-height:1.4;color:var(--ink);text-decoration:none}
+.titulo a:hover{color:var(--blue);text-decoration:underline}
+.fecha{font-size:12px;color:var(--muted);margin-top:4px}
+.crece{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#fff;background:var(--red);border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:1px;white-space:nowrap}
+/* Vistas por día */
+td.vpd{min-width:140px}
+.dias summary{list-style:none;cursor:pointer;display:flex;align-items:flex-end;gap:8px}
+.dias summary::-webkit-details-marker{display:none}
+.dias summary span{font-size:11px;color:var(--muted);white-space:nowrap}
+.dias summary:hover span{color:var(--blue)}
+.dias ul{list-style:none;margin:8px 0 0;padding:0 6px 0 0;font-size:12px;max-width:230px;max-height:240px;overflow-y:auto}
+.dias li{display:flex;justify-content:space-between;gap:12px;padding:2px 0;color:var(--muted)}
+.dias li b{color:var(--ink);font-variant-numeric:tabular-nums}
+.minib{display:block;flex:none}
+.sinh{font-size:11px;color:var(--muted)}
+/* Publicaciones en crecimiento */
+.alertas{margin:20px 0 4px;background:var(--card);border:1px solid var(--linea);border-left:5px solid var(--red);border-radius:var(--radio);padding:16px 18px 6px}
+.alertas h3{font:400 24px/1 var(--titulo);letter-spacing:.5px;margin:0 0 4px;color:var(--ink)}
+.alertas>p{font-size:13px;line-height:1.45;color:var(--muted);margin:0 0 8px}
+.alerta{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--linea);text-decoration:none;color:var(--ink)}
+.alerta-img{position:relative;width:56px;height:56px;border-radius:10px;overflow:hidden;background:var(--degradado)}
+.alerta-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.alerta-t{font-size:13px;font-weight:600;line-height:1.35}
+.alerta:hover .alerta-t{color:var(--blue);text-decoration:underline}
+.alerta-m{font-size:12px;line-height:1.4;color:var(--muted);margin-top:3px}
+.alerta-v{text-align:right;font:400 30px/1 var(--titulo);letter-spacing:.5px;color:var(--red);white-space:nowrap}
+.alerta-v small{display:block;font:600 10px var(--ui);letter-spacing:.4px;color:var(--muted);margin-top:2px}
+
+#estado{padding:60px 20px;text-align:center;font-size:15px;color:var(--muted)}
+footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-align:center;padding:16px;border-top:4px solid var(--red)}
+
+/* Inicio de sesión */
+#login{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:20px;overflow:auto;background:repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 2px,transparent 2px 14px),linear-gradient(180deg,var(--navy),var(--navy2))}
+#login:before,#login:after{content:"";position:absolute;border:10px solid var(--arc);border-radius:50%;pointer-events:none}
+#login:before{width:420px;height:420px;right:-120px;top:-60px;border-left-color:transparent;border-bottom-color:transparent}
+#login:after{width:520px;height:520px;left:-260px;bottom:-160px;border-right-color:transparent;border-top-color:transparent}
+#login form{position:relative;z-index:1;background:#fff;border-top:6px solid var(--red);border-radius:10px;padding:28px 26px;width:100%;max-width:360px}
+#login img{height:80px;display:block;margin:0 auto 14px}
+#login h1{font-family:var(--titulo);font-weight:400;font-size:28px;letter-spacing:.5px;text-align:center;margin:0 0 18px;color:var(--ink)}
+#login label{display:block;font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+#login input{font:inherit;font-size:15px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;color:var(--ink)}
+#login input:focus{outline:2px solid var(--blue);outline-offset:-1px;border-color:var(--blue)}
+#login button{font:inherit;font-size:14px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;width:100%;margin-top:20px;padding:12px;border:0;border-radius:6px;background:var(--red);color:#fff;cursor:pointer}
+#login button:disabled{opacity:.6;cursor:wait}
+#loginError{font-size:13px;color:var(--red);font-weight:600;text-align:center;margin-top:12px;min-height:18px}
+
+/* Escritorio con poca altura (p. ej. 1280×800): compactar para que quepa en una pantalla */
+@media (min-width:1200px) and (max-height:880px){
+  .barra .in{padding-top:4px;padding-bottom:4px}
+  .filtros .in{padding-top:8px;padding-bottom:8px}
+  .grid{gap:10px}
+  .b{padding:12px 14px}
+  .b h3{margin-bottom:8px}
+  .k-val{font-size:34px}
+  .k-spark{height:24px;margin-top:4px}
+  .hd .v{font-size:22px}
+  .ch{height:150px}
+  .b-seg .ch{height:128px!important}
+  .dona{width:68px;height:68px}
+  .pub-sexo{margin-bottom:6px}
+  .barras{gap:3px}
+  .b-ciu .barras{gap:7px}
+  .medidor+.medidor{margin-top:10px}
+  .posts{gap:8px}
+  .ins{gap:14px}
+}
+
+/* Pantallas medianas: dos columnas */
+@media (max-width:1199px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:none;grid-auto-flow:dense}
+  .grid>.b{grid-area:auto}
+  .grid>.b-ins,.grid>.b-vis,.grid>.b-pos{grid-column:span 2}
+  .portada{grid-template-columns:1fr;gap:20px}
+  .cifra{border-left:0;padding-left:0}
+  .cifra-n{font-size:clamp(52px,18cqi,104px)}
+  .notas{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:dense}
+  .notas .nota:last-child:nth-child(odd){grid-column:span 2}
+}
+/* Celular: una columna */
+@media (max-width:760px){
+  .in{padding:0 16px}
+  .barra .in{flex-wrap:wrap;justify-content:center;gap:10px;position:relative;padding-top:12px}
+  .barra img{height:88px}
+  .barra-tit{border-left:0;padding-left:0;align-items:center;text-align:center;width:100%}
+  .tabs{margin:0 auto}
+  .salir{position:absolute;top:10px;right:16px;padding:6px 10px}
+  .filters{margin-left:0}
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .grid>.b-ins,.grid>.b-vis,.grid>.b-pos{grid-column:auto}
+  .posts{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .encifras{grid-template-columns:1fr 1fr}
+  .dato{padding:14px 12px 14px 0}
+  .dato+.dato{padding-left:12px}
+  .dato:nth-child(odd){border-left:0;padding-left:0}
+  .dato:nth-child(n+3){border-top:1px solid var(--linea)}
+  .val{font-size:32px}
+  .notas{grid-template-columns:1fr}
+  .nota.ancha,.notas .nota:last-child:nth-child(odd){grid-column:auto}
+  .ordenar{display:block}
+  #subTabla{display:none}
+  .tbl{overflow:visible;background:none;border:0;padding:0}
+  .tablaP thead{display:none}
+  .tablaP,.tablaP tbody{display:block}
+  .tablaP tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 12px;padding:14px;margin-bottom:10px;background:var(--card);border:1px solid var(--linea);border-radius:12px}
+  .tablaP td{padding:0;border:0;text-align:left;min-width:0}
+  .tablaP td.titulo,.tablaP td.tipo,.tablaP td.vpd{grid-column:1/-1}
+  .alerta{grid-template-columns:48px minmax(0,1fr);gap:4px 12px}
+  .alerta-img{width:48px;height:48px;grid-row:span 2}
+  .alerta-v{text-align:left;font-size:24px}
+  .alerta-v small{display:inline;margin-left:6px}
+  .tablaP td[data-l]:before{content:attr(data-l);display:block;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+}
+</style>
+</head>
+<body>
+<header class="barra"><div class="in">
+  <img id="logo" src="data:image/png;base64,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" alt="El Reportero Ciudadano">
+  <div class="barra-tit"><b>Panel de métricas</b><span>Instagram · @elreporterosantander</span></div>
+  <div class="tabs">
+    <button class="tab on" data-t="general">Resumen</button>
+    <button class="tab" data-t="pubs">Publicaciones</button>
+  </div>
+  <button class="salir" id="salir" type="button">Cerrar sesión</button>
+</div></header>
+
+<div id="login">
+  <form id="loginForm" autocomplete="on">
+    <img id="loginLogo" alt="El Reportero Ciudadano">
+    <h1>Panel de métricas</h1>
+    <label for="loginUsuario">Usuario</label>
+    <input id="loginUsuario" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+    <label for="loginClave">Clave</label>
+    <input id="loginClave" name="password" type="password" autocomplete="current-password" required>
+    <button type="submit" id="loginBtn">Entrar</button>
+    <div id="loginError"></div>
+  </form>
+</div>
+
+<nav class="filtros"><div class="in">
+  <div class="periodo" id="periodoTxt"></div>
+  <div class="filters">
+    <button class="chip" data-r="30">30 días</button>
+    <button class="chip" data-r="7">7 días</button>
+    <button class="chip" data-r="mes">Este mes</button>
+    <input type="date" id="desde" aria-label="Desde"> <input type="date" id="hasta" aria-label="Hasta">
+    <select id="cat" class="solopubs" aria-label="Tipo de noticia"></select>
+    <select id="form" class="solopubs" aria-label="Formato"></select>
+  </div>
+</div></nav>
+
+<main class="in">
+  <div id="estado">Cargando datos…</div>
+
+  <section id="general" style="display:none">
+    <div class="grid">
+      <div class="b b-hoy"><h3>Hoy <small id="hoyHora"></small></h3><div class="hoy-datos" id="hoyDatos"></div></div>
+      <div class="b b-k1" id="kVistas"></div>
+      <div class="b b-k2" id="kSeg"></div>
+      <div class="b b-k3" id="kInter"></div>
+      <div class="b b-ins"><h3>Conclusiones clave</h3><ul class="ins" id="ins"></ul><div class="ins-pie" id="insPie"></div></div>
+      <div class="b b-vis"><h3>Vistas de la cuenta por día <small id="visNota"></small></h3><div class="ch"><canvas id="cVistasDia"></canvas></div></div>
+      <div class="b b-seg"><h3>Seguidores ganados y perdidos</h3><div class="ch" style="height:168px"><canvas id="cSegDia"></canvas></div>
+        <div class="ley"><span><i style="background:#12a15f"></i>Nuevos</span><span><i style="background:#e8191b"></i>Dejaron de seguir</span></div></div>
+      <div class="b b-pub"><h3>Público <small>total de seguidores</small></h3>
+        <div class="pub-sexo"><div class="dona"><canvas id="cSexo"></canvas></div><div class="ley" id="leySexo"></div></div>
+        <div class="barras" id="edad"></div></div>
+      <div class="b b-lle"><h3>Cómo llegan las vistas</h3><div id="llegada"></div></div>
+      <div class="b b-pos"><h3>Lo más visto <small>publicadas en el periodo · vistas acumuladas</small></h3><div class="posts" id="top5"></div></div>
+      <div class="b b-ciu"><h3>Principales ciudades</h3><div class="barras" id="ciudades"></div></div>
+    </div>
+  </section>
+
+  <section id="pubs" class="pubs-in" style="display:none">
+    <div class="portada">
+      <div>
+        <div class="antetitulo" id="pAnte"></div>
+        <h1 class="titular">Publicaciones del periodo</h1>
+        <ul class="puntos" id="pPuntos"></ul>
+      </div>
+      <aside class="cifra">
+        <div class="cifra-n" id="pCifra"></div>
+        <div class="cifra-l">vistas acumuladas promedio por publicación</div>
+        <div class="cifra-c" id="pCifraC"></div>
+      </aside>
+    </div>
+    <div class="alertas" id="alertas" style="display:none"></div>
+    <div class="encifras" id="kpisP"></div>
+
+    <div class="notas">
+      <article class="nota"><h3>Vistas promedio por tipo de noticia</h3><p id="pCat"></p>
+        <div class="chart"><canvas id="cCat"></canvas></div></article>
+      <article class="nota ancha"><h3>Vistas promedio por formato</h3><p id="pForm"></p>
+        <div class="chart"><canvas id="cForm"></canvas></div></article>
+    </div>
+
+    <h2 class="cintillo">Todas las publicaciones</h2>
+    <div class="sub2" id="subTabla">Haz clic en el título de una columna para ordenar. «Vistas por día»: cuántas vistas ganó cada día (toca las barras para ver el detalle). «—»: Instagram no da ese dato en los reels.</div>
+    <label class="ordenar">Ordenar por<select id="ordenSel"></select></label>
+    <div class="tbl"><table class="tablaP">
+      <thead><tr id="thP"></tr></thead>
+      <tbody id="tablaP"></tbody>
+    </table></div>
+  </section>
+</main>
+<footer>El Reportero Ciudadano · Datos de Instagram: el bloque «Hoy» se actualiza cada hora y el resto cada 4 horas</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const CATEGORIAS = [
+  { nombre: 'Denuncia', claves: ['DENUNCIA'], color: '#e8191b' },
+  { nombre: 'Queja', claves: ['QUEJA', 'RECLAMO'], color: '#d48800' },
+  { nombre: 'Buena noticia', claves: ['BUENANOTICIA', 'BUENASNOTICIAS', 'POSITIV', 'ORGULLO'], color: '#14935f' }
+];
+const OTRA = { nombre: 'Sin clasificar', color: '#8a93ab' };
+const C = { navy: '#09163d', blue: '#103db0', red: '#e8191b', electrico: '#2f5bea', magenta: '#e8458b', naranja: '#f07a2e', gray: '#8a93ab', verde: '#12a15f', grid: '#edf0f6', tick: '#66708c' };
+const COLS = [
+  ['vistas', 'Vistas'], ['alcance', 'Alcance'], ['likes', 'Likes'], ['comentarios', 'Coment.'],
+  ['compartidos', 'Compart.'], ['guardados', 'Guard.'], ['segGanados', 'Seg. ganados'], ['visitas', 'Visitas perfil'], ['reprod', 'Reprod. (s)']
+];
+// Cómo se nombran en una frase
+const PLURAL = { 'Denuncia': 'las denuncias', 'Queja': 'las quejas', 'Buena noticia': 'las buenas noticias', 'Sin clasificar': 'las publicaciones sin clasificar',
+  'Reel': 'los reels', 'Carrusel': 'los carruseles', 'Imagen': 'las imágenes', 'Video': 'los videos' };
+const TIPOS_VISTA = { 'Reels': 'los reels', 'Publicaciones': 'las fotos y carruseles', 'Historias': 'las historias', 'Otras': 'otros formatos' };
+
+// Alerta "En crecimiento": el último día gana al menos MULT_CRECE veces lo normal para su edad y al menos MIN_CRECE vistas
+const MULT_CRECE = 3, MIN_CRECE = 1000, MIN_MUESTRAS = 5, DIAS_BARRAS = 14;
+
+let D = null, charts = {}, tab = 'general', orden = 'vistas', nSpark = 0;
+const $ = id => document.getElementById(id);
+const fmt = n => Math.round(n).toLocaleString('es-CO');
+const corta = n => n >= 1e6 ? String(Math.round(n / 1e5) / 10).replace('.', ',') + ' M' : n >= 1000 ? String(Math.round(n / 100) / 10).replace('.', ',') + ' mil' : fmt(n);
+const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+const norm = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+const ymd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const colorCat = n => (CATEGORIAS.find(c => c.nombre === n) || OTRA).color;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const sum = (arr, k) => arr.reduce((a, x) => a + (x[k] || 0), 0);
+const mayus = s => s.charAt(0).toUpperCase() + s.slice(1);
+const nombre = k => PLURAL[k] || k.toLowerCase();
+const puntos = l => l.map(x => `<li>${x}</li>`).join('');
+if (window.Chart) Chart.defaults.font.family = 'Montserrat, system-ui, sans-serif';
+
+function categoria(p) {
+  const t = norm(p.hashtags);
+  for (const c of CATEGORIAS) if (c.claves.some(k => t.includes(k))) return c.nombre;
+  return OTRA.nombre;
+}
+
+// ---------- Frases a partir de los datos ----------
+// "2,4 veces más vistas que" / "un 60 % más de vistas que"
+function comparar(r) {
+  if (r >= 1.95) return (r >= 10 ? String(Math.round(r)) : String(Math.round(r * 10) / 10).replace('.', ',')) + ' veces más vistas que';
+  if (r >= 1.1) return 'un ' + Math.round((r - 1) * 100) + ' % más de vistas que';
+  return 'casi las mismas vistas que';
+}
+
+// Grupo con más y con menos vistas promedio (solo grupos con 2 o más publicaciones)
+function extremos(posts, clave, excluir) {
+  const g = {};
+  posts.forEach(p => { if (p[clave] !== excluir) (g[p[clave]] = g[p[clave]] || []).push(p.vistas); });
+  const l = Object.entries(g).filter(([, v]) => v.length >= 2).map(([k, v]) => ({ k, prom: v.reduce((a, b) => a + b, 0) / v.length }))
+    .sort((a, b) => b.prom - a.prom);
+  if (l.length < 2 || !l[l.length - 1].prom) return null;
+  return { top: l[0].k, ult: l[l.length - 1].k, r: l[0].prom / l[l.length - 1].prom };
+}
+const fraseComp = (prefijo, x) => `${prefijo}${nombre(x.top)} tuvieron <b>${comparar(x.r)}</b> ${nombre(x.ult)}.`;
+
+// ---------- Servidor (Apps Script) ----------
+// Se envía como texto plano para evitar la consulta previa de CORS. La ficha y la clave van en el cuerpo, nunca en la URL.
+const API = 'https://script.google.com/macros/s/AKfycbw8pU8hu-lguAs51WtIY1GqwZjxXT1-Y_b19JVccuctVAHt6JMwEZ8RdppMWUjjmUef/exec';
+async function api(cuerpo) {
+  let r;
+  try {
+    const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(cuerpo), credentials: 'omit' });
+    r = await res.json();
+  } catch (e) { throw new Error('No hay conexión con el servidor. Revisa tu internet e intenta de nuevo.'); }
+  if (!r.ok) throw new Error(r.error);
+  return r.datos;
+}
+
+// ---------- Sesión ----------
+const CLAVE_FICHA = 'rc_ficha';
+const leerFicha = () => { try { return localStorage.getItem(CLAVE_FICHA); } catch (e) { return null; } };
+const guardarFicha = f => { try { localStorage.setItem(CLAVE_FICHA, f); } catch (e) { } };
+const borrarFicha = () => { try { localStorage.removeItem(CLAVE_FICHA); } catch (e) { } };
+let ficha = leerFicha();
+
+$('loginLogo').src = $('logo').src;
+
+function mostrarLogin(msg) {
+  D = null;
+  $('general').style.display = $('pubs').style.display = 'none';
+  $('estado').style.display = 'block'; $('estado').textContent = 'Cargando datos…';
+  $('loginError').textContent = msg || '';
+  $('loginBtn').disabled = false;
+  $('login').style.display = 'flex';
+  $('loginUsuario').focus();
+}
+
+function cargarDatos() {
+  api({ accion: 'datos', ficha: ficha })
+    .then(d => { D = d; $('login').style.display = 'none'; preparar(); })
+    .catch(e => {
+      if (String(e.message).indexOf('SESION_INVALIDA') >= 0) { borrarFicha(); ficha = null; mostrarLogin('Tu sesión terminó. Vuelve a entrar.'); }
+      else $('estado').textContent = 'No se pudieron cargar los datos: ' + e.message;
+    });
+}
+
+$('loginForm').onsubmit = ev => {
+  ev.preventDefault();
+  $('loginBtn').disabled = true; $('loginError').textContent = '';
+  api({ accion: 'login', usuario: $('loginUsuario').value, clave: $('loginClave').value })
+    .then(r => { ficha = r.ficha; guardarFicha(ficha); $('loginClave').value = ''; cargarDatos(); })
+    .catch(e => { $('loginBtn').disabled = false; $('loginError').textContent = e.message; $('loginClave').value = ''; $('loginClave').focus(); });
+};
+
+$('salir').onclick = () => { borrarFicha(); ficha = null; mostrarLogin(); };
+
+if (ficha) cargarDatos(); else mostrarLogin();
+
+function preparar() {
+  D.posts.forEach(p => {
+    const d = new Date(p.f);
+    p.dia = ymd(d); p.fechaObj = d; p.cat = categoria(p);
+    p.inter = p.interacciones || (p.likes + p.comentarios + p.compartidos + p.guardados);
+    p.titulo = (p.texto.split('\n').find(l => l.trim()) || '(sin texto)').trim();
+  });
+  const H = D.historial || {};
+  D.posts.forEach(p => p.diario = diario(p, H[p.id] || []));
+  calcularCrecimiento();
+  D.seguidores.sort((a, b) => a.f < b.f ? -1 : 1);
+  D.cuenta.sort((a, b) => a.f < b.f ? -1 : 1);
+
+  $('cat').innerHTML = ['Todas las noticias'].concat(CATEGORIAS.map(c => c.nombre), OTRA.nombre).map(x => `<option>${x}</option>`).join('');
+  $('form').innerHTML = ['Todos los formatos'].concat([...new Set(D.posts.map(p => p.formato))].sort()).map(x => `<option>${esc(x)}</option>`).join('');
+  $('thP').innerHTML = '<th>Publicación</th><th>Tipo</th><th>Vistas por día</th>' + COLS.map(c => `<th class="n s" data-k="${c[0]}">${c[1]}</th>`).join('');
+  document.querySelectorAll('#thP th.s').forEach(th => th.onclick = () => { orden = th.dataset.k; render(); });
+  $('ordenSel').innerHTML = COLS.map(c => `<option value="${c[0]}">${c[1]}</option>`).join('');
+  $('ordenSel').onchange = () => { orden = $('ordenSel').value; render(); };
+
+  document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
+    tab = b.dataset.t;
+    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b));
+    render();
+  });
+  document.querySelectorAll('.chip[data-r]').forEach(b => b.onclick = () => rango(b.dataset.r));
+  ['desde', 'hasta', 'cat', 'form'].forEach(id => $(id).onchange = () => { if (id === 'desde' || id === 'hasta') marcar(null); render(); });
+
+  $('estado').style.display = 'none';
+  renderHoy();
+  rango('30');
+}
+
+// "Últimos N días" termina ayer, igual que en Instagram
+function rango(r) {
+  const hoy = new Date(), ayer = new Date(hoy.getTime() - 864e5);
+  let desde, hasta = ayer;
+  if (r === 'mes') { desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1); hasta = hoy; }
+  else desde = new Date(ayer.getTime() - (Number(r) - 1) * 864e5);
+  $('desde').value = ymd(desde); $('hasta').value = ymd(hasta);
+  marcar(r); render();
+}
+function marcar(r) { document.querySelectorAll('.chip[data-r]').forEach(b => b.classList.toggle('on', b.dataset.r === r)); }
+
+function render() {
+  $('general').style.display = tab === 'general' ? 'block' : 'none';
+  $('pubs').style.display = tab === 'pubs' ? 'block' : 'none';
+  document.querySelectorAll('.solopubs').forEach(e => e.style.display = tab === 'pubs' ? 'inline-block' : 'none');
+  const desde = $('desde').value, hasta = $('hasta').value;
+  $('periodoTxt').innerHTML = `Periodo: <b>${periodo(desde, hasta)}</b> · ${diasEntre(desde, hasta)} días`;
+  const posts = D.posts.filter(p => p.dia >= desde && p.dia <= hasta);
+  if (tab === 'general') renderGeneral(desde, hasta, posts); else renderPubs(desde, hasta, posts);
+}
+
+// Bloque "Hoy": no depende de los filtros de fecha
+function renderHoy() {
+  const hoy = D.hoy, ayer = ymd(new Date(new Date(hoy + 'T12:00') - 864e5));
+  const sHoy = D.seguidores.find(s => s.f === hoy), sAyer = D.seguidores.find(s => s.f === ayer);
+  const cHoy = D.cuenta.find(c => c.f === hoy);
+  const total = D.seguidores[D.seguidores.length - 1];
+  // Comparado con la última lectura de ayer (se toma cada hora)
+  const ganados = sHoy && sAyer ? sHoy.n - sAyer.n : null;
+  const pubsHoy = sHoy && sAyer ? Math.max(0, sHoy.pubs - sAyer.pubs) : D.posts.filter(p => p.dia === hoy).length;
+  const hd = (l, v, cls) => `<div class="hd"><div class="l">${l}</div><div class="v ${cls || ''}">${v}</div></div>`;
+  $('hoyDatos').innerHTML =
+    hd('Vistas', cHoy ? fmt(cHoy.vistas) : '—') +
+    hd('Seguidores', ganados === null ? '—' : (ganados >= 0 ? '+' : '−') + fmt(Math.abs(ganados)), ganados === null ? '' : ganados >= 0 ? 'up' : 'down') +
+    hd('Publicaciones', fmt(pubsHoy)) +
+    hd('Total seguidores', total ? fmt(total.n) : '—');
+  const a = D.actualizado ? new Date(D.actualizado) : null;
+  const zona = { timeZone: 'America/Bogota' };
+  $('hoyHora').textContent = !a ? 'Sin registro de actualización'
+    : 'Actualizado ' + (a.toLocaleDateString('en-CA', zona) === hoy ? '' : a.toLocaleDateString('es-CO', Object.assign({ day: 'numeric', month: 'short' }, zona)) + ' ')
+      + a.toLocaleTimeString('es-CO', Object.assign({ hour: 'numeric', minute: '2-digit' }, zona));
+}
+
+const SIN_DATOS = 'Sin datos en este periodo.';
+const diasEntre = (desde, hasta) => Math.round((new Date(hasta + 'T12:00') - new Date(desde + 'T12:00')) / 864e5) + 1;
+const periodo = (desde, hasta) => corto(desde) + ' – ' + corto(hasta);
+
+// Mini-gráfica de tendencia (área con degradado)
+function spark(vals, color) {
+  if (vals.length < 2) return '';
+  const max = Math.max(...vals), min = Math.min(0, ...vals), r = (max - min) || 1;
+  const linea = vals.map((v, i) => (i ? 'L' : 'M') + (i / (vals.length - 1) * 100).toFixed(2) + ' ' + (29 - (v - min) / r * 27).toFixed(2)).join(' ');
+  const id = 'sp' + (++nSpark);
+  return `<svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1">
+    <stop offset="0" stop-color="${color}" stop-opacity=".35"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${linea} L100 30 L0 30Z" fill="url(#${id})"/><path d="${linea}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+// ▲ verde / ▼ rojo frente al periodo anterior
+function compara(actual, anterior, dias, absoluto) {
+  if (anterior === null) return 'Sin periodo anterior para comparar';
+  const d = absoluto ? actual - anterior : (anterior ? (actual - anterior) / anterior * 100 : null);
+  if (d === null) return '';
+  const txt = absoluto ? fmt(Math.abs(d)) : Math.abs(Math.round(d)) + ' %';
+  return `<span class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '▲' : '▼'} ${txt}</span> vs. ${dias} días anteriores`;
+}
+const kpi = (lbl, val, cmp, sp) => `<div class="k-lbl">${lbl}</div><div class="k-val">${val}</div><div class="k-cmp">${cmp}</div><div class="k-spark">${sp}</div>`;
+
+const barrasHTML = (filas, total, nombreFn) => {
+  const max = Math.max(...filas.map(x => x.n));
+  return filas.map(x => `<div class="barra-f${x.n === max ? ' top' : ''}"><span>${esc(nombreFn(x))}</span>
+  <div class="t"><div style="width:${max ? x.n / max * 100 : 0}%"></div></div><span class="p">${pct(x.n, total)} %</span></div>`).join('');
+};
+
+function medidor(titulo, partes) {
+  const tot = partes.reduce((a, p) => a + p[1], 0);
+  if (!tot) return '';
+  return `<div class="medidor"><div class="l">${titulo}</div><div class="meter">` +
+    partes.filter(p => p[1] > 0).map(p => `<div style="width:${p[1] / tot * 100}%;background:${p[2]}" title="${esc(p[0])}: ${fmt(p[1])}"></div>`).join('') + '</div>' +
+    '<div class="ley">' + partes.filter(p => p[1] > 0).map(p => `<span><i style="background:${p[2]}"></i>${esc(p[0])} ${pct(p[1], tot)} %</span>`).join('') + '</div></div>';
+}
+
+function renderGeneral(desde, hasta, posts) {
+  const cu = D.cuenta.filter(c => c.f >= desde && c.f <= hasta);
+  const dias = diasEntre(desde, hasta);
+  const nuevos = sum(cu, 'nuevos'), perdidos = sum(cu, 'perdidos'), neto = nuevos - perdidos;
+  const vistas = sum(cu, 'vistas'), vSeg = sum(cu, 'vSeg'), vNoSeg = sum(cu, 'vNoSeg'), inter = sum(cu, 'interacciones');
+
+  // Mismo número de días justo antes, solo si hay datos de todos esos días
+  const inicio = new Date(desde + 'T12:00');
+  const pDesde = ymd(new Date(inicio - dias * 864e5)), pHasta = ymd(new Date(inicio - 864e5));
+  const cuPrev = D.cuenta.filter(c => c.f >= pDesde && c.f <= pHasta);
+  const ant = k => cuPrev.length >= dias ? sum(cuPrev, k) : null;
+  const vPrev = ant('vistas'), netoPrev = ant('nuevos') === null ? null : ant('nuevos') - ant('perdidos');
+
+  $('kVistas').innerHTML = kpi('Vistas de la cuenta', fmt(vistas), compara(vistas, vPrev, dias), spark(cu.map(c => c.vistas), C.electrico));
+  $('kSeg').innerHTML = kpi('Seguidores netos', (neto >= 0 ? '+' : '−') + fmt(Math.abs(neto)), compara(neto, netoPrev, dias, true), spark(cu.map(c => c.nuevos - c.perdidos), C.verde));
+  $('kInter').innerHTML = kpi('Interacciones', fmt(inter), compara(inter, ant('interacciones'), dias), spark(cu.map(c => c.interacciones), C.magenta));
+
+  // Conclusiones clave (de 3 a 5 frases)
+  const tipos = [['Reels', sum(cu, 'reels'), C.electrico], ['Fotos y carruseles', sum(cu, 'pubs'), C.magenta], ['Historias', sum(cu, 'historias'), C.naranja], ['Otras', sum(cu, 'otras'), C.gray]];
+  const totT = tipos.reduce((a, t) => a + t[1], 0);
+  const topT = tipos.slice().sort((a, b) => b[1] - a[1])[0];
+  const mejor = cu.reduce((m, c) => (!m || c.vistas > m.vistas) ? c : m, null);
+  const cc = extremos(posts, 'cat', OTRA.nombre);
+  const ins = [];
+  if (vPrev) ins.push(`Las vistas de la cuenta ${vistas >= vPrev ? 'subieron' : 'bajaron'} <b>${Math.abs(Math.round((vistas - vPrev) / vPrev * 100))} %</b> frente a los ${dias} días anteriores.`);
+  else if (vistas) ins.push(`La cuenta sumó <b>${fmt(vistas)} vistas</b> en ${dias} días.`);
+  if (cc) ins.push(fraseComp('Por publicación, ', cc));
+  if (totT) ins.push(`${mayus(TIPOS_VISTA[topT[0]] || 'los ' + topT[0].toLowerCase())} concentran el <b>${pct(topT[1], totT)} %</b> de las vistas de la cuenta.`);
+  if (vSeg + vNoSeg) ins.push(`<b>${Math.round(vNoSeg / (vSeg + vNoSeg) * 10)} de cada 10</b> vistas vienen de personas que no siguen la cuenta.`);
+  if (mejor && mejor.vistas) ins.push(`Mejor día de la cuenta: <b>${diaMes(mejor.f)}</b>, con ${fmt(mejor.vistas)} vistas en total ese día.`);
+  $('ins').innerHTML = ins.length ? puntos(ins.slice(0, 5)) : `<li>${SIN_DATOS}</li>`;
+  $('insPie').textContent = 'Generadas con los datos de ' + periodo(desde, hasta) + '.';
+
+  // Vistas por día: línea con área en degradado; el mejor día en rojo
+  $('visNota').textContent = cu.length ? 'promedio ' + fmt(vistas / cu.length) + ' al día' : '';
+  const iMejor = cu.indexOf(mejor);
+  grafica('cVistasDia', {
+    type: 'line',
+    data: { labels: cu.map(c => corto(c.f)), datasets: [{
+      data: cu.map(c => c.vistas), borderColor: C.electrico, borderWidth: 2, tension: .35, fill: true,
+      backgroundColor: degradado('rgba(47,91,234,.32)', 'rgba(47,91,234,0)'),
+      pointRadius: cu.map((c, i) => i === iMejor ? 5 : 0), pointHoverRadius: 5,
+      pointBackgroundColor: cu.map((c, i) => i === iMejor ? C.red : C.electrico), pointBorderColor: '#fff', pointBorderWidth: 2 }] },
+    options: opciones({ interaction: { mode: 'index', intersect: false } })
+  });
+
+  // Seguidores ganados (arriba) y perdidos (abajo)
+  grafica('cSegDia', {
+    type: 'bar',
+    data: { labels: cu.map(c => corto(c.f)), datasets: [
+      { data: cu.map(c => c.nuevos), backgroundColor: C.verde, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 12 },
+      { data: cu.map(c => -c.perdidos), backgroundColor: C.red, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 12 }] },
+    options: opciones({ apilado: true })
+  });
+
+  // Público
+  const pub = t => D.publico.filter(x => x.tipo === t);
+  const sx = pub('Sexo').sort((a, b) => b.n - a.n), totS = sum(sx, 'n');
+  const colSexo = { Mujer: C.magenta, Hombre: C.electrico };
+  if (sx.length) {
+    grafica('cSexo', {
+      type: 'doughnut',
+      data: { labels: sx.map(x => x.valor), datasets: [{ data: sx.map(x => x.n), backgroundColor: sx.map(x => colSexo[x.valor] || C.gray), borderColor: '#fff', borderWidth: 2, borderRadius: 4 }] },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false }, tooltip: tooltip() } }
+    });
+    $('leySexo').innerHTML = sx.map(x => `<span><i style="background:${colSexo[x.valor] || C.gray}"></i>${esc(x.valor)} <b>${pct(x.n, totS)} %</b></span>`).join('');
+  } else $('leySexo').innerHTML = '<span>Meta entrega el sexo de los seguidores cuando la cuenta supera 100.</span>';
+  const edad = pub('Edad').sort((a, b) => a.valor < b.valor ? -1 : 1);
+  $('edad').innerHTML = edad.length ? barrasHTML(edad, sum(edad, 'n'), x => x.valor) : '<div class="empty">Sin datos de edad.</div>';
+
+  // Cómo llegan las vistas
+  $('llegada').innerHTML = (medidor('Por tipo de contenido', tipos) +
+    medidor('Seguidores y no seguidores', [['No seguidores', vNoSeg, C.magenta], ['Seguidores', vSeg, C.electrico]])) || `<div class="empty">${SIN_DATOS}</div>`;
+
+  // Ciudades
+  const ciu = pub('Ciudad').sort((a, b) => b.n - a.n);
+  $('ciudades').innerHTML = ciu.length ? barrasHTML(ciu.slice(0, 6), sum(ciu, 'n'), x => x.valor.split(',')[0]) : '<div class="empty">Sin datos de ciudades.</div>';
+
+  // Lo más visto, con miniaturas
+  $('top5').innerHTML = posts.slice().sort((a, b) => b.vistas - a.vistas).slice(0, 5).map(p => `<a class="post" href="${esc(p.enlace)}" title="${esc(p.titulo)}">
+    <div class="post-img">${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span>${esc(p.formato)}</span></div>
+    <div class="post-v" title="${fmt(p.vistas)} vistas acumuladas desde que se publicó">${corta(p.vistas)}<small>acumuladas</small></div>
+    <div class="post-m"><i style="background:${colorCat(p.cat)}" title="${p.cat}"></i>${fechaPost(p)}</div></a>`).join('')
+    || `<div class="empty">No hay publicaciones en este periodo.</div>`;
+}
+
+function renderPubs(desde, hasta, todos) {
+  renderAlertas();
+  const cat = $('cat').value, form = $('form').value;
+  const posts = todos.filter(p => (cat === 'Todas las noticias' || p.cat === cat) && (form === 'Todos los formatos' || p.formato === form));
+  const alc = sum(posts, 'alcance'), inter = sum(posts, 'inter');
+  const prom = posts.length ? sum(posts, 'vistas') / posts.length : 0;
+  const tasa = (alc ? (inter / alc * 100) : 0).toFixed(1).replace('.', ',');
+
+  const l = [];
+  const cc = extremos(posts, 'cat', OTRA.nombre), cf = extremos(posts, 'formato');
+  if (cc) l.push(fraseComp('Por tipo de noticia, ', cc));
+  if (cf) l.push(fraseComp('Por formato, ', cf));
+  const mejor = posts.slice().sort((a, b) => b.vistas - a.vistas)[0];
+  if (mejor) l.push(`La más vista fue «${esc(recortar(mejor.titulo, 80))}», con <b>${fmt(mejor.vistas)} vistas acumuladas</b>.`);
+  if (alc) l.push(`Tasa de interacción: <b>${tasa} %</b> (interacciones ÷ alcance).`);
+  if (!posts.length) l.push('No hay publicaciones con estos filtros.');
+
+  const filtros = [cat === 'Todas las noticias' ? '' : cat, form === 'Todos los formatos' ? '' : form].filter(Boolean);
+  $('pAnte').textContent = periodo(desde, hasta) + (filtros.length ? ' · ' + filtros.join(' · ') : '');
+  $('pPuntos').innerHTML = puntos(l);
+  $('pCifra').textContent = fmt(prom);
+  $('pCifraC').textContent = 'Sobre ' + fmt(posts.length) + (posts.length === 1 ? ' publicación' : ' publicaciones') + ' con estos filtros.';
+
+  // Instagram no da seguidores ganados ni visitas al perfil en los reels
+  const conDato = posts.filter(p => p.segGanados !== null || p.visitas !== null).length;
+  const nota = n => n ? `solo ${n} ${n === 1 ? 'publicación que no es reel' : 'publicaciones que no son reels'}; Instagram no da este dato en reels`
+    : 'Instagram no da este dato en reels';
+  const dato = (lbl, val, note) => `<div class="dato"><div class="lbl">${lbl}</div><div class="val">${val}</div><div class="note">${note}</div></div>`;
+  $('kpisP').innerHTML =
+    dato('Publicaciones', fmt(posts.length), 'con estos filtros') +
+    dato('Seguidores ganados', conDato ? '+' + fmt(sum(posts, 'segGanados')) : '—', nota(conDato)) +
+    dato('Visitas al perfil', conDato ? fmt(sum(posts, 'visitas')) : '—', nota(conDato)) +
+    dato('Tasa de interacción', tasa + ' %', 'interacciones ÷ alcance');
+
+  const promedios = key => {
+    const g = {};
+    posts.forEach(p => { (g[p[key]] = g[p[key]] || []).push(p.vistas); });
+    return Object.entries(g).map(([k, v]) => [k, v.reduce((a, b) => a + b, 0) / v.length, v.length]).sort((a, b) => b[1] - a[1]);
+  };
+  const ENTRE = ' Entre paréntesis, cuántas publicaciones hubo.';
+  const pc = promedios('cat');
+  $('pCat').innerHTML = pc.length ? `${mayus(nombre(pc[0][0]))} promedian más vistas: <b>${fmt(pc[0][1])}</b> por publicación.` + ENTRE : 'Sin publicaciones con estos filtros.';
+  barrasH('cCat', pc.map(x => x[0] + ' (' + x[2] + ')'), pc.map(x => Math.round(x[1])), pc.map(x => colorCat(x[0])));
+  const pf = promedios('formato');
+  $('pForm').innerHTML = pf.length ? `${mayus(nombre(pf[0][0]))} promedian más vistas: <b>${fmt(pf[0][1])}</b> por publicación.` + ENTRE : 'Sin publicaciones con estos filtros.';
+  barrasH('cForm', pf.map(x => x[0] + ' (' + x[2] + ')'), pf.map(x => Math.round(x[1])), pf.map((x, i) => i ? C.blue : C.electrico));
+
+  // Las publicaciones sin el dato van al final al ordenar
+  const valor = (p, k) => p[k] === null ? -1 : p[k];
+  document.querySelectorAll('#thP th.s').forEach(th => th.classList.toggle('act', th.dataset.k === orden));
+  $('ordenSel').value = orden;
+  $('tablaP').innerHTML = posts.slice().sort((a, b) => valor(b, orden) - valor(a, orden)).map(p => `<tr>${celdaTitulo(p)}<td class="tipo">${etiquetaCat(p)}</td>` +
+    `<td class="vpd" data-l="Vistas por día">${celdaDias(p)}</td>` +
+    COLS.map(c => `<td class="n${c[0] === orden ? ' fuerte' : ''}" data-l="${c[1]}">${celda(p, c[0])}</td>`).join('') + '</tr>').join('')
+    || '<tr><td colspan="12" class="empty">No hay publicaciones con estos filtros.</td></tr>';
+}
+
+function celda(p, k) {
+  if (p[k] === null) return '<span class="nd" title="Instagram no da este dato en los reels">—</span>';
+  if (k === 'reprod') return p.reprod ? p.reprod.toString().replace('.', ',') : '—';
+  return fmt(p[k]);
+}
+
+const recortar = (s, n) => s.length > n ? s.slice(0, n) + '…' : s;
+const fechaPost = p => p.fechaObj.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
+const etiquetaCat = p => `<span class="cat"><i style="background:${colorCat(p.cat)}"></i>${p.cat}</span>`;
+
+function celdaTitulo(p) {
+  return `<td class="titulo"><a href="${esc(p.enlace)}">${esc(recortar(p.titulo, 90))}</a>${p.crece ? '<span class="crece">▲ En crecimiento</span>' : ''}
+    <div class="fecha">${fechaPost(p)} · ${esc(p.formato)}</div></td>`;
+}
+
+// ---------- Historial: vistas por día de cada publicación ----------
+const edadDe = (p, f) => diasEntre(p.dia, f) - 1;
+
+// Vistas ganadas cada día = foto del día menos la del día anterior (el día de publicación cuenta desde 0)
+function diario(p, fotos) {
+  fotos = fotos.slice().sort((a, b) => a[0] < b[0] ? -1 : 1);
+  return fotos.map((x, i) => {
+    const antes = i ? fotos[i - 1] : null;
+    const base = antes ? antes[1] : (x[0] <= p.dia ? 0 : null);
+    // "seguido": la foto anterior es del día anterior, así la resta es de un solo día
+    const seguido = antes ? edadDe(p, antes[0]) === edadDe(p, x[0]) - 1 : base !== null;
+    return { f: x[0], edad: Math.max(0, edadDe(p, x[0])), v: base === null ? null : Math.max(0, x[1] - base), seguido: seguido, hoy: x[0] === D.hoy };
+  });
+}
+
+function mediana(a) {
+  const s = a.slice().sort((x, y) => x - y), m = s.length >> 1;
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+
+// Compara el último día de cada publicación con lo que suelen ganar las demás a la misma edad (solo días completos)
+function calcularCrecimiento() {
+  const normal = {};
+  D.posts.forEach(p => p.diario.forEach(d => {
+    if (d.v !== null && d.seguido && !d.hoy) (normal[d.edad] = normal[d.edad] || []).push({ id: p.id, v: d.v });
+  }));
+  const ayer = ymd(new Date(new Date(D.hoy + 'T12:00').getTime() - 864e5));
+  D.posts.forEach(p => {
+    p.crece = null;
+    p.diario.filter(d => d.f >= ayer && d.v !== null && d.seguido).reverse().some(d => {
+      const otros = (normal[d.edad] || []).filter(x => x.id !== p.id).map(x => x.v);
+      if (otros.length < MIN_MUESTRAS) return false;
+      const med = mediana(otros);
+      if (d.v < MIN_CRECE || d.v < MULT_CRECE * Math.max(med, 1)) return false;
+      p.crece = { v: d.v, med: med, edad: d.edad, hoy: d.hoy };
+      return true;
+    });
+  });
+}
+
+// Mini barras de los últimos días (la de hoy, más clara porque el día no ha terminado)
+function miniBarras(dias, rojo) {
+  const w = 112, h = 28, n = DIAS_BARRAS, paso = w / n, max = Math.max(1, ...dias.map(d => d.v));
+  return `<svg class="minib" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">` + dias.map((d, i) => {
+    const alto = Math.max(2, Math.round(d.v / max * (h - 2)));
+    const x = (n - dias.length + i) * paso + 1;
+    const color = rojo && i === dias.length - 1 ? C.red : C.blue;
+    return `<rect x="${x.toFixed(1)}" y="${h - alto}" width="${(paso - 2).toFixed(1)}" height="${alto}" rx="1.5" fill="${color}"${d.hoy ? ' opacity=".45"' : ''}><title>${corto(d.f)}: ${fmt(d.v)} vistas</title></rect>`;
+  }).join('') + '</svg>';
+}
+
+function celdaDias(p) {
+  const dias = p.diario.filter(d => d.v !== null);
+  if (!dias.length) return `<span class="sinh">${p.diario.length ? 'Historial desde el ' + corto(p.diario[0].f) + ' · mañana aparecen las barras' : 'Aún sin historial'}</span>`;
+  const ult = dias.slice(-DIAS_BARRAS);
+  const lista = dias.slice().reverse().map(d => `<li>${corto(d.f)}${d.hoy ? ' (hoy, hasta ahora)' : d.edad === 0 ? ' (publicación)' : ''}<b>+${fmt(d.v)}</b></li>`).join('');
+  return `<details class="dias"><summary>${miniBarras(ult, !!p.crece)}<span>${ult[ult.length - 1].hoy ? 'hoy' : corto(ult[ult.length - 1].f)}: +${corta(ult[ult.length - 1].v)}</span></summary><ul>${lista}</ul></details>`;
+}
+
+const textoEdad = e => e === 0 ? 'el día en que se publican' : e === 1 ? 'al día siguiente de publicadas' : `a los ${e} días de publicadas`;
+
+// Bloque arriba de la pestaña: no depende de los filtros, es lo que está pasando ahora
+function renderAlertas() {
+  const lista = D.posts.filter(p => p.crece).sort((a, b) => b.crece.v / Math.max(b.crece.med, 1) - a.crece.v / Math.max(a.crece.med, 1));
+  $('alertas').style.display = lista.length ? 'block' : 'none';
+  if (!lista.length) return;
+  $('alertas').innerHTML = `<h3>▲ ${lista.length === 1 ? 'Publicación en crecimiento' : lista.length + ' publicaciones en crecimiento'}</h3>
+    <p>Están ganando vistas mucho más rápido de lo normal: al menos ${MULT_CRECE} veces lo que suelen ganar las demás publicaciones a la misma edad.</p>` +
+    lista.map(p => {
+      const c = p.crece, veces = String(Math.round(c.v / Math.max(c.med, 1) * 10) / 10).replace('.', ',');
+      const img = p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '';
+      return `<a class="alerta" href="${esc(p.enlace)}"><div class="alerta-img">${img}</div>
+        <div><div class="alerta-t">${esc(recortar(p.titulo, 100))}</div>
+        <div class="alerta-m">${fechaPost(p)} · ${esc(p.formato)} · <b>${veces} veces</b> lo normal (${fmt(c.med)} vistas ${textoEdad(c.edad)})</div></div>
+        <div class="alerta-v">+${fmt(c.v)}<small>${c.hoy ? 'vistas hoy, hasta ahora' : 'vistas ayer'}</small></div></a>`;
+    }).join('');
+}
+
+function corto(f) { return new Date(f + 'T12:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }); }
+function diaMes(f) { return new Date(f + 'T12:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'long' }); }
+
+// ---------- Gráficas ----------
+const tooltip = () => ({ backgroundColor: C.navy, padding: 10, cornerRadius: 8, displayColors: false,
+  callbacks: { label: c => fmt(Math.abs(typeof c.parsed === 'number' ? c.parsed : c.chart.options.indexAxis === 'y' ? c.parsed.x : c.parsed.y)) } });
+
+// Relleno en degradado vertical que se ajusta al tamaño de la gráfica
+const degradado = (arriba, abajo) => ctx => {
+  const a = ctx.chart.chartArea;
+  if (!a) return arriba;
+  const g = ctx.chart.ctx.createLinearGradient(0, a.top, 0, a.bottom);
+  g.addColorStop(0, arriba); g.addColorStop(1, abajo);
+  return g;
+};
+
+function opciones(o) {
+  const horizontal = o.horizontal, apilado = o.apilado;
+  return Object.assign({
+    responsive: true, maintainAspectRatio: false, indexAxis: horizontal ? 'y' : 'x',
+    plugins: { legend: { display: false }, tooltip: tooltip() },
+    scales: {
+      x: { stacked: !!apilado, border: { display: false }, grid: { display: !!horizontal, color: C.grid },
+        ticks: { color: C.tick, font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: horizontal ? 5 : 7, callback: function (v) { return horizontal ? corta(v) : this.getLabelForValue(v); } } },
+      y: { stacked: !!apilado, border: { display: false }, grid: { display: !horizontal, color: C.grid }, beginAtZero: true,
+        ticks: { color: horizontal ? C.navy : C.tick, font: { size: 10, weight: horizontal ? '600' : '400' }, maxTicksLimit: 5, callback: function (v) { return horizontal ? this.getLabelForValue(v) : corta(Math.abs(v)); } } }
+    }
+  }, o.interaction ? { interaction: o.interaction } : {});
+}
+
+function grafica(id, config) {
+  if (charts[id]) charts[id].destroy();
+  if (!window.Chart) return;
+  charts[id] = new Chart($(id), config);
+}
+
+const barrasH = (id, labels, data, colores) => grafica(id, {
+  type: 'bar',
+  data: { labels, datasets: [{ data, backgroundColor: colores, borderRadius: 6, borderSkipped: 'start', maxBarThickness: 26 }] },
+  options: opciones({ horizontal: true })
+});
+</script>
+</body>
+</html>
