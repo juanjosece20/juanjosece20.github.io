@@ -173,6 +173,9 @@ main.in{padding-bottom:28px}
 .val{font:400 38px/1 var(--titulo);letter-spacing:.5px;margin-top:6px;color:var(--ink)}
 .note{font-size:12px;line-height:1.4;color:var(--muted);margin-top:4px}
 .notas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 32px}
+.comparar{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:22px;font-size:12px;font-weight:600;color:var(--muted)}
+.comparar .chip{cursor:pointer}
+#compNota{flex-basis:100%;font-weight:500}
 .nota{border-top:2px solid var(--navy);padding:14px 0 26px;margin-top:20px;min-width:0}
 .nota.ancha{grid-column:span 2}
 .nota h3{font:400 24px/1.05 var(--titulo);letter-spacing:.5px;margin:0 0 6px;color:var(--ink)}
@@ -380,7 +383,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
       </div>
       <aside class="cifra">
         <div class="cifra-n" id="pCifra"></div>
-        <div class="cifra-l">vistas acumuladas promedio por publicación</div>
+        <div class="cifra-l">vistas típicas por publicación (mediana)</div>
         <div class="cifra-c" id="pCifraC"></div>
       </aside>
     </div>
@@ -388,14 +391,17 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
     <div class="encifras" id="kpisP"></div>
 
     <div class="notas">
-      <article class="nota"><h3>Vistas promedio por tipo de noticia</h3><p id="pCat"></p>
+      <div class="comparar">Comparar
+        <button class="chip on" data-e="vistas">Vistas acumuladas</button><button class="chip" data-e="a2">A los 2 días</button><button class="chip" data-e="a7">A los 7 días</button>
+        <span id="compNota"></span></div>
+      <article class="nota"><h3>Vistas típicas (mediana) por tipo de noticia</h3><p id="pCat"></p>
         <div class="chart"><canvas id="cCat"></canvas></div></article>
-      <article class="nota ancha"><h3>Vistas promedio por formato</h3><p id="pForm"></p>
+      <article class="nota ancha"><h3>Vistas típicas (mediana) por formato</h3><p id="pForm"></p>
         <div class="chart"><canvas id="cForm"></canvas></div></article>
     </div>
 
     <h2 class="cintillo">Todas las publicaciones</h2>
-    <div class="sub2" id="subTabla">Haz clic en el título de una columna para ordenar. «Vistas por día»: cuántas vistas ganó cada día (toca las barras para ver el detalle). «—»: Instagram no da ese dato en los reels.</div>
+    <div class="sub2" id="subTabla">Haz clic en el título de una columna para ordenar. «Vistas por día»: cuántas vistas ganó cada día (toca las barras para ver el detalle). «A los 2 / 7 días»: vistas acumuladas al cierre de ese día después de publicada (aproximado), para comparar publicaciones a la misma edad. «—»: Instagram no da ese dato en los reels.</div>
     <label class="ordenar">Ordenar por<select id="ordenSel"></select></label>
     <div class="tbl"><table class="tablaP">
       <thead><tr id="thP"></tr></thead>
@@ -414,7 +420,7 @@ const CATEGORIAS = [
 const OTRA = { nombre: 'Sin clasificar', color: '#8a93ab' };
 const C = { navy: '#09163d', blue: '#103db0', red: '#e8191b', electrico: '#2f5bea', magenta: '#e8458b', naranja: '#f07a2e', gray: '#8a93ab', verde: '#12a15f', grid: '#edf0f6', tick: '#66708c' };
 const COLS = [
-  ['vistas', 'Vistas'], ['alcance', 'Alcance'], ['likes', 'Likes'], ['comentarios', 'Coment.'],
+  ['vistas', 'Vistas'], ['a2', 'A los 2 días'], ['a7', 'A los 7 días'], ['alcance', 'Alcance'], ['likes', 'Likes'], ['comentarios', 'Coment.'],
   ['compartidos', 'Compart.'], ['guardados', 'Guard.'], ['segGanados', 'Seg. ganados'], ['visitas', 'Visitas perfil'], ['reprod', 'Reprod. (s)']
 ];
 // Cómo se nombran en una frase
@@ -425,6 +431,7 @@ const TIPOS_VISTA = { 'Reels': 'los reels', 'Publicaciones': 'las fotos y carrus
 // Alerta "En crecimiento": el último día gana al menos MULT_CRECE veces lo normal para su edad y al menos MIN_CRECE vistas
 const MULT_CRECE = 3, MIN_CRECE = 1000, MIN_MUESTRAS = 5, DIAS_BARRAS = 14;
 
+let compEdad = 'vistas';
 let D = null, charts = {}, tab = 'general', orden = 'vistas', nSpark = 0;
 const $ = id => document.getElementById(id);
 const fmt = n => Math.round(n).toLocaleString('es-CO');
@@ -454,16 +461,21 @@ function comparar(r) {
   return 'casi las mismas vistas que';
 }
 
-// Grupo con más y con menos vistas promedio (solo grupos con 2 o más publicaciones)
-function extremos(posts, clave, excluir) {
+// Vistas típicas (mediana) de cada grupo: una publicación viral no infla al grupo como lo haría el promedio.
+// Solo grupos con al menos `min` publicaciones con el dato; devuelve [grupo, mediana, cuántas] de mayor a menor.
+function tipicas(posts, clave, metrica, min, excluir) {
   const g = {};
-  posts.forEach(p => { if (p[clave] !== excluir) (g[p[clave]] = g[p[clave]] || []).push(p.vistas); });
-  const l = Object.entries(g).filter(([, v]) => v.length >= 2).map(([k, v]) => ({ k, prom: v.reduce((a, b) => a + b, 0) / v.length }))
-    .sort((a, b) => b.prom - a.prom);
-  if (l.length < 2 || !l[l.length - 1].prom) return null;
-  return { top: l[0].k, ult: l[l.length - 1].k, r: l[0].prom / l[l.length - 1].prom };
+  posts.forEach(p => { if (p[clave] !== excluir && p[metrica] !== null && p[metrica] !== undefined) (g[p[clave]] = g[p[clave]] || []).push(p[metrica]); });
+  return Object.entries(g).filter(([, v]) => v.length >= (min || 1)).map(([k, v]) => [k, mediana(v), v.length]).sort((a, b) => b[1] - a[1]);
 }
-const fraseComp = (prefijo, x) => `${prefijo}${nombre(x.top)} tuvieron <b>${comparar(x.r)}</b> ${nombre(x.ult)}.`;
+
+// Grupo con más y con menos vistas típicas (solo grupos con 3 o más publicaciones)
+function extremos(posts, clave, excluir) {
+  const l = tipicas(posts, clave, 'vistas', 3, excluir);
+  if (l.length < 2 || !l[l.length - 1][1]) return null;
+  return { top: l[0][0], ult: l[l.length - 1][0], r: l[0][1] / l[l.length - 1][1] };
+}
+const fraseComp = (prefijo, x) => `${prefijo}${nombre(x.top)} suelen tener <b>${comparar(x.r)}</b> ${nombre(x.ult)} (comparando la mediana).`;
 
 // ---------- Servidor (Apps Script) ----------
 // Se envía como texto plano para evitar la consulta previa de CORS. La ficha y la clave van en el cuerpo, nunca en la URL.
@@ -579,7 +591,7 @@ function preparar(refresco) {
     p.titulo = (p.texto.split('\n').find(l => l.trim()) || '(sin texto)').trim();
   });
   const H = D.historial || {};
-  D.posts.forEach(p => p.diario = diario(p, H[p.id] || []));
+  D.posts.forEach(p => { p.diario = diario(p, H[p.id] || []); Object.assign(p, aLaEdad(p, H[p.id] || [])); });
   calcularCrecimiento();
   D.seguidores.sort((a, b) => a.f < b.f ? -1 : 1);
   D.cuenta.sort((a, b) => a.f < b.f ? -1 : 1);
@@ -598,6 +610,11 @@ function preparar(refresco) {
   });
   document.querySelectorAll('.chip[data-r]').forEach(b => b.onclick = () => rango(b.dataset.r));
   ['cat', 'form'].forEach(id => $(id).onchange = render);
+  document.querySelectorAll('.comparar .chip').forEach(b => b.onclick = () => {
+    compEdad = b.dataset.e;
+    document.querySelectorAll('.comparar .chip').forEach(x => x.classList.toggle('on', x === b));
+    render();
+  });
   ['desde', 'hasta'].forEach(id => { $(id).max = D.hoy; $(id).onchange = fechaElegida; });
 
   $('estado').style.display = 'none';
@@ -798,9 +815,12 @@ function renderPubs(desde, hasta, todos) {
   renderAlertas();
   const cat = $('cat').value, form = $('form').value;
   const posts = todos.filter(p => (cat === 'Todas las noticias' || p.cat === cat) && (form === 'Todos los formatos' || p.formato === form));
-  const alc = sum(posts, 'alcance'), inter = sum(posts, 'inter');
+  // Interacciones por cada 1.000 vistas (el alcance sumado contaría varias veces a la misma persona)
+  const conVistas = posts.filter(p => p.vistas > 0);
+  const porMil = sum(conVistas, 'vistas') ? sum(conVistas, 'inter') / sum(conVistas, 'vistas') * 1000 : null;
+  const porMilTxt = porMil === null ? '—' : (porMil < 10 ? (Math.round(porMil * 10) / 10).toString().replace('.', ',') : fmt(porMil));
+  const tipica = posts.length ? mediana(posts.map(p => p.vistas)) : 0;
   const prom = posts.length ? sum(posts, 'vistas') / posts.length : 0;
-  const tasa = (alc ? (inter / alc * 100) : 0).toFixed(1).replace('.', ',');
 
   const l = [];
   const cc = extremos(posts, 'cat', OTRA.nombre), cf = extremos(posts, 'formato');
@@ -808,14 +828,17 @@ function renderPubs(desde, hasta, todos) {
   if (cf) l.push(fraseComp('Por formato, ', cf));
   const mejor = posts.slice().sort((a, b) => b.vistas - a.vistas)[0];
   if (mejor) l.push(`La más vista fue «${esc(recortar(mejor.titulo, 80))}», con <b>${fmt(mejor.vistas)} vistas acumuladas</b>.`);
-  if (alc) l.push(`Tasa de interacción: <b>${tasa} %</b> (interacciones ÷ alcance).`);
+  if (porMil !== null) l.push(`Interacción: <b>${porMilTxt} por cada 1.000 vistas</b>. De cada 1.000 vistas, ${porMilTxt} terminan en un like, comentario, compartido o guardado.`);
   if (!posts.length) l.push('No hay publicaciones con estos filtros.');
 
   const filtros = [cat === 'Todas las noticias' ? '' : cat, form === 'Todos los formatos' ? '' : form].filter(Boolean);
   $('pAnte').textContent = periodo(desde, hasta) + (filtros.length ? ' · ' + filtros.join(' · ') : '');
   $('pPuntos').innerHTML = puntos(l);
-  $('pCifra').textContent = fmt(prom);
-  $('pCifraC').textContent = 'Sobre ' + fmt(posts.length) + (posts.length === 1 ? ' publicación' : ' publicaciones') + ' con estos filtros.';
+  $('pCifra').textContent = fmt(tipica);
+  $('pCifraC').textContent = posts.length > 1
+    ? `La mitad de las ${fmt(posts.length)} publicaciones con estos filtros tuvo más de ${fmt(tipica)} vistas y la otra mitad menos.` +
+      (prom > tipica * 1.1 ? ` El promedio es ${fmt(prom)} porque lo suben las más virales.` : ` El promedio es ${fmt(prom)}.`)
+    : 'Sobre ' + fmt(posts.length) + (posts.length === 1 ? ' publicación' : ' publicaciones') + ' con estos filtros.';
 
   // Instagram no da seguidores ganados ni visitas al perfil en los reels
   const conDato = posts.filter(p => p.segGanados !== null || p.visitas !== null).length;
@@ -826,20 +849,30 @@ function renderPubs(desde, hasta, todos) {
     dato('Publicaciones', fmt(posts.length), 'con estos filtros') +
     dato('Seguidores ganados', conDato ? '+' + fmt(sum(posts, 'segGanados')) : '—', nota(conDato)) +
     dato('Visitas al perfil', conDato ? fmt(sum(posts, 'visitas')) : '—', nota(conDato)) +
-    dato('Tasa de interacción', tasa + ' %', 'interacciones ÷ alcance');
+    dato('Interacciones por 1.000 vistas', porMilTxt, 'de cada 1.000 vistas, cuántas terminan en like, comentario, compartido o guardado');
 
-  const promedios = key => {
-    const g = {};
-    posts.forEach(p => { (g[p[key]] = g[p[key]] || []).push(p.vistas); });
-    return Object.entries(g).map(([k, v]) => [k, v.reduce((a, b) => a + b, 0) / v.length, v.length]).sort((a, b) => b[1] - a[1]);
+  // A la misma edad solo se comparan grupos con al menos 3 publicaciones que tengan ese dato
+  const enEdad = compEdad !== 'vistas', MIN = enEdad ? 3 : 1;
+  const queMide = { vistas: 'más vistas acumuladas suelen tener', a2: 'más vistas suelen tener a los 2 días', a7: 'más vistas suelen tener a los 7 días' }[compEdad];
+  $('compNota').textContent = enEdad
+    ? `Vistas acumuladas al cierre del ${compEdad === 'a2' ? 'segundo' : 'séptimo'} día después de publicadas (aproximado). Solo grupos con 3 o más publicaciones con ese dato.`
+    : 'Vistas acumuladas hasta hoy: las publicaciones más viejas han tenido más tiempo para sumar.';
+  const ENTRE = ' Entre paréntesis, cuántas publicaciones entran en el cálculo.';
+  const SIN_HIST = 'Aún no hay suficiente historial para comparar a esa edad. El Historial empezó el 27 de octubre y se llena día a día.';
+  const grupo = (key, id, pid, colores) => {
+    const g = tipicas(posts, key, compEdad, MIN);
+    if (!g.length) {
+      $(pid).innerHTML = posts.length ? (enEdad ? SIN_HIST : 'Sin publicaciones con estos filtros.') : 'Sin publicaciones con estos filtros.';
+      if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+      $(id).parentNode.style.display = 'none';
+      return;
+    }
+    $(id).parentNode.style.display = '';
+    $(pid).innerHTML = `${mayus(nombre(g[0][0]))} son las que ${queMide}: <b>${fmt(g[0][1])}</b> por publicación (mediana).` + ENTRE;
+    barrasH(id, g.map(x => x[0] + ' (' + x[2] + ')'), g.map(x => Math.round(x[1])), colores(g));
   };
-  const ENTRE = ' Entre paréntesis, cuántas publicaciones hubo.';
-  const pc = promedios('cat');
-  $('pCat').innerHTML = pc.length ? `${mayus(nombre(pc[0][0]))} promedian más vistas: <b>${fmt(pc[0][1])}</b> por publicación.` + ENTRE : 'Sin publicaciones con estos filtros.';
-  barrasH('cCat', pc.map(x => x[0] + ' (' + x[2] + ')'), pc.map(x => Math.round(x[1])), pc.map(x => colorCat(x[0])));
-  const pf = promedios('formato');
-  $('pForm').innerHTML = pf.length ? `${mayus(nombre(pf[0][0]))} promedian más vistas: <b>${fmt(pf[0][1])}</b> por publicación.` + ENTRE : 'Sin publicaciones con estos filtros.';
-  barrasH('cForm', pf.map(x => x[0] + ' (' + x[2] + ')'), pf.map(x => Math.round(x[1])), pf.map((x, i) => i ? C.blue : C.electrico));
+  grupo('cat', 'cCat', 'pCat', g => g.map(x => colorCat(x[0])));
+  grupo('formato', 'cForm', 'pForm', g => g.map((x, i) => i ? C.blue : C.electrico));
 
   // Las publicaciones sin el dato van al final al ordenar
   const valor = (p, k) => p[k] === null ? -1 : p[k];
@@ -848,10 +881,11 @@ function renderPubs(desde, hasta, todos) {
   $('tablaP').innerHTML = posts.slice().sort((a, b) => valor(b, orden) - valor(a, orden)).map(p => `<tr>${celdaTitulo(p)}<td class="tipo">${etiquetaCat(p)}</td>` +
     `<td class="vpd" data-l="Vistas por día">${celdaDias(p)}</td>` +
     COLS.map(c => `<td class="n${c[0] === orden ? ' fuerte' : ''}" data-l="${c[1]}">${celda(p, c[0])}</td>`).join('') + '</tr>').join('')
-    || '<tr><td colspan="12" class="empty">No hay publicaciones con estos filtros.</td></tr>';
+    || '<tr><td colspan="14" class="empty">No hay publicaciones con estos filtros.</td></tr>';
 }
 
 function celda(p, k) {
+  if (p[k] === null && (k === 'a2' || k === 'a7')) return '<span class="nd" title="Aún no hay historial de esta publicación a esa edad">—</span>';
   if (p[k] === null) return '<span class="nd" title="Instagram no da este dato en los reels">—</span>';
   if (k === 'reprod') return p.reprod ? p.reprod.toString().replace('.', ',') : '—';
   return fmt(p[k]);
@@ -879,6 +913,13 @@ function diario(p, fotos) {
     const seguido = antes ? edadDe(p, antes[0]) === edadDe(p, x[0]) - 1 : base !== null;
     return { f: x[0], edad: Math.max(0, edadDe(p, x[0])), v: base === null ? null : Math.max(0, x[1] - base), seguido: seguido, hoy: x[0] === D.hoy };
   });
+}
+
+// Vistas acumuladas al cierre del día 2 y del día 7 después de publicada (día 0 = el de publicación).
+// Solo cuentan días completos: la foto de hoy todavía no es la del cierre.
+function aLaEdad(p, fotos) {
+  const en = e => { const x = fotos.find(f => f[0] < D.hoy && edadDe(p, f[0]) === e); return x ? x[1] : null; };
+  return { a2: en(2), a7: en(7) };
 }
 
 function mediana(a) {
