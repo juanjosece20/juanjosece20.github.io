@@ -135,6 +135,7 @@ main.in{padding-bottom:28px}
 
 /* Miniaturas */
 .posts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.posts .empty{grid-column:1/-1}
 .post{text-decoration:none;color:var(--ink);min-width:0}
 .post-img{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--degradado);display:flex;align-items:center;justify-content:center;color:#fff;font:400 16px var(--titulo);letter-spacing:.5px}
 .post-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
@@ -333,7 +334,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   <div class="filters">
     <button class="chip" data-r="30">30 días</button>
     <button class="chip" data-r="7">7 días</button>
-    <button class="chip" data-r="mes">Este mes</button>
+    <button class="chip" data-r="hoy">Hoy</button>
     <input type="date" id="desde" aria-label="Desde"> <input type="date" id="hasta" aria-label="Hasta">
     <select id="cat" class="solopubs" aria-label="Tipo de noticia"></select>
     <select id="form" class="solopubs" aria-label="Formato"></select>
@@ -358,7 +359,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
         <div class="barras" id="edad"></div></div>
       <div class="b b-lle"><h3>Cómo llegan las vistas</h3><div id="llegada"></div></div>
       <div class="b b-pos"><h3>Lo más visto <small>publicadas en el periodo · vistas acumuladas</small></h3><div class="posts" id="top5"></div></div>
-      <div class="b b-ciu"><h3>Principales ciudades</h3><div class="barras" id="ciudades"></div></div>
+      <div class="b b-ciu"><h3>Principales ciudades</h3><div class="barras" id="ciudades"></div><div class="ley" id="ciuNota"></div></div>
     </div>
   </section>
 
@@ -400,8 +401,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
 <script>
 const CATEGORIAS = [
   { nombre: 'Denuncia', claves: ['DENUNCIA'], color: '#e8191b' },
-  { nombre: 'Queja', claves: ['QUEJA', 'RECLAMO'], color: '#d48800' },
-  { nombre: 'Buena noticia', claves: ['BUENANOTICIA', 'BUENASNOTICIAS', 'POSITIV', 'ORGULLO'], color: '#14935f' }
+  { nombre: 'Información', claves: ['INFORMACION'], color: '#103db0' }
 ];
 const OTRA = { nombre: 'Sin clasificar', color: '#8a93ab' };
 const C = { navy: '#09163d', blue: '#103db0', red: '#e8191b', electrico: '#2f5bea', magenta: '#e8458b', naranja: '#f07a2e', gray: '#8a93ab', verde: '#12a15f', grid: '#edf0f6', tick: '#66708c' };
@@ -410,7 +410,7 @@ const COLS = [
   ['compartidos', 'Compart.'], ['guardados', 'Guard.'], ['segGanados', 'Seg. ganados'], ['visitas', 'Visitas perfil'], ['reprod', 'Reprod. (s)']
 ];
 // Cómo se nombran en una frase
-const PLURAL = { 'Denuncia': 'las denuncias', 'Queja': 'las quejas', 'Buena noticia': 'las buenas noticias', 'Sin clasificar': 'las publicaciones sin clasificar',
+const PLURAL = { 'Denuncia': 'las denuncias', 'Información': 'las publicaciones de información', 'Sin clasificar': 'las publicaciones sin clasificar',
   'Reel': 'los reels', 'Carrusel': 'los carruseles', 'Imagen': 'las imágenes', 'Video': 'los videos' };
 const TIPOS_VISTA = { 'Reels': 'los reels', 'Publicaciones': 'las fotos y carruseles', 'Historias': 'las historias', 'Otras': 'otros formatos' };
 
@@ -536,21 +536,33 @@ function preparar() {
     render();
   });
   document.querySelectorAll('.chip[data-r]').forEach(b => b.onclick = () => rango(b.dataset.r));
-  ['desde', 'hasta', 'cat', 'form'].forEach(id => $(id).onchange = () => { if (id === 'desde' || id === 'hasta') marcar(null); render(); });
+  ['cat', 'form'].forEach(id => $(id).onchange = render);
+  ['desde', 'hasta'].forEach(id => { $(id).max = D.hoy; $(id).onchange = fechaElegida; });
 
   $('estado').style.display = 'none';
   renderHoy();
   rango('30');
 }
 
-// "Últimos N días" termina ayer, igual que en Instagram
+// "Últimos N días" termina ayer, igual que en Instagram. "Hoy" usa la fecha de Colombia que manda el servidor.
 function rango(r) {
-  const hoy = new Date(), ayer = new Date(hoy.getTime() - 864e5);
+  const hoy = new Date(D.hoy + 'T12:00'), ayer = new Date(hoy.getTime() - 864e5);
   let desde, hasta = ayer;
-  if (r === 'mes') { desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1); hasta = hoy; }
+  if (r === 'hoy') desde = hasta = hoy;
   else desde = new Date(ayer.getTime() - (Number(r) - 1) * 864e5);
   $('desde').value = ymd(desde); $('hasta').value = ymd(hasta);
   marcar(r); render();
+}
+
+// Rango libre: se ignoran fechas incompletas, se invierten si quedaron al revés y no pasan de hoy
+function fechaElegida() {
+  let d = $('desde').value, h = $('hasta').value;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || !/^\d{4}-\d{2}-\d{2}$/.test(h)) return;
+  if (d > D.hoy) d = D.hoy;
+  if (h > D.hoy) h = D.hoy;
+  if (d > h) [d, h] = [h, d];
+  $('desde').value = d; $('hasta').value = h;
+  marcar(null); render();
 }
 function marcar(r) { document.querySelectorAll('.chip[data-r]').forEach(b => b.classList.toggle('on', b.dataset.r === r)); }
 
@@ -559,7 +571,8 @@ function render() {
   $('pubs').style.display = tab === 'pubs' ? 'block' : 'none';
   document.querySelectorAll('.solopubs').forEach(e => e.style.display = tab === 'pubs' ? 'inline-block' : 'none');
   const desde = $('desde').value, hasta = $('hasta').value;
-  $('periodoTxt').innerHTML = `Periodo: <b>${periodo(desde, hasta)}</b> · ${diasEntre(desde, hasta)} días`;
+  const nd = diasEntre(desde, hasta);
+  $('periodoTxt').innerHTML = `Periodo: <b>${periodo(desde, hasta)}</b> · ${nd === 1 ? '1 día' : nd + ' días'}`;
   const posts = D.posts.filter(p => p.dia >= desde && p.dia <= hasta);
   if (tab === 'general') renderGeneral(desde, hasta, posts); else renderPubs(desde, hasta, posts);
 }
@@ -588,7 +601,7 @@ function renderHoy() {
 
 const SIN_DATOS = 'Sin datos en este periodo.';
 const diasEntre = (desde, hasta) => Math.round((new Date(hasta + 'T12:00') - new Date(desde + 'T12:00')) / 864e5) + 1;
-const periodo = (desde, hasta) => corto(desde) + ' – ' + corto(hasta);
+const periodo = (desde, hasta) => desde === hasta ? (desde === D.hoy ? 'Hoy, ' : '') + diaMes(desde) : corto(desde) + ' – ' + corto(hasta);
 
 // Mini-gráfica de tendencia (área con degradado)
 function spark(vals, color) {
@@ -604,10 +617,11 @@ function spark(vals, color) {
 // ▲ verde / ▼ rojo frente al periodo anterior
 function compara(actual, anterior, dias, absoluto) {
   if (anterior === null) return 'Sin periodo anterior para comparar';
+  if (anterior === 'en curso') return 'Día en curso: se compara cuando termine';
   const d = absoluto ? actual - anterior : (anterior ? (actual - anterior) / anterior * 100 : null);
   if (d === null) return '';
   const txt = absoluto ? fmt(Math.abs(d)) : Math.abs(Math.round(d)) + ' %';
-  return `<span class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '▲' : '▼'} ${txt}</span> vs. ${dias} días anteriores`;
+  return `<span class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '▲' : '▼'} ${txt}</span> vs. ${dias === 1 ? 'el día anterior' : dias + ' días anteriores'}`;
 }
 const kpi = (lbl, val, cmp, sp) => `<div class="k-lbl">${lbl}</div><div class="k-val">${val}</div><div class="k-cmp">${cmp}</div><div class="k-spark">${sp}</div>`;
 
@@ -635,8 +649,10 @@ function renderGeneral(desde, hasta, posts) {
   const inicio = new Date(desde + 'T12:00');
   const pDesde = ymd(new Date(inicio - dias * 864e5)), pHasta = ymd(new Date(inicio - 864e5));
   const cuPrev = D.cuenta.filter(c => c.f >= pDesde && c.f <= pHasta);
-  const ant = k => cuPrev.length >= dias ? sum(cuPrev, k) : null;
-  const vPrev = ant('vistas'), netoPrev = ant('nuevos') === null ? null : ant('nuevos') - ant('perdidos');
+  // Si el periodo es solo hoy, el día no ha terminado: compararlo con un día completo engañaría
+  const enCurso = desde === D.hoy;
+  const ant = k => enCurso ? 'en curso' : cuPrev.length >= dias ? sum(cuPrev, k) : null;
+  const vPrev = ant('vistas'), netoPrev = enCurso || ant('nuevos') === null ? ant('nuevos') : ant('nuevos') - ant('perdidos');
 
   $('kVistas').innerHTML = kpi('Vistas de la cuenta', fmt(vistas), compara(vistas, vPrev, dias), spark(cu.map(c => c.vistas), C.electrico));
   $('kSeg').innerHTML = kpi('Seguidores netos', (neto >= 0 ? '+' : '−') + fmt(Math.abs(neto)), compara(neto, netoPrev, dias, true), spark(cu.map(c => c.nuevos - c.perdidos), C.verde));
@@ -649,12 +665,12 @@ function renderGeneral(desde, hasta, posts) {
   const mejor = cu.reduce((m, c) => (!m || c.vistas > m.vistas) ? c : m, null);
   const cc = extremos(posts, 'cat', OTRA.nombre);
   const ins = [];
-  if (vPrev) ins.push(`Las vistas de la cuenta ${vistas >= vPrev ? 'subieron' : 'bajaron'} <b>${Math.abs(Math.round((vistas - vPrev) / vPrev * 100))} %</b> frente a los ${dias} días anteriores.`);
-  else if (vistas) ins.push(`La cuenta sumó <b>${fmt(vistas)} vistas</b> en ${dias} días.`);
+  if (typeof vPrev === 'number' && vPrev) ins.push(`Las vistas de la cuenta ${vistas >= vPrev ? 'subieron' : 'bajaron'} <b>${Math.abs(Math.round((vistas - vPrev) / vPrev * 100))} %</b> frente ${dias === 1 ? 'al día anterior' : 'a los ' + dias + ' días anteriores'}.`);
+  else if (vistas) ins.push(`La cuenta sumó <b>${fmt(vistas)} vistas</b> ${desde === D.hoy && dias === 1 ? 'hoy, hasta ahora' : dias === 1 ? 'ese día' : 'en ' + dias + ' días'}.`);
   if (cc) ins.push(fraseComp('Por publicación, ', cc));
   if (totT) ins.push(`${mayus(TIPOS_VISTA[topT[0]] || 'los ' + topT[0].toLowerCase())} concentran el <b>${pct(topT[1], totT)} %</b> de las vistas de la cuenta.`);
   if (vSeg + vNoSeg) ins.push(`<b>${Math.round(vNoSeg / (vSeg + vNoSeg) * 10)} de cada 10</b> vistas vienen de personas que no siguen la cuenta.`);
-  if (mejor && mejor.vistas) ins.push(`Mejor día de la cuenta: <b>${diaMes(mejor.f)}</b>, con ${fmt(mejor.vistas)} vistas en total ese día.`);
+  if (dias > 1 && mejor && mejor.vistas) ins.push(`Mejor día de la cuenta: <b>${diaMes(mejor.f)}</b>, con ${fmt(mejor.vistas)} vistas en total ese día.`);
   $('ins').innerHTML = ins.length ? puntos(ins.slice(0, 5)) : `<li>${SIN_DATOS}</li>`;
   $('insPie').textContent = 'Generadas con los datos de ' + periodo(desde, hasta) + '.';
 
@@ -677,7 +693,7 @@ function renderGeneral(desde, hasta, posts) {
     data: { labels: cu.map(c => corto(c.f)), datasets: [
       { data: cu.map(c => c.nuevos), backgroundColor: C.verde, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 12 },
       { data: cu.map(c => -c.perdidos), backgroundColor: C.red, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 12 }] },
-    options: opciones({ apilado: true })
+    options: ejeSeguidores(opciones({ apilado: true }), cu)
   });
 
   // Público
@@ -701,7 +717,10 @@ function renderGeneral(desde, hasta, posts) {
 
   // Ciudades
   const ciu = pub('Ciudad').sort((a, b) => b.n - a.n);
-  $('ciudades').innerHTML = ciu.length ? barrasHTML(ciu.slice(0, 6), sum(ciu, 'n'), x => x.valor.split(',')[0]) : '<div class="empty">Sin datos de ciudades.</div>';
+  // Instagram solo da las ciudades principales: el porcentaje se calcula sobre el total de seguidores, no sobre esa suma
+  const totSeg = D.seguidores.length ? D.seguidores[D.seguidores.length - 1].n : sum(ciu, 'n');
+  $('ciuNota').textContent = ciu.length ? 'Porcentaje sobre el total de ' + fmt(totSeg) + ' seguidores.' : '';
+  $('ciudades').innerHTML = ciu.length ? barrasHTML(ciu.slice(0, 6), Math.max(totSeg, sum(ciu, 'n')), x => x.valor.split(',')[0]) : '<div class="empty">Sin datos de ciudades.</div>';
 
   // Lo más visto, con miniaturas
   $('top5').innerHTML = posts.slice().sort((a, b) => b.vistas - a.vistas).slice(0, 5).map(p => `<a class="post" href="${esc(p.enlace)}" title="${esc(p.titulo)}">
@@ -889,6 +908,20 @@ function opciones(o) {
         ticks: { color: horizontal ? C.navy : C.tick, font: { size: 10, weight: horizontal ? '600' : '400' }, maxTicksLimit: 5, callback: function (v) { return horizontal ? this.getLabelForValue(v) : corta(Math.abs(v)); } } }
     }
   }, o.interaction ? { interaction: o.interaction } : {});
+}
+
+// Cada lado del cero ocupa lo que piden los datos (si se pierden 3 y se ganan 50, la parte negativa es pequeña)
+function ejeSeguidores(o, cu) {
+  const maxG = Math.max(1, ...cu.map(c => c.nuevos)), maxP = Math.max(0, ...cu.map(c => c.perdidos));
+  const paso = pasoBonito(Math.max(maxG, maxP) / 4);
+  Object.assign(o.scales.y, { beginAtZero: false, min: -Math.ceil(maxP / paso) * paso, max: Math.ceil(maxG / paso) * paso });
+  o.scales.y.ticks = Object.assign({}, o.scales.y.ticks, { stepSize: paso, maxTicksLimit: 8, callback: v => v < 0 ? '−' + corta(-v) : corta(v) });
+  o.plugins.tooltip.callbacks.label = c => (c.datasetIndex ? 'Perdidos: ' : 'Ganados: ') + fmt(Math.abs(c.parsed.y));
+  return o;
+}
+function pasoBonito(x) {
+  const e = Math.pow(10, Math.floor(Math.log10(Math.max(x, 1))));
+  return [1, 2, 5, 10].map(m => m * e).find(p => p >= x) || 10 * e;
 }
 
 function grafica(id, config) {
