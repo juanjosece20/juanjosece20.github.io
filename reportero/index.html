@@ -78,12 +78,12 @@ main.in{padding-bottom:28px}
 
 /* ---------- Cuadrícula del Resumen ---------- */
 .grid{display:grid;gap:12px;grid-template-columns:250px repeat(3,minmax(0,1fr)) 290px;
-  grid-template-areas:"hoy k1 k2 k3 ins" "pub vis vis seg ins" "lle pos pos ciu ins" "com com com com com"}
+  grid-template-areas:"hoy k1 k2 k3 ins" "pub vis vis seg ins" "alc pos pos ciu ins" "lle com com com com"}
 .b{background:var(--card);border:1px solid var(--linea);border-radius:var(--radio);padding:14px 16px;min-width:0;position:relative}
 .b h3{font:400 19px/1 var(--titulo);letter-spacing:.5px;margin:0 0 10px;color:var(--ink)}
 .b h3 small{font:500 11px var(--ui);letter-spacing:0;color:var(--muted);margin-left:6px}
 .b-hoy{grid-area:hoy}.b-k1{grid-area:k1}.b-k2{grid-area:k2}.b-k3{grid-area:k3}.b-ins{grid-area:ins}
-.b-com{grid-area:com}.b-pub{grid-area:pub}.b-vis{grid-area:vis}.b-seg{grid-area:seg}.b-lle{grid-area:lle}.b-pos{grid-area:pos}.b-ciu{grid-area:ciu}
+.b-com{grid-area:com}.b-pub{grid-area:pub}.b-vis{grid-area:vis}.b-seg{grid-area:seg}.b-lle{grid-area:lle}.b-alc{grid-area:alc}.b-pos{grid-area:pos}.b-ciu{grid-area:ciu}
 
 /* Hoy */
 .b-hoy{background:linear-gradient(150deg,var(--navy),var(--blue));color:#fff;border:0}
@@ -116,6 +116,9 @@ main.in{padding-bottom:28px}
 .ch{position:relative;height:190px}
 .ley{display:flex;gap:4px 14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:8px}
 .ley i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.ley i.linea{width:14px;height:3px;border-radius:2px;vertical-align:2px}
+.ley i.puntos{background:none!important;border-top:3px dotted var(--navy);height:0}
+.b-alc .medidor{margin-top:12px}
 .empty{font-size:13px;color:var(--muted);padding:16px 0}
 
 /* Público */
@@ -388,10 +391,11 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
       <div class="b b-ins"><h3>Conclusiones clave</h3><ul class="ins" id="ins"></ul><div class="ins-pie" id="insPie"></div></div>
       <div class="b b-vis"><h3>Vistas de la cuenta por día <small id="visNota"></small></h3><div class="ch"><canvas id="cVistasDia"></canvas></div></div>
       <div class="b b-seg"><h3>Seguidores ganados y perdidos <small id="segNota"></small></h3><div class="ch" style="height:168px"><canvas id="cSegDia"></canvas></div>
-        <div class="ley"><span><i style="background:#12a15f"></i>Nuevos</span><span><i style="background:#e8191b"></i>Dejaron de seguir</span></div></div>
+        <div class="ley"><span><i style="background:#12a15f"></i>Nuevos</span><span><i style="background:#e8191b"></i>Dejaron de seguir</span><span><i class="linea puntos"></i>Nuevos − perdidos</span><span><i class="linea" style="background:#f07a2e"></i>Cambio real</span></div></div>
       <div class="b b-pub"><h3>Público <small>total de seguidores</small></h3>
         <div class="pub-sexo"><div class="dona"><canvas id="cSexo"></canvas></div><div class="ley" id="leySexo"></div></div>
         <div class="barras" id="edad"></div></div>
+      <div class="b b-alc" id="kAlc"></div>
       <div class="b b-lle"><h3>Cómo llegan las vistas</h3><div id="llegada"></div></div>
       <div class="b b-pos"><h3>Lo más visto <small>publicadas en el periodo · vistas acumuladas</small></h3><div class="posts" id="top5"></div></div>
       <div class="b b-ciu"><h3>Principales ciudades</h3><div class="barras" id="ciudades"></div><div class="ley" id="ciuNota"></div></div>
@@ -767,11 +771,31 @@ function medidor(titulo, partes) {
 
 const RETRASO = 'Instagram entrega este dato con unas horas de retraso';
 
-// Seguidores ganados hoy: última lectura de hoy menos la de ayer (null si falta alguna)
-function netoDeHoy() {
-  const ayer = ymd(new Date(new Date(D.hoy + 'T12:00') - 864e5));
-  const sHoy = D.seguidores.find(s => s.f === D.hoy), sAyer = D.seguidores.find(s => s.f === ayer);
-  return sHoy && sAyer ? sHoy.n - sAyer.n : null;
+// Cambio real de seguidores en un día: última lectura de ese día menos la del anterior (null si falta alguna)
+function cambioReal(f) {
+  const antes = ymd(new Date(new Date(f + 'T12:00') - 864e5));
+  const s = D.seguidores.find(x => x.f === f), sAntes = D.seguidores.find(x => x.f === antes);
+  return s && sAntes ? s.n - sAntes.n : null;
+}
+// Seguidores ganados hoy (se lee cada hora)
+function netoDeHoy() { return cambioReal(D.hoy); }
+function conSigno(n) { return (n >= 0 ? '+' : '−') + fmt(Math.abs(n)); }
+
+// Público alcanzado: personas distintas en el periodo (no la suma de cada día). Instagram lo da por
+// ventanas fijas, las de los botones Hoy, 7 y 30 días; con otras fechas no hay cómo calcularlo.
+function renderAlcance(desde, hasta, enCurso) {
+  const al = (D.alcance || []).find(a => a.desde === desde && a.hasta === hasta);
+  const ayer = ymd(new Date(new Date(D.hoy + 'T12:00') - 864e5)), dias = diasEntre(desde, hasta);
+  const deBoton = enCurso || (hasta === ayer && (dias === 7 || dias === 30));
+  const lbl = '<div class="k-lbl">Público alcanzado</div>';
+  if (!al || (enCurso && !al.total)) {
+    $('kAlc').innerHTML = lbl + '<div class="k-val">—</div><div class="k-cmp">' +
+      (!deBoton ? 'Instagram lo da solo para Hoy, 7 y 30 días' : enCurso ? RETRASO : 'Se actualiza en la próxima hora') + '</div>';
+    return;
+  }
+  const partes = al.seg !== null && al.noSeg !== null ? [['No seguidores', al.noSeg, C.magenta], ['Seguidores', al.seg, C.electrico]] : [];
+  $('kAlc').innerHTML = lbl + `<div class="k-val">${fmt(al.total)}</div><div class="k-cmp">personas distintas ${enCurso ? 'hoy, hasta ahora' : 'en ' + dias + ' días'}</div>` +
+    medidor('Seguidores y no seguidores · estimación de Meta', partes);
 }
 
 function renderGeneral(desde, hasta, posts) {
@@ -801,6 +825,7 @@ function renderGeneral(desde, hasta, posts) {
     enCurso && segHoy !== null ? 'Total de seguidores ahora menos el de ayer' : compara(neto, netoPrev, dias, true), spark(cu.map(netoDia), C.verde));
   $('kInter').innerHTML = tarde(inter) ? kpi('Interacciones', '—', RETRASO, '')
     : kpi('Interacciones', fmt(inter), compara(inter, ant('interacciones'), dias), spark(cu.map(c => c.interacciones), C.magenta));
+  renderAlcance(desde, hasta, enCurso);
 
   // Conclusiones clave (de 3 a 5 frases)
   const tipos = [['Reels', sum(cu, 'reels'), C.electrico], ['Fotos y carruseles', sum(cu, 'pubs'), C.magenta], ['Historias', sum(cu, 'historias'), C.naranja], ['Otras', sum(cu, 'otras'), C.gray]];
@@ -833,14 +858,22 @@ function renderGeneral(desde, hasta, posts) {
     options: opciones({ interaction: { mode: 'index', intersect: false } })
   });
 
-  // Seguidores ganados (arriba) y perdidos (abajo)
-  $('segNota').textContent = enCurso && !cu.some(c => c.nuevos || c.perdidos) ? RETRASO.replace('este dato', 'estos datos') : '';
+  // Seguidores ganados (arriba) y perdidos (abajo), con dos líneas para verificar: lo que dice Instagram
+  // (nuevos − perdidos) y el cambio real del total de seguidores. El día en curso aún no trae nuevos ni perdidos.
+  const igNeto = cu.map(c => c.f === D.hoy && !c.nuevos && !c.perdidos ? null : c.nuevos - c.perdidos);
+  const real = cu.map(c => cambioReal(c.f));
+  const ambos = igNeto.map((v, i) => [v, real[i]]).filter(x => x[0] !== null && x[1] !== null);
+  $('segNota').textContent = enCurso && !cu.some(c => c.nuevos || c.perdidos) ? RETRASO.replace('este dato', 'estos datos')
+    : ambos.length ? 'Instagram ' + conSigno(ambos.reduce((a, x) => a + x[0], 0)) + ' · real ' + conSigno(ambos.reduce((a, x) => a + x[1], 0)) : '';
+  const linea = (label, data, color, punteada) => ({ type: 'line', label, data, stack: label, order: 0, borderColor: color, borderWidth: 2,
+    borderDash: punteada ? [3, 3] : [], pointRadius: cu.length === 1 ? 4 : 2, pointBackgroundColor: color, pointBorderWidth: 0, tension: 0 });
   grafica('cSegDia', {
     type: 'bar',
     data: { labels: cu.map(c => corto(c.f)), datasets: [
-      { data: cu.map(c => c.nuevos), backgroundColor: C.verde, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 12 },
-      { data: cu.map(c => -c.perdidos), backgroundColor: C.red, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 12 }] },
-    options: ejeSeguidores(opciones({ apilado: true }), cu)
+      { label: 'Ganados', data: cu.map(c => c.nuevos), order: 1, backgroundColor: C.verde, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 12 },
+      { label: 'Perdidos', data: cu.map(c => -c.perdidos), order: 1, backgroundColor: C.red, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 12 },
+      linea('Nuevos − perdidos', igNeto, C.navy, true), linea('Cambio real', real, C.naranja)] },
+    options: ejeSeguidores(opciones({ apilado: true, interaction: { mode: 'index', intersect: false } }), cu, igNeto.concat(real))
   });
 
   // Público
@@ -1123,12 +1156,13 @@ function opciones(o) {
 }
 
 // Cada lado del cero ocupa lo que piden los datos (si se pierden 3 y se ganan 50, la parte negativa es pequeña)
-function ejeSeguidores(o, cu) {
-  const maxG = Math.max(1, ...cu.map(c => c.nuevos)), maxP = Math.max(0, ...cu.map(c => c.perdidos));
+function ejeSeguidores(o, cu, lineas) {
+  const v = lineas.filter(x => x !== null);
+  const maxG = Math.max(1, ...cu.map(c => c.nuevos), ...v), maxP = Math.max(0, ...cu.map(c => c.perdidos), ...v.map(x => -x));
   const paso = pasoBonito(Math.max(maxG, maxP) / 4);
   Object.assign(o.scales.y, { beginAtZero: false, min: -Math.ceil(maxP / paso) * paso, max: Math.ceil(maxG / paso) * paso });
   o.scales.y.ticks = Object.assign({}, o.scales.y.ticks, { stepSize: paso, maxTicksLimit: 8, callback: v => v < 0 ? '−' + corta(-v) : corta(v) });
-  o.plugins.tooltip.callbacks.label = c => (c.datasetIndex ? 'Perdidos: ' : 'Ganados: ') + fmt(Math.abs(c.parsed.y));
+  o.plugins.tooltip.callbacks.label = c => c.dataset.label + ': ' + (c.datasetIndex < 2 ? fmt(Math.abs(c.parsed.y)) : conSigno(c.parsed.y));
   return o;
 }
 function pasoBonito(x) {
