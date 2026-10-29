@@ -60,6 +60,14 @@ body{margin:0;font-family:var(--ui);background:var(--fondo);color:var(--ink);-we
 .filtros .in{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;padding-top:12px;padding-bottom:12px}
 .periodo{font-size:13px;color:var(--muted)}
 .periodo b{color:var(--ink)}
+/* Aviso mientras llegan los datos nuevos */
+.refresco{display:inline-flex;align-items:center;gap:6px;margin-left:12px;white-space:nowrap;vertical-align:middle;font-size:12px;font-weight:600;color:var(--blue)}
+.refresco:before{content:"";width:9px;height:9px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:gira .8s linear infinite}
+.refresco[hidden]{display:none}
+.refresco.error{color:var(--red)}
+.refresco.error:before{animation:none;border-color:currentColor}
+@keyframes gira{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.refresco:before{animation:none}}
 .filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-left:auto}
 .filters input,.filters select,.chip{font:500 12px var(--ui);padding:7px 11px;border:1px solid var(--linea);border-radius:8px;background:var(--card);color:var(--ink);min-width:0}
 .chip{cursor:pointer}
@@ -330,7 +338,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
 </div>
 
 <nav class="filtros"><div class="in">
-  <div class="periodo" id="periodoTxt"></div>
+  <div class="periodo"><span id="periodoTxt"></span><span class="refresco" id="refresco" hidden></span></div>
   <div class="filters">
     <button class="chip" data-r="30">30 días</button>
     <button class="chip" data-r="7">7 días</button>
@@ -460,6 +468,10 @@ const fraseComp = (prefijo, x) => `${prefijo}${nombre(x.top)} tuvieron <b>${comp
 // ---------- Servidor (Apps Script) ----------
 // Se envía como texto plano para evitar la consulta previa de CORS. La ficha y la clave van en el cuerpo, nunca en la URL.
 const API = 'https://script.google.com/macros/s/AKfycbw8pU8hu-lguAs51WtIY1GqwZjxXT1-Y_b19JVccuctVAHt6JMwEZ8RdppMWUjjmUef/exec';
+// Si el navegador sabe descomprimir, los datos llegan comprimidos (ya preparados en el servidor)
+const GZ = typeof DecompressionStream === 'function';
+const conFormato = c => GZ ? Object.assign(c, { formato: 'gz' }) : c;
+
 async function api(cuerpo) {
   let r;
   try {
@@ -470,12 +482,29 @@ async function api(cuerpo) {
   return r.datos;
 }
 
+// { gz, hoy, actualizado } -> datos del dashboard
+async function abrirPaquete(p) {
+  const bin = Uint8Array.from(atob(p.gz), c => c.charCodeAt(0));
+  const txt = await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  return Object.assign(JSON.parse(txt), { hoy: p.hoy, actualizado: p.actualizado });
+}
+
 // ---------- Sesión ----------
-const CLAVE_FICHA = 'rc_ficha';
+// En este navegador se guardan la ficha y los últimos datos recibidos (comprimidos), para mostrarlos al instante
+// la próxima vez. Ambos se borran al cerrar sesión o cuando el servidor rechaza la sesión.
+const CLAVE_FICHA = 'rc_ficha', CLAVE_DATOS = 'rc_datos';
 const leerFicha = () => { try { return localStorage.getItem(CLAVE_FICHA); } catch (e) { return null; } };
 const guardarFicha = f => { try { localStorage.setItem(CLAVE_FICHA, f); } catch (e) { } };
-const borrarFicha = () => { try { localStorage.removeItem(CLAVE_FICHA); } catch (e) { } };
+const borrarFicha = () => { try { localStorage.removeItem(CLAVE_FICHA); localStorage.removeItem(CLAVE_DATOS); } catch (e) { } };
+const leerDatos = () => { try { return JSON.parse(localStorage.getItem(CLAVE_DATOS)); } catch (e) { return null; } };
+const guardarDatos = p => { try { localStorage.setItem(CLAVE_DATOS, JSON.stringify({ gz: p.gz, hoy: p.hoy, actualizado: p.actualizado })); } catch (e) { } };
 let ficha = leerFicha();
+
+// La ficha lleva su fecha de vencimiento (la firma solo la puede comprobar el servidor)
+function vigente(f) {
+  try { return Number(atob(f.split('.')[0].replace(/-/g, '+').replace(/_/g, '/')).split('|')[1]) > Date.now(); }
+  catch (e) { return false; }
+}
 
 $('loginLogo').src = $('logo').src;
 
@@ -486,31 +515,63 @@ function mostrarLogin(msg) {
   $('loginError').textContent = msg || '';
   $('loginBtn').disabled = false;
   $('login').style.display = 'flex';
+  aviso('');
   $('loginUsuario').focus();
 }
 
-function cargarDatos() {
-  api({ accion: 'datos', ficha: ficha })
-    .then(d => { D = d; $('login').style.display = 'none'; preparar(); })
-    .catch(e => {
-      if (String(e.message).indexOf('SESION_INVALIDA') >= 0) { borrarFicha(); ficha = null; mostrarLogin('Tu sesión terminó. Vuelve a entrar.'); }
-      else $('estado').textContent = 'No se pudieron cargar los datos: ' + e.message;
-    });
+function salirDeSesion(msg) { borrarFicha(); ficha = null; mostrarLogin(msg); }
+
+function aviso(txt, error) {
+  $('refresco').hidden = !txt; $('refresco').textContent = txt || '';
+  $('refresco').classList.toggle('error', !!error);
+}
+
+// Primera vez: arma la página. Si ya hay datos en pantalla, los reemplaza sin perder pestaña ni filtros.
+function mostrarDatos(d) {
+  const refresco = !!D;
+  D = d; $('login').style.display = 'none';
+  preparar(refresco);
+}
+
+const horaDe = iso => iso ? new Date(iso).toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : 'antes';
+
+async function cargarDatos() {
+  const guardado = GZ && leerDatos();
+  if (!D && guardado) { try { mostrarDatos(await abrirPaquete(guardado)); } catch (e) { try { localStorage.removeItem(CLAVE_DATOS); } catch (x) { } } }
+  if (D) aviso('Actualizando…');
+  try {
+    const r = await api(conFormato({ accion: 'datos', ficha: ficha }));
+    const d = GZ ? await abrirPaquete(r) : r;
+    if (GZ) guardarDatos(r);
+    mostrarDatos(d); aviso('');
+  } catch (e) {
+    if (String(e.message).indexOf('SESION_INVALIDA') >= 0) salirDeSesion('Tu sesión terminó. Vuelve a entrar.');
+    else if (D) aviso('Sin conexión: datos guardados del ' + horaDe(D.actualizado), true);
+    else $('estado').textContent = 'No se pudieron cargar los datos: ' + e.message;
+  }
 }
 
 $('loginForm').onsubmit = ev => {
   ev.preventDefault();
   $('loginBtn').disabled = true; $('loginError').textContent = '';
-  api({ accion: 'login', usuario: $('loginUsuario').value, clave: $('loginClave').value })
-    .then(r => { ficha = r.ficha; guardarFicha(ficha); $('loginClave').value = ''; cargarDatos(); })
+  api(conFormato({ accion: 'login', usuario: $('loginUsuario').value, clave: $('loginClave').value }))
+    .then(async r => {
+      ficha = r.ficha; guardarFicha(ficha); $('loginClave').value = '';
+      // El servidor manda los datos en la misma respuesta
+      if (GZ && r.gz) { guardarDatos(r); mostrarDatos(await abrirPaquete(r)); }
+      else cargarDatos();
+    })
     .catch(e => { $('loginBtn').disabled = false; $('loginError').textContent = e.message; $('loginClave').value = ''; $('loginClave').focus(); });
 };
 
-$('salir').onclick = () => { borrarFicha(); ficha = null; mostrarLogin(); };
+$('salir').onclick = () => salirDeSesion();
 
-if (ficha) cargarDatos(); else mostrarLogin();
+if (ficha && vigente(ficha)) cargarDatos();
+else if (ficha) salirDeSesion('Tu sesión terminó. Vuelve a entrar.');
+else mostrarLogin();
 
-function preparar() {
+function preparar(refresco) {
+  const filtros = { cat: $('cat').value, form: $('form').value };
   D.posts.forEach(p => {
     const d = new Date(p.f);
     p.dia = ymd(d); p.fechaObj = d; p.cat = categoria(p);
@@ -541,7 +602,10 @@ function preparar() {
 
   $('estado').style.display = 'none';
   renderHoy();
-  rango('30');
+  if (!refresco) { rango('30'); return; }
+  // Al refrescar se conservan los filtros elegidos
+  ['cat', 'form'].forEach(id => { if ([...$(id).options].some(o => o.value === filtros[id])) $(id).value = filtros[id]; });
+  render();
 }
 
 // "Últimos N días" termina ayer, igual que en Instagram. "Hoy" usa la fecha de Colombia que manda el servidor.
