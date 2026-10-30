@@ -78,8 +78,8 @@ main.in{padding-bottom:28px}
 
 /* ---------- Cuadrícula del Resumen ---------- */
 .grid{display:grid;gap:12px;grid-template-columns:250px repeat(3,minmax(0,1fr)) 290px;
-  grid-template-areas:"hoy k1 k2 k3 ins" "pos pos pos pos ins"}
-.grid.det{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"vis vis seg seg" "rea pub ciu lle" "com com com com"}
+  grid-template-areas:"hoy k1 k2 k3 ins" "pos pos pos pos ins" "lle lle lle ciu ciu"}
+.grid.det{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"vis vis seg seg" "rea rea pub pub" "com com com com"}
 /* Plegable "Ver detalle" */
 .detalle{margin-top:14px}
 .detalle>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font:600 13px var(--ui);color:var(--blue);
@@ -132,6 +132,7 @@ main.in{padding-bottom:28px}
 .ley{display:flex;gap:4px 14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:8px}
 .ley i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .b-k2 .medidor{margin-top:10px}
+.b-k2 .k-lbl{font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
 .empty{font-size:13px;color:var(--muted);padding:16px 0}
 
 /* Público */
@@ -406,6 +407,8 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
       <div class="b b-k3" id="kVistas"></div>
       <div class="b b-ins"><h3>Lo que hay que saber</h3><ul class="ins" id="ins"></ul><div class="ins-pie" id="insPie"></div></div>
       <div class="b b-pos"><h3>Lo más visto <small>publicado en el periodo · veces que se vio desde que salió</small></h3><div class="posts" id="top5"></div></div>
+      <div class="b b-lle"><h3>Cómo llegan las vistas</h3><div id="llegada"></div></div>
+      <div class="b b-ciu"><h3>Principales ciudades</h3><div class="barras" id="ciudades"></div><div class="ley" id="ciuNota"></div></div>
     </div>
     <details class="detalle" id="detGeneral"><summary>Ver detalle</summary>
       <div class="grid det">
@@ -416,8 +419,6 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
         <div class="b b-pub"><h3>Quiénes nos siguen <small>edad y sexo</small></h3>
           <div class="pub-sexo"><div class="dona"><canvas id="cSexo"></canvas></div><div class="ley" id="leySexo"></div></div>
           <div class="barras" id="edad"></div></div>
-        <div class="b b-ciu"><h3>Dónde viven los seguidores</h3><div class="barras" id="ciudades"></div><div class="ley" id="ciuNota"></div></div>
-        <div class="b b-lle"><h3>Qué se vio más</h3><div id="llegada"></div></div>
         <div class="b b-com"><h3>Lo más compartido <small>lo que la gente le pasó a otros</small></h3><div class="compartidas" id="topCom"></div></div>
       </div>
     </details>
@@ -833,7 +834,8 @@ function renderAlcance(desde, hasta, enCurso) {
     return;
   }
   const partes = al.seg !== null && al.noSeg !== null ? [['Aún no nos siguen', al.noSeg, C.magenta], ['Ya nos siguen', al.seg, C.electrico]] : [];
-  $('kAlc').innerHTML = kpi(lbl, fmt(al.total), `cada persona cuenta una vez, aunque nos viera varias veces${enCurso ? ' (hoy, hasta ahora)' : ''}`) + medidor('', partes);
+  $('kAlc').innerHTML = kpi(lbl, fmt(al.total), `personas distintas ${enCurso ? 'hoy, hasta ahora' : 'en ' + dias + ' días'}`) +
+    medidor('Personas: ya nos siguen y aún no · estimación de Instagram', partes);
 }
 
 // Llegaron y se fueron por día; con más de 14 días, por semanas contadas hacia atrás desde el último día
@@ -855,7 +857,7 @@ function renderGeneral(desde, hasta, posts) {
   const segHoy = netoDeHoy();
   const netoDia = c => c.f === D.hoy && segHoy !== null ? segHoy : c.nuevos - c.perdidos;
   const neto = cu.reduce((a, c) => a + netoDia(c), 0);
-  const vistas = sum(cu, 'vistas'), inter = sum(cu, 'interacciones');
+  const vistas = sum(cu, 'vistas'), vSeg = sum(cu, 'vSeg'), vNoSeg = sum(cu, 'vNoSeg'), inter = sum(cu, 'interacciones');
   const llegaron = sum(cu, 'nuevos'), seFueron = sum(cu, 'perdidos');
 
   // Mismo número de días justo antes, solo si hay datos de todos esos días
@@ -949,14 +951,17 @@ function renderGeneral(desde, hasta, posts) {
   const edad = pub('Edad').sort((a, b) => a.valor < b.valor ? -1 : 1);
   $('edad').innerHTML = edad.length ? barrasHTML(edad, sum(edad, 'n'), x => x.valor) : '<div class="empty">Sin datos de edad.</div>';
 
-  // Qué se vio más: por formato
-  $('llegada').innerHTML = medidor('De las veces que se vio el contenido', tipos) || `<div class="empty">${SIN_DATOS}</div>`;
+  // Cómo llegan las vistas: por tipo de contenido y según quién las hizo (cuenta vistas, no personas:
+  // un seguidor suele ver varias veces, por eso su parte es mayor que en «Personas que nos vieron»)
+  $('llegada').innerHTML = (medidor('Por tipo de contenido', tipos) +
+    medidor('Vistas de seguidores y de quienes aún no nos siguen · cuenta vistas, no personas',
+      [['Vistas de quienes aún no nos siguen', vNoSeg, C.magenta], ['Vistas de seguidores', vSeg, C.electrico]])) || `<div class="empty">${SIN_DATOS}</div>`;
 
-  // Dónde viven los seguidores
+  // Principales ciudades
   const ciu = pub('Ciudad').sort((a, b) => b.n - a.n);
   // Instagram solo da las ciudades principales: el porcentaje se calcula sobre el total de seguidores, no sobre esa suma
   const totSeg = D.seguidores.length ? D.seguidores[D.seguidores.length - 1].n : sum(ciu, 'n');
-  $('ciuNota').textContent = ciu.length ? 'De cada 100 seguidores (' + fmt(totSeg) + ' en total).' : '';
+  $('ciuNota').textContent = ciu.length ? 'Porcentaje sobre el total de ' + fmt(totSeg) + ' seguidores.' : '';
   $('ciudades').innerHTML = ciu.length ? barrasHTML(ciu.slice(0, 6), Math.max(totSeg, sum(ciu, 'n')), x => x.valor.split(',')[0]) : '<div class="empty">Sin datos de ciudades.</div>';
 
   // Lo más compartido: lo que más lleva las noticias a gente nueva
