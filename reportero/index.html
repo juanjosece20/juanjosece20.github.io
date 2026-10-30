@@ -170,7 +170,10 @@ main.in{padding-bottom:28px}
 .comp-m b{color:var(--ink);font-size:13px}
 .cifra-2{margin-top:18px}
 .chart.alta{height:260px}
-.tablaP th[data-k=cpm]{white-space:normal;min-width:96px;line-height:1.3}
+.tablaP th.n{white-space:normal;min-width:84px;line-height:1.3;vertical-align:bottom}
+/* Columnas extra: se muestran con el botón «Más columnas» */
+.tablaP:not(.mas) .extra{display:none}
+.mas-cols{font:600 12px var(--ui);background:var(--card);border:1px solid var(--linea);border-radius:8px;color:var(--blue);padding:7px 12px;cursor:pointer;margin:0 0 10px}
 .munis table{width:100%;border-collapse:collapse;font-size:12.5px}
 .munis th{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--linea)}
 .munis td{padding:7px 8px;border-bottom:1px solid var(--linea);color:var(--ink)}
@@ -459,7 +462,8 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
     </details>
 
     <h2 class="cintillo">Todas las publicaciones</h2>
-    <div class="sub2" id="subTabla">Haz clic en el título de una columna para ordenar. «Vistas por día»: cuántas vistas ganó cada día (toca las barras para ver el detalle). «A los 2 / 7 días»: vistas acumuladas al cierre de ese día después de publicada (aproximado), para comparar publicaciones a la misma edad. «Compart. por 1.000 vistas»: de cada 1.000 vistas, cuántas terminaron en un compartido. «—»: Instagram no da ese dato en los reels. El lugar se corrige en la pestaña Lugares del Sheet.</div>
+    <div class="sub2" id="subTabla">Toca el título de una columna para ordenar. «Vistas por día»: cuántas veces se vio cada día (toca las barras para ver el detalle). «A los 2 / 7 días»: cuántas veces se había visto al terminar ese día después de publicada (aproximado), para comparar publicaciones con la misma edad. «—»: Instagram no da ese dato en los reels. Si el lugar está mal, se corrige en la pestaña Lugares del Sheet.</div>
+    <button class="mas-cols" id="masCols" type="button"></button>
     <label class="ordenar">Ordenar por<select id="ordenSel"></select></label>
     <div class="tbl"><table class="tablaP">
       <thead><tr id="thP"></tr></thead>
@@ -477,9 +481,11 @@ const CATEGORIAS = [
 ];
 const OTRA = { nombre: 'Sin clasificar', color: '#8a93ab' };
 const C = { navy: '#09163d', blue: '#103db0', red: '#e8191b', electrico: '#2f5bea', magenta: '#e8458b', naranja: '#f07a2e', gray: '#8a93ab', verde: '#12a15f', grid: '#edf0f6', tick: '#66708c' };
+// Columnas de la tabla; las marcadas como extra solo se ven con «Más columnas»
 const COLS = [
-  ['vistas', 'Vistas'], ['compartidos', 'Compart.'], ['cpm', 'Compart. por 1.000 vistas'], ['a2', 'A los 2 días'], ['a7', 'A los 7 días'],
-  ['alcance', 'Alcance'], ['likes', 'Likes'], ['comentarios', 'Coment.'], ['guardados', 'Guard.'], ['segGanados', 'Seg. ganados'], ['visitas', 'Visitas perfil'], ['reprod', 'Reprod. (s)']
+  ['vistas', 'Vistas'], ['compartidos', 'Compartidos'], ['cpm', 'La compartieron, de cada 1.000'], ['a2', 'A los 2 días'], ['a7', 'A los 7 días'],
+  ['alcance', 'Personas que la vieron', 1], ['likes', 'Me gusta', 1], ['comentarios', 'Comentarios', 1], ['guardados', 'Guardados', 1],
+  ['segGanados', 'Empezaron a seguirnos', 1], ['visitas', 'Visitaron el perfil', 1], ['reprod', 'Segundos que la vieron, en promedio', 1]
 ];
 // Cómo se nombran en una frase
 const PLURAL = { 'Denuncia': 'las denuncias', 'Información': 'las publicaciones de información', 'Sin clasificar': 'las publicaciones sin clasificar',
@@ -495,6 +501,8 @@ const TIPOS_VISTA = { 'Reels': 'los reels', 'Publicaciones': 'las fotos y carrus
 const MULT_CRECE = 3, MIN_CRECE = 1000, MIN_MUESTRAS = 5, DIAS_BARRAS = 14;
 
 let compEdad = 'vistas';
+let masCols = false;
+try { masCols = localStorage.getItem('rc_masCols') === '1'; } catch (e) { }
 let D = null, charts = {}, tab = 'general', orden = 'compartidos', nSpark = 0;
 const $ = id => document.getElementById(id);
 const fmt = n => Math.round(n).toLocaleString('es-CO');
@@ -680,10 +688,10 @@ function preparar(refresco) {
   $('cat').innerHTML = ['Todas las noticias'].concat(CATEGORIAS.map(c => c.nombre), OTRA.nombre).map(x => `<option>${x}</option>`).join('');
   $('form').innerHTML = ['Todos los formatos'].concat([...new Set(D.posts.map(p => p.formato))].sort()).map(x => `<option>${esc(x)}</option>`).join('');
   $('prov').innerHTML = ['Todas las provincias'].concat(PROVINCIAS, SIN_LUGAR).map(x => `<option>${x}</option>`).join('');
-  $('thP').innerHTML = '<th>Publicación</th><th>Tipo</th><th>Vistas por día</th>' + COLS.map(c => `<th class="n s" data-k="${c[0]}">${c[1]}</th>`).join('');
+  $('thP').innerHTML = '<th>Publicación</th><th>Tipo</th><th>Vistas por día</th>' + COLS.map(c => `<th class="n s${c[2] ? ' extra' : ''}" data-k="${c[0]}">${c[1]}</th>`).join('');
   document.querySelectorAll('#thP th.s').forEach(th => th.onclick = () => { orden = th.dataset.k; render(); });
-  $('ordenSel').innerHTML = COLS.map(c => `<option value="${c[0]}">${c[1]}</option>`).join('');
   $('ordenSel').onchange = () => { orden = $('ordenSel').value; render(); };
+  $('masCols').onclick = () => { masCols = !masCols; try { localStorage.setItem('rc_masCols', masCols ? '1' : '0'); } catch (e) { } render(); };
 
   document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
     tab = b.dataset.t;
@@ -1034,11 +1042,16 @@ function renderPubs(desde, hasta, todos) {
 
   // Las publicaciones sin el dato van al final al ordenar
   const valor = (p, k) => p[k] === null ? -1 : p[k];
+  // Columnas extra: si se ocultan mientras se ordena por una de ellas, se vuelve a ordenar por compartidos
+  if (!masCols && COLS.some(c => c[2] && c[0] === orden)) orden = 'compartidos';
   document.querySelectorAll('#thP th.s').forEach(th => th.classList.toggle('act', th.dataset.k === orden));
+  $('tablaP').parentNode.classList.toggle('mas', masCols);
+  $('masCols').textContent = masCols ? 'Menos columnas' : 'Más columnas';
+  $('ordenSel').innerHTML = COLS.filter(c => masCols || !c[2]).map(c => `<option value="${c[0]}">${c[1]}</option>`).join('');
   $('ordenSel').value = orden;
   $('tablaP').innerHTML = posts.slice().sort((a, b) => valor(b, orden) - valor(a, orden)).map(p => `<tr>${celdaTitulo(p)}<td class="tipo">${etiquetaCat(p)}</td>` +
     `<td class="vpd" data-l="Vistas por día">${celdaDias(p)}</td>` +
-    COLS.map(c => `<td class="n${c[0] === orden ? ' fuerte' : ''}" data-l="${c[1]}">${celda(p, c[0])}</td>`).join('') + '</tr>').join('')
+    COLS.map(c => `<td class="n${c[0] === orden ? ' fuerte' : ''}${c[2] ? ' extra' : ''}" data-l="${c[1]}">${celda(p, c[0])}</td>`).join('') + '</tr>').join('')
     || '<tr><td colspan="15" class="empty">No hay publicaciones con estos filtros.</td></tr>';
 }
 
