@@ -429,29 +429,34 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
       </div>
       <aside class="cifra">
         <div class="cifra-n" id="pCifra"></div>
-        <div class="cifra-l">vistas típicas por publicación (mediana)</div>
+        <div class="cifra-l">vistas de una publicación normal</div>
         <div class="cifra-c" id="pCifraC"></div>
-        <div class="cifra-n cifra-2" id="pCpm"></div>
-        <div class="cifra-l">compartidos por cada 1.000 vistas</div>
-        <div class="cifra-c" id="pCpmC"></div>
+        <div class="cifra-n cifra-2" id="pNum"></div>
+        <div class="cifra-l" id="pNumL">publicaciones</div>
+        <div class="cifra-c">con estos filtros</div>
       </aside>
     </div>
     <div class="alertas" id="alertas" style="display:none"></div>
-    <div class="encifras" id="kpisP"></div>
 
     <div class="notas">
-      <div class="comparar">Comparar
-        <button class="chip on" data-e="vistas">Vistas acumuladas</button><button class="chip" data-e="a2">A los 2 días</button><button class="chip" data-e="a7">A los 7 días</button>
-        <span id="compNota"></span></div>
-      <article class="nota"><h3>Vistas típicas (mediana) por tipo de noticia</h3><p id="pCat"></p>
-        <div class="chart"><canvas id="cCat"></canvas></div></article>
-      <article class="nota ancha"><h3>Vistas típicas (mediana) por formato</h3><p id="pForm"></p>
-        <div class="chart"><canvas id="cForm"></canvas></div></article>
-      <article class="nota"><h3>Vistas típicas (mediana) por provincia</h3><p id="pProv"></p>
+      <article class="nota"><h3>Vistas de una publicación normal, por provincia</h3><p id="pProv"></p>
         <div class="chart alta"><canvas id="cProv"></canvas></div></article>
-      <article class="nota ancha"><h3>Por municipio</h3><p id="pMuni"></p>
+      <article class="nota ancha"><h3>En qué municipios publicamos</h3><p id="pMuni"></p>
         <div class="munis" id="tMuni"></div></article>
     </div>
+
+    <details class="detalle" id="detPubs"><summary>Ver detalle</summary>
+      <div class="encifras" id="kpisP"></div>
+      <div class="notas">
+        <div class="comparar">Comparar por
+          <button class="chip on" data-e="vistas">Desde que salió</button><button class="chip" data-e="a2">A los 2 días</button><button class="chip" data-e="a7">A los 7 días</button>
+          <span id="compNota"></span></div>
+        <article class="nota"><h3>Vistas de una publicación normal, por tipo de noticia</h3><p id="pCat"></p>
+          <div class="chart"><canvas id="cCat"></canvas></div></article>
+        <article class="nota ancha"><h3>Vistas de una publicación normal, por formato</h3><p id="pForm"></p>
+          <div class="chart"><canvas id="cForm"></canvas></div></article>
+      </div>
+    </details>
 
     <h2 class="cintillo">Todas las publicaciones</h2>
     <div class="sub2" id="subTabla">Haz clic en el título de una columna para ordenar. «Vistas por día»: cuántas vistas ganó cada día (toca las barras para ver el detalle). «A los 2 / 7 días»: vistas acumuladas al cierre de ese día después de publicada (aproximado), para comparar publicaciones a la misma edad. «Compart. por 1.000 vistas»: de cada 1.000 vistas, cuántas terminaron en un compartido. «—»: Instagram no da ese dato en los reels. El lugar se corrige en la pestaña Lugares del Sheet.</div>
@@ -537,7 +542,7 @@ function extremos(posts, clave, excluir) {
   if (l.length < 2 || !l[l.length - 1][1]) return null;
   return { top: l[0][0], ult: l[l.length - 1][0], r: l[0][1] / l[l.length - 1][1] };
 }
-const fraseComp = (prefijo, x) => `${prefijo}${nombre(x.top)} suelen tener <b>${comparar(x.r)}</b> ${nombre(x.ult)} (comparando la mediana).`;
+const fraseComp = (prefijo, x) => `${prefijo}${nombre(x.top)} suelen tener <b>${comparar(x.r)}</b> ${nombre(x.ult)}.`;
 
 // ---------- Servidor (Apps Script) ----------
 // Se envía como texto plano para evitar la consulta previa de CORS. La ficha y la clave van en el cuerpo, nunca en la URL.
@@ -961,24 +966,23 @@ function renderPubs(desde, hasta, todos) {
   const posts = todos.filter(p => (cat === 'Todas las noticias' || p.cat === cat) && (form === 'Todos los formatos' || p.formato === form) &&
     (prov === 'Todas las provincias' || p.prov === prov));
   const cpm = cpmDe(posts);
-  // Interacciones por cada 1.000 vistas (el alcance sumado contaría varias veces a la misma persona)
+  // Reacciones de cada 1.000 vistas (sumar personas de varias publicaciones contaría varias veces a la misma)
   const conVistas = posts.filter(p => p.vistas > 0);
   const porMil = sum(conVistas, 'vistas') ? sum(conVistas, 'inter') / sum(conVistas, 'vistas') * 1000 : null;
-  const porMilTxt = porMil === null ? '—' : (porMil < 10 ? (Math.round(porMil * 10) / 10).toString().replace('.', ',') : fmt(porMil));
+  // Publicación normal = la del medio (mediana): una muy viral no la cambia como cambiaría el promedio
   const tipica = posts.length ? mediana(posts.map(p => p.vistas)) : 0;
-  const prom = posts.length ? sum(posts, 'vistas') / posts.length : 0;
 
+  // Frases principales: por tipo, formato y lugar, y las que más se vieron y compartieron (el Resumen no las repite)
   const l = [];
   const cc = extremos(posts, 'cat', OTRA.nombre), cf = extremos(posts, 'formato');
   if (cc) l.push(fraseComp('Por tipo de noticia, ', cc));
   if (cf) l.push(fraseComp('Por formato, ', cf));
   const cp = extremos(posts, 'prov', SIN_LUGAR);
   if (cp) l.push(fraseComp('Por lugar, ', cp));
-  const masComp = posts.filter(p => p.compartidos > 0).sort((a, b) => b.compartidos - a.compartidos)[0];
-  if (masComp) l.push(`La más compartida fue «${esc(recortar(masComp.titulo, 80))}», con <b>${fmt(masComp.compartidos)} compartidos</b> (${dec(masComp.cpm)} por cada 1.000 vistas).`);
   const mejor = posts.slice().sort((a, b) => b.vistas - a.vistas)[0];
-  if (mejor) l.push(`La más vista fue «${esc(recortar(mejor.titulo, 80))}», con <b>${fmt(mejor.vistas)} vistas acumuladas</b>.`);
-  if (porMil !== null) l.push(`Interacción: <b>${porMilTxt} por cada 1.000 vistas</b>. De cada 1.000 vistas, ${porMilTxt} terminan en un like, comentario, compartido o guardado.`);
+  if (mejor) l.push(`La más vista fue «${esc(recortar(mejor.titulo, 80))}»: se vio <b>${fmt(mejor.vistas)} veces</b>.`);
+  const masComp = posts.filter(p => p.compartidos > 0).sort((a, b) => b.compartidos - a.compartidos)[0];
+  if (masComp) l.push(`La más compartida fue «${esc(recortar(masComp.titulo, 80))}»: <b>${fmt(masComp.compartidos)} ${masComp.compartidos === 1 ? 'vez' : 'veces'}</b>.`);
   if (!posts.length) l.push('No hay publicaciones con estos filtros.');
 
   const filtros = [cat === 'Todas las noticias' ? '' : cat, form === 'Todos los formatos' ? '' : form, prov === 'Todas las provincias' ? '' : prov].filter(Boolean);
@@ -986,48 +990,47 @@ function renderPubs(desde, hasta, todos) {
   $('pPuntos').innerHTML = puntos(l);
   $('pCifra').textContent = fmt(tipica);
   $('pCifraC').textContent = posts.length > 1
-    ? `La mitad de las ${fmt(posts.length)} publicaciones con estos filtros tuvo más de ${fmt(tipica)} vistas y la otra mitad menos.` +
-      (prom > tipica * 1.1 ? ` El promedio es ${fmt(prom)} porque lo suben las más virales.` : ` El promedio es ${fmt(prom)}.`)
-    : 'Sobre ' + fmt(posts.length) + (posts.length === 1 ? ' publicación' : ' publicaciones') + ' con estos filtros.';
-  // En un medio de noticias, compartir es lo que más lleva el contenido a gente nueva
-  $('pCpm').textContent = cpm === null ? '—' : dec(cpm);
-  $('pCpmC').textContent = cpm === null ? '' : `De cada 1.000 vistas, ${dec(cpm)} terminaron en un compartido: ${fmt(sum(posts, 'compartidos'))} compartidos en total.`;
+    ? `La mitad de las publicaciones tuvo más de ${fmt(tipica)} vistas y la otra mitad, menos. Así, una muy viral no cambia esta cifra.` : '';
+  $('pNum').textContent = fmt(posts.length);
+  $('pNumL').textContent = posts.length === 1 ? 'publicación' : 'publicaciones';
 
+  // ---- Ver detalle ----
   // Instagram no da seguidores ganados ni visitas al perfil en los reels
   const conDato = posts.filter(p => p.segGanados !== null || p.visitas !== null).length;
-  const nota = n => n ? `solo ${n} ${n === 1 ? 'publicación que no es reel' : 'publicaciones que no son reels'}; Instagram no da este dato en reels`
+  const nota = n => n ? `desde ${n} ${n === 1 ? 'publicación que no es reel' : 'publicaciones que no son reels'}; Instagram no da este dato en reels`
     : 'Instagram no da este dato en reels';
   const dato = (lbl, val, note) => `<div class="dato"><div class="lbl">${lbl}</div><div class="val">${val}</div><div class="note">${note}</div></div>`;
   $('kpisP').innerHTML =
-    dato('Publicaciones', fmt(posts.length), 'con estos filtros') +
-    dato('Seguidores ganados', conDato ? '+' + fmt(sum(posts, 'segGanados')) : '—', nota(conDato)) +
-    dato('Visitas al perfil', conDato ? fmt(sum(posts, 'visitas')) : '—', nota(conDato)) +
-    dato('Interacciones por 1.000 vistas', porMilTxt, 'de cada 1.000 vistas, cuántas terminan en like, comentario, compartido o guardado');
+    dato('La compartieron', cpm === null ? '—' : dec(cpm), cpm === null ? '' : `de cada 1.000 que la vieron (${fmt(sum(posts, 'compartidos'))} veces en total)`) +
+    dato('Reaccionaron', porMil === null ? '—' : dec(porMil), 'de cada 1.000 que la vieron: me gusta, comentario, compartido o guardado') +
+    dato('Empezaron a seguirnos', conDato ? '+' + fmt(sum(posts, 'segGanados')) : '—', nota(conDato)) +
+    dato('Visitaron el perfil', conDato ? fmt(sum(posts, 'visitas')) : '—', nota(conDato));
 
-  // A la misma edad solo se comparan grupos con al menos 3 publicaciones que tengan ese dato
-  const enEdad = compEdad !== 'vistas', MIN = enEdad ? 3 : 1;
-  const queMide = { vistas: 'más vistas acumuladas suelen tener', a2: 'más vistas suelen tener a los 2 días', a7: 'más vistas suelen tener a los 7 días' }[compEdad];
+  // Tipo y formato se pueden comparar a la misma edad (solo grupos con al menos 3 publicaciones con ese dato);
+  // la provincia, que va arriba, siempre con las vistas desde que salió
+  const enEdad = compEdad !== 'vistas';
+  const queMide = { vistas: 'más vistas suelen tener', a2: 'más vistas suelen tener a los 2 días', a7: 'más vistas suelen tener a los 7 días' };
   $('compNota').textContent = enEdad
-    ? `Vistas acumuladas al cierre del ${compEdad === 'a2' ? 'segundo' : 'séptimo'} día después de publicadas (aproximado). Solo grupos con 3 o más publicaciones con ese dato.`
-    : 'Vistas acumuladas hasta hoy: las publicaciones más viejas han tenido más tiempo para sumar.';
-  const ENTRE = ' Entre paréntesis, cuántas publicaciones entran en el cálculo.';
+    ? `Vistas que tenía cada publicación al terminar su ${compEdad === 'a2' ? 'segundo' : 'séptimo'} día (aproximado). Solo grupos con 3 o más publicaciones con ese dato.`
+    : 'Vistas desde que salió cada una: las más viejas han tenido más tiempo para sumar.';
+  const ENTRE = ' Entre paréntesis, cuántas publicaciones hay.';
   const SIN_HIST = 'Aún no hay suficiente historial para comparar a esa edad. El Historial empezó el 27 de octubre y se llena día a día.';
-  const grupo = (key, id, pid, colores) => {
-    const g = tipicas(posts, key, compEdad, MIN);
+  const grupo = (key, id, pid, colores, medida) => {
+    const g = tipicas(posts, key, medida, medida === 'vistas' ? 1 : 3);
     if (!g.length) {
-      $(pid).innerHTML = posts.length ? (enEdad ? SIN_HIST : 'Sin publicaciones con estos filtros.') : 'Sin publicaciones con estos filtros.';
+      $(pid).innerHTML = posts.length && medida !== 'vistas' ? SIN_HIST : 'Sin publicaciones con estos filtros.';
       if (charts[id]) { charts[id].destroy(); delete charts[id]; }
       $(id).parentNode.style.display = 'none';
       return;
     }
     $(id).parentNode.style.display = '';
-    $(pid).innerHTML = `${mayus(nombre(g[0][0]))} son las que ${queMide}: <b>${fmt(g[0][1])}</b> por publicación (mediana).` + ENTRE;
+    $(pid).innerHTML = `${mayus(nombre(g[0][0]))} son las que ${queMide[medida]}: <b>${fmt(g[0][1])}</b> en una publicación normal.` + ENTRE;
     barrasH(id, g.map(x => x[0] + ' (' + x[2] + ')'), g.map(x => Math.round(x[1])), colores(g));
   };
-  grupo('cat', 'cCat', 'pCat', g => g.map(x => colorCat(x[0])));
-  grupo('formato', 'cForm', 'pForm', g => g.map((x, i) => i ? C.blue : C.electrico));
-  grupo('prov', 'cProv', 'pProv', g => g.map((x, i) => x[0] === SIN_LUGAR ? C.gray : i ? C.blue : C.electrico));
+  grupo('prov', 'cProv', 'pProv', g => g.map((x, i) => x[0] === SIN_LUGAR ? C.gray : i ? C.blue : C.electrico), 'vistas');
   renderMunicipios(posts);
+  grupo('cat', 'cCat', 'pCat', g => g.map(x => colorCat(x[0])), compEdad);
+  grupo('formato', 'cForm', 'pForm', g => g.map((x, i) => i ? C.blue : C.electrico), compEdad);
 
   // Las publicaciones sin el dato van al final al ordenar
   const valor = (p, k) => p[k] === null ? -1 : p[k];
@@ -1039,7 +1042,7 @@ function renderPubs(desde, hasta, todos) {
     || '<tr><td colspan="15" class="empty">No hay publicaciones con estos filtros.</td></tr>';
 }
 
-// Tabla por municipio: publicaciones, vistas típicas y compartidos por 1.000 vistas
+// Tabla por municipio: publicaciones, vistas de una publicación normal y cuántos la compartieron de cada 1.000
 // Si sobra solo uno, se muestran todos
 const MAX_MUNIS = 10;
 function renderMunicipios(posts) {
@@ -1050,10 +1053,10 @@ function renderMunicipios(posts) {
   if (!filas.length) { $('pMuni').textContent = 'Sin publicaciones con estos filtros.'; $('tMuni').innerHTML = ''; return; }
   const munis = filas.filter(f => f.lugar !== SIN_LUGAR && !f.lugar.startsWith('Toda la provincia')).length;
   $('pMuni').innerHTML = `Publicaciones de <b>${munis} ${munis === 1 ? 'municipio' : 'municipios'}</b>, de más a menos publicaciones. ` +
-    'Con 1 o 2 publicaciones la mediana todavía dice poco. Los lugares mal detectados se corrigen en la pestaña Lugares del Sheet.';
+    'Con 1 o 2 publicaciones el dato todavía dice poco. Los lugares mal detectados se corrigen en la pestaña Lugares del Sheet.';
   const fila = f => `<tr${f.n < 3 ? ' class="poco"' : ''}><td>${esc(f.lugar)}</td><td class="pv">${f.lugar === SIN_LUGAR || f.lugar.startsWith('Toda') ? '' : esc(f.prov)}</td>` +
     `<td class="n">${fmt(f.n)}</td><td class="n med">${fmt(f.med)}</td><td class="n">${f.cpm === null ? '—' : dec(f.cpm)}</td></tr>`;
-  const tabla = l => `<table><thead><tr><th>Lugar</th><th class="pv">Provincia</th><th class="n">Publ.</th><th class="n">Vistas típicas</th><th class="n">Compart. por 1.000</th></tr></thead><tbody>${l.map(fila).join('')}</tbody></table>`;
+  const tabla = l => `<table><thead><tr><th>Lugar</th><th class="pv">Provincia</th><th class="n">Publicaciones</th><th class="n">Vistas de una publicación normal</th><th class="n">La compartieron, de cada 1.000</th></tr></thead><tbody>${l.map(fila).join('')}</tbody></table>`;
   const corte = filas.length > MAX_MUNIS + 1 ? MAX_MUNIS : filas.length;
   $('tMuni').innerHTML = tabla(filas.slice(0, corte)) +
     (filas.length > corte ? `<details><summary>Ver los ${filas.length - corte} lugares restantes</summary>${tabla(filas.slice(corte))}</details>` : '');
