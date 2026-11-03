@@ -78,7 +78,7 @@ main.in{padding-bottom:28px}
 
 /* ---------- Cuadrícula del Resumen ---------- */
 .grid{display:grid;gap:12px;grid-template-columns:250px repeat(3,minmax(0,1fr)) 290px;
-  grid-template-areas:"hoy k1 k2 k3 ins" "pos pos pos pos ins" "lle lle lle ciu ciu"}
+  grid-template-areas:"hoy k1 k2 k2 ins" "pos pos pos pos ins" "lle lle lle ciu ciu"}
 .grid.det{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"vis vis seg seg" "rea rea pub pub" "com com com com"}
 /* Plegable "Ver detalle" */
 .detalle{margin-top:14px}
@@ -97,7 +97,7 @@ main.in{padding-bottom:28px}
 .b{background:var(--card);border:1px solid var(--linea);border-radius:var(--radio);padding:14px 16px;min-width:0;position:relative}
 .b h3{font:400 19px/1 var(--titulo);letter-spacing:.5px;margin:0 0 10px;color:var(--ink)}
 .b h3 small{font:500 11px var(--ui);letter-spacing:0;color:var(--muted);margin-left:6px}
-.b-hoy{grid-area:hoy}.b-k1{grid-area:k1}.b-k2{grid-area:k2}.b-k3{grid-area:k3}.b-ins{grid-area:ins}
+.b-hoy{grid-area:hoy}.b-k1{grid-area:k1}.b-k2{grid-area:k2}.b-ins{grid-area:ins}
 .b-com{grid-area:com}.b-pub{grid-area:pub}.b-vis{grid-area:vis}.b-seg{grid-area:seg}.b-lle{grid-area:lle}.b-rea{grid-area:rea}.b-pos{grid-area:pos}.b-ciu{grid-area:ciu}
 
 /* Hoy */
@@ -132,6 +132,10 @@ main.in{padding-bottom:28px}
 .ley{display:flex;gap:4px 14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:8px}
 .ley i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .b-k2 .medidor{margin-top:10px}
+/* Personas y veces: una frase con las dos cifras */
+.k-frase{font-size:15px;line-height:1.35;color:var(--ink);margin-top:2px}
+.k-frase b{font:400 36px/1 var(--titulo);letter-spacing:.5px}
+.k-frase small{font-size:12px;color:var(--muted);white-space:nowrap}
 .b-k2 .k-lbl{font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
 .empty{font-size:13px;color:var(--muted);padding:16px 0}
 
@@ -295,6 +299,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .b{padding:12px 14px}
   .b h3{margin-bottom:8px}
   .k-val{font-size:34px}
+  .k-frase b{font-size:30px}
   .k-spark{height:24px;margin-top:4px}
   .hd .v{font-size:22px}
   .ch{height:150px}
@@ -312,7 +317,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
 @media (max-width:1199px){
   .grid,.grid.det{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:none;grid-auto-flow:dense}
   .grid>.b{grid-area:auto}
-  .grid>.b-ins,.grid>.b-vis,.grid>.b-pos,.grid>.b-com{grid-column:span 2}
+  .grid>.b-ins,.grid>.b-vis,.grid>.b-pos,.grid>.b-com,.grid>.b-k2{grid-column:span 2}
   .compartidas{grid-template-columns:repeat(2,minmax(0,1fr))}
   .portada{grid-template-columns:1fr;gap:20px}
   .cifra{border-left:0;padding-left:0}
@@ -330,7 +335,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .salir{position:absolute;top:10px;right:16px;padding:6px 10px}
   .filters{margin-left:0}
   .grid,.grid.det{grid-template-columns:minmax(0,1fr)}
-  .grid>.b-ins,.grid>.b-vis,.grid>.b-pos,.grid>.b-com{grid-column:auto}
+  .grid>.b-ins,.grid>.b-vis,.grid>.b-pos,.grid>.b-com,.grid>.b-k2{grid-column:auto}
   .compartidas{grid-template-columns:1fr}
   .munis td.pv,.munis th.pv{display:none}
   .munis th,.munis td{padding:6px 4px}
@@ -404,7 +409,6 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
       <div class="b b-hoy"><h3>Hoy <small id="hoyHora"></small></h3><div class="hoy-datos" id="hoyDatos"></div></div>
       <div class="b b-k1" id="kSeg"></div>
       <div class="b b-k2" id="kAlc"></div>
-      <div class="b b-k3" id="kVistas"></div>
       <div class="b b-ins"><h3>Lo que hay que saber</h3><ul class="ins" id="ins"></ul><div class="ins-pie" id="insPie"></div></div>
       <div class="b b-pos"><h3>Lo más visto <small>publicado en el periodo · veces que se vio desde que salió</small></h3><div class="posts" id="top5"></div></div>
       <div class="b b-lle"><h3>Cómo llegan las vistas</h3><div id="llegada"></div></div>
@@ -822,20 +826,29 @@ function netoDeHoy() {
 }
 const conSigno = n => (n >= 0 ? '+' : '−') + fmt(Math.abs(n));
 
-// Personas que nos vieron: personas distintas en el periodo (no la suma de cada día). Instagram lo da por
-// ventanas fijas, las de los botones Hoy, 7 y 30 días; con otras fechas no hay cómo calcularlo.
-function renderAlcance(desde, hasta, enCurso) {
+// Personas que nos vieron y veces que se vio el contenido, juntas para que se note la diferencia.
+// Las personas son distintas en el periodo (no la suma de cada día). Instagram las da por ventanas
+// fijas, las de los botones Hoy, 7 y 30 días; con otras fechas solo se muestran las vistas.
+function renderVistos(desde, hasta, enCurso, vistas, vs) {
   const al = (D.alcance || []).find(a => a.desde === desde && a.hasta === hasta);
   const ayer = ymd(new Date(new Date(D.hoy + 'T12:00') - 864e5)), dias = diasEntre(desde, hasta);
   const deBoton = enCurso || (hasta === ayer && (dias === 7 || dias === 30));
-  const lbl = 'Personas que nos vieron';
+  // Solo hoy y en cero: es el retraso de Instagram, no que no haya pasado nada
+  if (enCurso && !vistas) { $('kAlc').innerHTML = kpi('Personas que nos vieron', '—', RETRASO); return; }
+  const veces = `<b>${fmt(vistas)}</b> ${vistas === 1 ? 'vez' : 'veces'}`;
+  const cmp = vs ? `<div class="k-vs">Veces que se vio: ${vs}</div>` : '';
   if (!al || (enCurso && !al.total)) {
-    $('kAlc').innerHTML = kpi(lbl, '—', !deBoton ? 'Este dato solo está para Hoy, 7 días y 30 días' : enCurso ? RETRASO : 'Se actualiza en la próxima hora');
+    const nota = !deBoton ? 'El número de personas solo está disponible para Hoy, 7 y 30 días'
+      : enCurso ? 'Número de personas: ' + RETRASO.toLowerCase() : 'El número de personas se actualiza en la próxima hora';
+    $('kAlc').innerHTML = `<div class="k-frase">El contenido se vio ${veces}</div><div class="k-cmp">${nota}</div>` + cmp;
     return;
   }
+  const prom = (vistas / al.total).toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   const partes = al.seg !== null && al.noSeg !== null ? [['Aún no nos siguen', al.noSeg, C.magenta], ['Ya nos siguen', al.seg, C.electrico]] : [];
-  $('kAlc').innerHTML = kpi(lbl, fmt(al.total), `personas distintas ${enCurso ? 'hoy, hasta ahora' : 'en ' + dias + ' días'}`) +
-    medidor('Personas: ya nos siguen y aún no · estimación de Instagram', partes);
+  $('kAlc').innerHTML = `<div class="k-frase"><b>${fmt(al.total)}</b> ${al.total === 1 ? 'persona nos vio, y vio' : 'personas nos vieron, y vieron'} el contenido ${veces}` +
+    ` <small>(${prom} veces cada una en promedio)</small></div>` +
+    '<div class="k-cmp">Una persona cuenta una sola vez; las vistas suman cada vez que alguien ve algo</div>' +
+    medidor('Personas: ya nos siguen y aún no · estimación de Instagram', partes) + cmp;
 }
 
 // Llegaron y se fueron por día; con más de 14 días, por semanas contadas hacia atrás desde el último día
@@ -875,9 +888,7 @@ function renderGeneral(desde, hasta, posts) {
   $('kSeg').innerHTML = kpi(verbo, `${conSigno(neto)}<small>${Math.abs(neto) === 1 ? 'seguidor' : 'seguidores'}</small>`,
     enCurso && segHoy !== null ? 'total de seguidores ahora menos el de ayer' : `llegaron ${fmt(llegaron)} y se fueron ${fmt(seFueron)}`,
     compara(neto, netoPrev, dias, true), spark(cu.map(netoDia), C.verde));
-  renderAlcance(desde, hasta, enCurso);
-  $('kVistas').innerHTML = tarde(vistas) ? kpi('Veces que se vio el contenido', '—', RETRASO)
-    : kpi('Veces que se vio el contenido', fmt(vistas), 'una misma persona puede ver varias veces', compara(vistas, vPrev, dias), spark(cu.map(c => c.vistas), C.electrico));
+  renderVistos(desde, hasta, enCurso, vistas, compara(vistas, vPrev, dias));
   $('kInter').innerHTML = tarde(inter) ? kpi('Reacciones', '—', RETRASO)
     : kpi('Reacciones', fmt(inter), 'me gusta, comentarios, compartidos y guardados', compara(inter, ant('interacciones'), dias), spark(cu.map(c => c.interacciones), C.magenta));
 
