@@ -451,8 +451,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
           <span id="compNota"></span></div>
         <article class="nota"><h3>Vistas de una publicación normal, por tipo de noticia</h3><p id="pCat"></p>
           <div class="chart"><canvas id="cCat"></canvas></div></article>
-        <article class="nota ancha"><h3>Vistas de una publicación normal, por formato</h3><p id="pForm"></p>
-          <div class="chart"><canvas id="cForm"></canvas></div></article>
+        <article class="nota ancha"><h3>Vistas de una publicación normal, por formato</h3><p id="pForm"></p></article>
       </div>
     </details>
 
@@ -1008,7 +1007,12 @@ function renderPubs(desde, hasta, todos) {
   grupo('prov', 'cProv', 'pProv', g => g.map((x, i) => x[0] === SIN_LUGAR ? C.gray : i ? C.blue : C.electrico), 'vistas');
   renderMunicipios(posts);
   grupo('cat', 'cCat', 'pCat', g => g.map(x => colorCat(x[0])), compEdad);
-  grupo('formato', 'cForm', 'pForm', g => g.map((x, i) => i ? C.blue : C.electrico), compEdad);
+  // Por formato, en una frase (son 2 o 3 grupos: una gráfica no dice más)
+  const UNO = { Reel: 'un reel', Imagen: 'una foto', Carrusel: 'un carrusel', Video: 'un video' };
+  const gF = tipicas(posts, 'formato', compEdad, compEdad === 'vistas' ? 1 : 3);
+  const cuando = compEdad === 'vistas' ? '' : ' a los ' + (compEdad === 'a2' ? 2 : 7) + ' días';
+  $('pForm').innerHTML = !gF.length ? (posts.length && compEdad !== 'vistas' ? SIN_HIST : 'Sin publicaciones con estos filtros.')
+    : mayus(gF.map((x, i) => (UNO[x[0]] || x[0].toLowerCase()) + (i ? ', ' : ' normal tiene ') + `<b>${fmt(x[1])}</b>` + (i ? '' : ' vistas' + cuando)).join('; ')) + '.';
 
   // Las publicaciones sin el dato van al final al ordenar
   const valor = (p, k) => p[k] === null ? -1 : p[k];
