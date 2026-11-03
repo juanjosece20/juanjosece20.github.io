@@ -887,7 +887,7 @@ function renderGeneral(desde, hasta, posts) {
   const verbo = neto > 0 ? 'La cuenta creció' : neto < 0 ? 'La cuenta bajó' : 'La cuenta se mantuvo';
   $('kSeg').innerHTML = kpi(verbo, `${conSigno(neto)}<small>${Math.abs(neto) === 1 ? 'seguidor' : 'seguidores'}</small>`,
     enCurso && segHoy !== null ? 'total de seguidores ahora menos el de ayer' : `llegaron ${fmt(llegaron)} y se fueron ${fmt(seFueron)}`,
-    compara(neto, netoPrev, dias, true), spark(cu.map(netoDia), C.verde));
+    compara(neto, netoPrev, dias, true));
   renderVistos(desde, hasta, enCurso, vistas, compara(vistas, vPrev, dias));
   $('kInter').innerHTML = tarde(inter) ? kpi('Reacciones', '—', RETRASO)
     : kpi('Reacciones', fmt(inter), 'me gusta, comentarios, compartidos y guardados', compara(inter, ant('interacciones'), dias), spark(cu.map(c => c.interacciones), C.magenta));
