@@ -870,7 +870,7 @@ function renderGeneral(desde, hasta, posts) {
   const segHoy = netoDeHoy();
   const netoDia = c => c.f === D.hoy && segHoy !== null ? segHoy : c.nuevos - c.perdidos;
   const neto = cu.reduce((a, c) => a + netoDia(c), 0);
-  const vistas = sum(cu, 'vistas'), vSeg = sum(cu, 'vSeg'), vNoSeg = sum(cu, 'vNoSeg'), inter = sum(cu, 'interacciones');
+  const vistas = sum(cu, 'vistas'), inter = sum(cu, 'interacciones');
   const llegaron = sum(cu, 'nuevos'), seFueron = sum(cu, 'perdidos');
 
   // Mismo número de días justo antes, solo si hay datos de todos esos días
@@ -962,11 +962,8 @@ function renderGeneral(desde, hasta, posts) {
   const edad = pub('Edad').sort((a, b) => a.valor < b.valor ? -1 : 1);
   $('edad').innerHTML = edad.length ? barrasHTML(edad, sum(edad, 'n'), x => x.valor) : '<div class="empty">Sin datos de edad.</div>';
 
-  // Cómo llegan las vistas: por tipo de contenido y según quién las hizo (cuenta vistas, no personas:
-  // un seguidor suele ver varias veces, por eso su parte es mayor que en «Personas que nos vieron»)
-  $('llegada').innerHTML = (medidor('Por tipo de contenido', tipos) +
-    medidor('Vistas de seguidores y de quienes aún no nos siguen · cuenta vistas, no personas',
-      [['Vistas de quienes aún no nos siguen', vNoSeg, C.magenta], ['Vistas de seguidores', vSeg, C.electrico]])) || `<div class="empty">${SIN_DATOS}</div>`;
+  // Cómo llegan las vistas: por tipo de contenido (seguidores / no seguidores ya está en el cuadro de personas)
+  $('llegada').innerHTML = medidor('Por tipo de contenido', tipos) || `<div class="empty">${SIN_DATOS}</div>`;
 
   // Principales ciudades
   const ciu = pub('Ciudad').sort((a, b) => b.n - a.n);
