@@ -109,8 +109,6 @@ main.in{padding-bottom:28px}
 .k-lbl{font-size:14px;font-weight:700;color:var(--ink)}
 .k-val{font:400 40px/1 var(--titulo);letter-spacing:.5px;margin-top:6px}
 .k-cmp{font-size:12px;color:var(--muted);margin-top:4px;min-height:16px}
-.k-spark{height:34px;margin-top:6px}
-.k-spark svg{width:100%;height:100%;display:block}
 .up{color:var(--verde);font-weight:700}.down{color:var(--red);font-weight:700}
 
 /* Conclusiones clave */
@@ -299,7 +297,6 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .b h3{margin-bottom:8px}
   .k-val{font-size:34px}
   .k-frase b{font-size:30px}
-  .k-spark{height:24px;margin-top:4px}
   .hd .v{font-size:22px}
   .ch{height:150px}
   .dona{width:68px;height:68px}
@@ -505,7 +502,7 @@ const MULT_CRECE = 3, MIN_CRECE = 1000, MIN_MUESTRAS = 5, DIAS_BARRAS = 14;
 let compEdad = 'vistas';
 let masCols = false;
 try { masCols = localStorage.getItem('rc_masCols') === '1'; } catch (e) { }
-let D = null, charts = {}, tab = 'general', orden = 'compartidos', nSpark = 0;
+let D = null, charts = {}, tab = 'general', orden = 'compartidos';
 const $ = id => document.getElementById(id);
 const fmt = n => Math.round(n).toLocaleString('es-CO');
 const corta = n => n >= 1e6 ? String(Math.round(n / 1e5) / 10).replace('.', ',') + ' M' : n >= 1000 ? String(Math.round(n / 100) / 10).replace('.', ',') + ' mil' : fmt(n);
@@ -776,17 +773,6 @@ const SIN_DATOS = 'Sin datos en este periodo.';
 const diasEntre = (desde, hasta) => Math.round((new Date(hasta + 'T12:00') - new Date(desde + 'T12:00')) / 864e5) + 1;
 const periodo = (desde, hasta) => desde === hasta ? (desde === D.hoy ? 'Hoy, ' : '') + diaMes(desde) : corto(desde) + ' – ' + corto(hasta);
 
-// Mini-gráfica de tendencia (área con degradado)
-function spark(vals, color) {
-  if (vals.length < 2) return '';
-  const max = Math.max(...vals), min = Math.min(0, ...vals), r = (max - min) || 1;
-  const linea = vals.map((v, i) => (i ? 'L' : 'M') + (i / (vals.length - 1) * 100).toFixed(2) + ' ' + (29 - (v - min) / r * 27).toFixed(2)).join(' ');
-  const id = 'sp' + (++nSpark);
-  return `<svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1">
-    <stop offset="0" stop-color="${color}" stop-opacity=".35"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
-    <path d="${linea} L100 30 L0 30Z" fill="url(#${id})"/><path d="${linea}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
-}
-
 // ▲ verde / ▼ rojo frente al periodo anterior; sin periodo anterior (o con el día en curso) no se dice nada
 function compara(actual, anterior, dias, absoluto) {
   if (typeof anterior !== 'number') return '';
@@ -796,8 +782,8 @@ function compara(actual, anterior, dias, absoluto) {
   return `<span class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '▲' : '▼'} ${txt} ${d >= 0 ? 'más' : 'menos'}</span> que ${dias === 1 ? 'el día anterior' : 'los ' + dias + ' días anteriores'}`;
 }
 // Recuadro: qué pasó (título y cifra), una línea de qué cuenta y, si hay, la comparación
-const kpi = (lbl, val, linea, vs, sp) => `<div class="k-lbl">${lbl}</div><div class="k-val">${val}</div><div class="k-cmp">${linea}</div>` +
-  (vs ? `<div class="k-vs">${vs}</div>` : '') + (sp ? `<div class="k-spark">${sp}</div>` : '');
+const kpi = (lbl, val, linea, vs) => `<div class="k-lbl">${lbl}</div><div class="k-val">${val}</div><div class="k-cmp">${linea}</div>` +
+  (vs ? `<div class="k-vs">${vs}</div>` : '');
 
 const barrasHTML = (filas, total, nombreFn) => {
   const max = Math.max(...filas.map(x => x.n));
@@ -886,7 +872,7 @@ function renderGeneral(desde, hasta, posts) {
     compara(neto, netoPrev, dias, true));
   renderVistos(desde, hasta, enCurso, vistas, compara(vistas, vPrev, dias));
   $('kInter').innerHTML = tarde(inter) ? kpi('Reacciones', '—', RETRASO)
-    : kpi('Reacciones', fmt(inter), 'me gusta, comentarios, compartidos y guardados', compara(inter, ant('interacciones'), dias), spark(cu.map(c => c.interacciones), C.magenta));
+    : kpi('Reacciones', fmt(inter), 'me gusta, comentarios, compartidos y guardados', compara(inter, ant('interacciones'), dias));
 
   // Lo que hay que saber: máximo 3 frases que no repiten las cifras de los recuadros ni las de Publicaciones
   const tipos = [['Reels', sum(cu, 'reels'), C.electrico], ['Fotos y carruseles', sum(cu, 'pubs'), C.magenta], ['Historias', sum(cu, 'historias'), C.naranja], ['Otras', sum(cu, 'otras'), C.gray]];
