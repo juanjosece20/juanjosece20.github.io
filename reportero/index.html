@@ -129,6 +129,7 @@ main.in{padding-bottom:28px}
 /* Frases que reemplazan gráficas */
 .frase{font-size:15px;line-height:1.6;color:var(--texto);margin:0}
 .frase b{color:var(--ink)}
+.b-pub .frase{margin-bottom:12px}
 /* Personas y veces: una frase con las dos cifras */
 .k-frase{font-size:15px;line-height:1.35;color:var(--ink);margin-top:2px}
 .k-frase b{font:400 36px/1 var(--titulo);letter-spacing:.5px}
@@ -137,9 +138,6 @@ main.in{padding-bottom:28px}
 .empty{font-size:13px;color:var(--muted);padding:16px 0}
 
 /* Público */
-.pub-sexo{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.dona{position:relative;width:84px;height:84px;flex:none}
-.pub-sexo .ley{flex-direction:column;margin:0;gap:4px}
 .barras{display:flex;flex-direction:column;gap:5px}
 .barra-f{display:grid;grid-template-columns:50px minmax(0,1fr) 38px;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
 .barra-f .t{height:8px;border-radius:8px;background:var(--fondo);overflow:hidden}
@@ -299,8 +297,6 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .k-frase b{font-size:30px}
   .hd .v{font-size:22px}
   .ch{height:150px}
-  .dona{width:68px;height:68px}
-  .pub-sexo{margin-bottom:6px}
   .barras{gap:3px}
   .b-ciu .barras{gap:7px}
   .medidor+.medidor{margin-top:10px}
@@ -415,7 +411,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
         <div class="b b-seg"><h3>Quién llegó y quién se fue</h3><p class="frase" id="segFrase"></p></div>
         <div class="b b-rea" id="kInter"></div>
         <div class="b b-pub"><h3>Quiénes nos siguen <small>edad y sexo</small></h3>
-          <div class="pub-sexo"><div class="dona"><canvas id="cSexo"></canvas></div><div class="ley" id="leySexo"></div></div>
+          <p class="frase" id="sexoFrase"></p>
           <div class="barras" id="edad"></div></div>
         <div class="b b-com"><h3>Lo más compartido <small>lo que la gente le pasó a otros</small></h3><div class="compartidas" id="topCom"></div></div>
       </div>
@@ -913,15 +909,13 @@ function renderGeneral(desde, hasta, posts) {
   // Quiénes nos siguen: sexo y edad
   const pub = t => D.publico.filter(x => x.tipo === t);
   const sx = pub('Sexo').sort((a, b) => b.n - a.n), totS = sum(sx, 'n');
-  const colSexo = { Mujer: C.magenta, Hombre: C.electrico };
-  if (sx.length) {
-    grafica('cSexo', {
-      type: 'doughnut',
-      data: { labels: sx.map(x => x.valor), datasets: [{ data: sx.map(x => x.n), backgroundColor: sx.map(x => colSexo[x.valor] || C.gray), borderColor: '#fff', borderWidth: 2, borderRadius: 4 }] },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false }, tooltip: tooltip() } }
-    });
-    $('leySexo').innerHTML = sx.map(x => `<span><i style="background:${colSexo[x.valor] || C.gray}"></i>${esc(x.valor)} <b>${pct(x.n, totS)} %</b></span>`).join('');
-  } else $('leySexo').innerHTML = '<span>Instagram muestra el sexo de los seguidores cuando la cuenta pasa de 100.</span>';
+  // Sexo en una frase: si la diferencia es pequeña se dice que es casi por igual
+  const m = pct((sx.find(x => x.valor === 'Mujer') || { n: 0 }).n, totS), h = pct((sx.find(x => x.valor === 'Hombre') || { n: 0 }).n, totS);
+  const resto = 100 - m - h;
+  $('sexoFrase').innerHTML = !sx.length ? 'Instagram muestra el sexo de los seguidores cuando la cuenta pasa de 100.'
+    : (Math.abs(m - h) < 10 ? `Nos siguen casi por igual mujeres (<b>${m} %</b>) y hombres (<b>${h} %</b>)`
+      : `<b>${Math.round(Math.max(m, h) / 10)} de cada 10</b> seguidores son ${m > h ? 'mujeres' : 'hombres'}`) +
+      (resto >= 5 ? `; del ${resto} % restante Instagram no tiene el dato.` : '.');
   const edad = pub('Edad').sort((a, b) => a.valor < b.valor ? -1 : 1);
   $('edad').innerHTML = edad.length ? barrasHTML(edad, sum(edad, 'n'), x => x.valor) : '<div class="empty">Sin datos de edad.</div>';
 
