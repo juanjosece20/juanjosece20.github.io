@@ -88,10 +88,6 @@ main.in{padding-bottom:28px}
 .detalle>summary:after{content:"▾";transition:transform .15s}
 .detalle[open]>summary:after{transform:rotate(180deg)}
 .detalle[open]>summary{color:var(--ink)}
-.seg-cifras{display:flex;gap:18px;margin-bottom:6px}
-.seg-cifras div{font-size:11px;color:var(--muted)}
-.seg-cifras b{display:block;font:400 26px/1 var(--titulo);letter-spacing:.5px;color:var(--ink)}
-.seg-cifras .up b{color:var(--verde)}.seg-cifras .down b{color:var(--red)}
 .k-val small{font:600 13px var(--ui);letter-spacing:0;color:var(--muted);margin-left:4px}
 .k-vs{font-size:12px;color:var(--muted);margin-top:2px}
 .b{background:var(--card);border:1px solid var(--linea);border-radius:var(--radio);padding:14px 16px;min-width:0;position:relative}
@@ -306,7 +302,6 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .k-spark{height:24px;margin-top:4px}
   .hd .v{font-size:22px}
   .ch{height:150px}
-  .b-seg .ch{height:128px!important}
   .dona{width:68px;height:68px}
   .pub-sexo{margin-bottom:6px}
   .barras{gap:3px}
@@ -420,8 +415,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
     <details class="detalle" id="detGeneral"><summary>Ver detalle</summary>
       <div class="grid det">
         <div class="b b-vis"><h3>Los días que más nos vieron</h3><p class="frase" id="picos"></p></div>
-        <div class="b b-seg"><h3>Quién llegó y quién se fue <small id="segNota"></small></h3>
-          <div class="seg-cifras" id="segCifras"></div><div class="ch" style="height:150px"><canvas id="cSegDia"></canvas></div></div>
+        <div class="b b-seg"><h3>Quién llegó y quién se fue</h3><p class="frase" id="segFrase"></p></div>
         <div class="b b-rea" id="kInter"></div>
         <div class="b b-pub"><h3>Quiénes nos siguen <small>edad y sexo</small></h3>
           <div class="pub-sexo"><div class="dona"><canvas id="cSexo"></canvas></div><div class="ley" id="leySexo"></div></div>
@@ -864,17 +858,6 @@ function culpable(f) {
   return D.posts.filter(p => p.dia >= desde && p.dia <= f).sort((a, b) => b.vistas - a.vistas)[0] || null;
 }
 
-// Llegaron y se fueron por día; con más de 14 días, por semanas contadas hacia atrás desde el último día
-function porSemana(cu) {
-  if (cu.length <= 14) return cu.map(c => ({ et: corto(c.f), nuevos: c.nuevos, perdidos: c.perdidos }));
-  const g = [];
-  for (let fin = cu.length; fin > 0; fin -= 7) {
-    const l = cu.slice(Math.max(0, fin - 7), fin);
-    g.unshift({ et: corto(l[0].f) + (l.length > 1 ? ' – ' + corto(l[l.length - 1].f) : ''), nuevos: sum(l, 'nuevos'), perdidos: sum(l, 'perdidos') });
-  }
-  return g;
-}
-
 function renderGeneral(desde, hasta, posts) {
   const cu = D.cuenta.filter(c => c.f >= desde && c.f <= hasta);
   const dias = diasEntre(desde, hasta);
@@ -936,21 +919,10 @@ function renderGeneral(desde, hasta, posts) {
     .map(c => { const p = culpable(c.f); return `<b>${diaMes(c.f)}</b>` + (p ? ` por «${esc(recortar(p.titulo, 60))}»` : '') + ` (${fmt(c.vistas)} veces)`; });
   $('picos').innerHTML = picos.length ? picos.slice(0, -1).join(', ') + (picos.length > 1 ? ' y ' : '') + picos[picos.length - 1] + '.' : SIN_DATOS;
 
-  // Quién llegó y quién se fue: llegaron arriba (verde), se fueron abajo (rojo); en periodos largos, por semana
+  // Quién llegó y quién se fue, en una frase (casi todos los días son 0 o 1: una gráfica no dice más)
   const sinDato = enCurso && !llegaron && !seFueron;
-  $('segNota').textContent = sinDato ? RETRASO.replace('este dato', 'estos datos') : dias > 14 ? 'por semana' : 'por día';
-  const cifra = (l, v, cls) => `<div class="${cls || ''}"><b>${v}</b>${l}</div>`;
-  $('segCifras').innerHTML = sinDato ? '' : cifra('llegaron', '+' + fmt(llegaron), 'up') + cifra('se fueron', '−' + fmt(seFueron), 'down') +
-    cifra('en total', conSigno(llegaron - seFueron));
-  const g = porSemana(cu);
-  grafica('cSegDia', {
-    type: 'bar',
-    data: { labels: g.map(x => x.et), datasets: [
-      { label: 'Llegaron', data: g.map(x => x.nuevos), backgroundColor: C.verde, borderRadius: 4, borderSkipped: 'start', maxBarThickness: dias > 14 ? 34 : 12 },
-      { label: 'Se fueron', data: g.map(x => -x.perdidos), backgroundColor: C.red, borderRadius: 4, borderSkipped: 'start', maxBarThickness: dias > 14 ? 34 : 12 }] },
-    options: ejeSeguidores(opciones({ apilado: true, interaction: { mode: 'index', intersect: false } }), g),
-    plugins: [TOPE]
-  });
+  $('segFrase').innerHTML = sinDato ? RETRASO + '.' : `Llegaron <b>${fmt(llegaron)}</b> y se fueron <b>${fmt(seFueron)}</b>` +
+    (masLlegaron && masLlegaron.nuevos > 0 && dias > 1 ? `; el día que más llegaron fue el <b>${diaMes(masLlegaron.f)}</b> (${fmt(masLlegaron.nuevos)}).` : '.');
 
   // Quiénes nos siguen: sexo y edad
   const pub = t => D.publico.filter(x => x.tipo === t);
@@ -1215,34 +1187,6 @@ function opciones(o) {
         ticks: { color: horizontal ? C.navy : C.tick, font: { size: 10, weight: horizontal ? '600' : '400' }, maxTicksLimit: horizontal ? 20 : 5, autoSkip: !horizontal, callback: function (v) { return horizontal ? this.getLabelForValue(v) : corta(Math.abs(v)); } } }
     }
   }, o.interaction ? { interaction: o.interaction } : {});
-}
-
-// Cada lado del cero ocupa lo que piden los datos (si se pierden 3 y se ganan 50, la parte negativa es pequeña).
-// Si un pico es más de 2,5 veces el siguiente, la escala se corta para que no aplaste a los demás (ver TOPE).
-function ejeSeguidores(o, g) {
-  const altos = g.map(x => x.nuevos).sort((a, b) => b - a);
-  const corte = altos.length > 1 && altos[1] > 0 && altos[0] > 2.5 * altos[1] ? altos[1] * 1.6 : altos[0];
-  const maxG = Math.max(1, corte), maxP = Math.max(0, ...g.map(x => x.perdidos));
-  const paso = pasoBonito(Math.max(maxG, maxP) / 4);
-  Object.assign(o.scales.y, { beginAtZero: false, min: -Math.ceil(maxP / paso) * paso, max: Math.ceil(maxG / paso) * paso });
-  o.scales.y.ticks = Object.assign({}, o.scales.y.ticks, { stepSize: paso, maxTicksLimit: 8, callback: v => v < 0 ? '−' + corta(-v) : corta(v) });
-  o.plugins.tooltip.callbacks.label = c => c.dataset.label + ': ' + fmt(Math.abs(c.parsed.y));
-  o.layout = { padding: { top: 14 } };
-  return o;
-}
-// Barras que pasan del tope de la escala: se escribe su valor encima
-const TOPE = { id: 'tope', afterDatasetsDraw(ch) {
-  const max = ch.scales.y.max, ctx = ch.ctx;
-  ch.getDatasetMeta(0).data.forEach((bar, i) => {
-    const v = ch.data.datasets[0].data[i];
-    if (v <= max) return;
-    ctx.save(); ctx.fillStyle = C.verde; ctx.font = '700 10px Montserrat, sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('↑ ' + fmt(v), bar.x, ch.chartArea.top - 3); ctx.restore();
-  });
-} };
-function pasoBonito(x) {
-  const e = Math.pow(10, Math.floor(Math.log10(Math.max(x, 1))));
-  return [1, 2, 5, 10].map(m => m * e).find(p => p >= x) || 10 * e;
 }
 
 function grafica(id, config) {
