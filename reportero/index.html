@@ -148,7 +148,13 @@ main.in{padding-bottom:28px}
 .an-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
 .ch.an-ch{height:260px}
 .an-punto{color:var(--red)}
-#aTemas{overflow-x:auto}
+/* La tabla de temas se desliza de lado en pantallas angostas: sombra en el borde con más columnas y aviso */
+#aTemas{overflow-x:auto;background:linear-gradient(to right,var(--card) 30%,rgba(255,255,255,0)) left/24px 100% no-repeat local,
+  linear-gradient(to left,var(--card) 30%,rgba(255,255,255,0)) right/24px 100% no-repeat local,
+  radial-gradient(farthest-side at 0 50%,rgba(9,22,61,.18),rgba(9,22,61,0)) left/12px 100% no-repeat scroll,
+  radial-gradient(farthest-side at 100% 50%,rgba(9,22,61,.18),rgba(9,22,61,0)) right/12px 100% no-repeat scroll}
+.an-desliza{display:none;font-size:11px;font-weight:600;color:var(--blue);margin:0 0 6px;text-align:right}
+@media (max-width:600px){.an-desliza{display:block}}
 #aTemas table{min-width:520px}
 .an-dia{font-size:13px;line-height:1.5;color:var(--texto);margin:10px 0 0;min-height:20px}
 .an-dia b{color:var(--ink)}
@@ -495,7 +501,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   <section id="analisis" style="display:none">
     <div class="b an-frase"><h3>Lo que mejor funciona</h3><p class="frase" id="aFrase"></p></div>
     <div class="an-grid">
-      <div class="b"><h3>Por tema <small>publicaciones del periodo</small></h3><div class="munis" id="aTemas"></div>
+      <div class="b"><h3>Por tema <small>publicaciones del periodo</small></h3><div class="an-desliza" aria-hidden="true">Desliza la tabla para ver más →</div><div class="munis" id="aTemas"></div>
         <div class="ley" id="aTemasNota"></div></div>
       <div class="b"><h3>Veces que se vio el contenido, día por día <small><span class="an-punto">●</span> día con publicación</small></h3>
         <div class="ch an-ch"><canvas id="cDias"></canvas></div><p class="an-dia" id="aDia"></p></div>
