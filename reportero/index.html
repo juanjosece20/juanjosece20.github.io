@@ -125,7 +125,6 @@ main.in{padding-bottom:28px}
 .ch{position:relative;height:190px}
 .ley{display:flex;gap:4px 14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:8px}
 .ley i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-.b-k2 .medidor{margin-top:10px}
 /* Frases que reemplazan gráficas */
 .frase{font-size:15px;line-height:1.6;color:var(--texto);margin:0}
 .frase b{color:var(--ink)}
@@ -134,6 +133,11 @@ main.in{padding-bottom:28px}
 .k-frase{font-size:15px;line-height:1.35;color:var(--ink);margin-top:2px}
 .k-frase b{font:400 36px/1 var(--titulo);letter-spacing:.5px}
 .k-frase small{font-size:12px;color:var(--muted);white-space:nowrap}
+.ayuda{width:18px;height:18px;margin-left:6px;padding:0;border:1px solid var(--muted);border-radius:50%;background:none;color:var(--muted);
+  font:700 11px/16px var(--ui);cursor:pointer;vertical-align:4px}
+.ayuda[aria-expanded="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.k-ayuda{font-size:12px;line-height:1.45;color:var(--texto);background:var(--fondo);border-radius:8px;padding:8px 10px;margin-top:6px}
+.k-sigue{font-size:15px;font-weight:700;color:var(--magenta);margin-top:8px}
 .b-k2 .k-lbl{font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
 .empty{font-size:13px;color:var(--muted);padding:16px 0}
 
@@ -870,11 +874,15 @@ function renderVistos(desde, hasta, enCurso, vistas, vs) {
     return;
   }
   const prom = (vistas / al.total).toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  const partes = al.seg !== null && al.noSeg !== null ? [['Aún no nos siguen', al.noSeg, C.magenta], ['Ya nos siguen', al.seg, C.electrico]] : [];
-  $('kAlc').innerHTML = `<div class="k-frase"><b>${fmt(al.total)}</b> ${al.total === 1 ? 'persona nos vio, y vio' : 'personas nos vieron, y vieron'} el contenido ${veces}` +
-    ` <small>(${prom} veces cada una en promedio)</small></div>` +
-    '<div class="k-cmp">Una persona cuenta una sola vez; las vistas suman cada vez que alguien ve algo</div>' +
-    medidor('Personas: ya nos siguen y aún no · estimación de Instagram', partes) + cmp;
+  // Seguidores / no seguidores en una frase: se dice la parte que es mayoría
+  const totSN = al.seg !== null && al.noSeg !== null ? al.seg + al.noSeg : 0, pNo = pct(al.noSeg, totSN);
+  const sigue = !totSN ? '' : `<div class="k-sigue">${pNo >= 50 ? pNo + ' % aún no nos sigue' : (100 - pNo) + ' % ya nos sigue'}</div>`;
+  $('kAlc').innerHTML = `<div class="k-frase"><b>${fmt(al.total)}</b> ${al.total === 1 ? 'persona nos vio' : 'personas nos vieron'}` +
+    '<button type="button" class="ayuda" aria-label="Qué cuenta este cuadro" aria-expanded="false" onclick="const n=this.parentNode.nextElementSibling;' +
+    'n.hidden=!n.hidden;this.setAttribute(\'aria-expanded\',!n.hidden)">?</button></div>' +
+    '<div class="k-ayuda" hidden>Una persona cuenta una sola vez; las veces suman cada vez que alguien ve algo. ' +
+    'Cuántos ya nos siguen y cuántos aún no es una estimación de Instagram.</div>' +
+    `<div class="k-cmp">Vieron el contenido ${veces} (${prom} cada una)</div>` + sigue + cmp;
 }
 
 // La publicación que más se vio un día: por sus vistas de ese día (Historial); si no las hay, la más vista
