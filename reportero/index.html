@@ -87,7 +87,8 @@ main.in{padding-bottom:28px}
 .fr-1{display:flex;align-items:baseline;gap:6px;white-space:nowrap;overflow:hidden}
 .fr-v{font:400 26px/1 var(--titulo);letter-spacing:.5px;color:var(--ink)}
 .fr-l{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
-.fr-c{font-size:11px;color:var(--muted);margin-top:3px;min-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fr-c{font-size:11px;line-height:1.35;color:var(--muted);margin-top:3px;min-height:14px}
+.fr-c b{color:var(--ink)}
 .fr .ayuda{margin-left:0;vertical-align:0;flex:none}
 /* Lo más visto a lo ancho: miniaturas menos altas */
 .grid>.b-pos .post-img{aspect-ratio:4/3}
@@ -339,7 +340,6 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .fr:nth-child(n+3){border-top:1px solid var(--linea)}
   .fr-1{flex-wrap:wrap;row-gap:2px}
   .fr-v{font-size:24px}
-  .fr-c{white-space:normal}
   .grid>.b-pos .posts{grid-template-columns:repeat(2,minmax(0,1fr))}
   .grid>.b-pos .post:first-child{grid-column:span 2}
   .grid>.b-pos .post:first-child .post-img{aspect-ratio:16/9}
@@ -869,7 +869,7 @@ function renderGeneral(desde, hasta, posts) {
   const segHoy = netoDeHoy();
   const netoDia = c => c.f === D.hoy && segHoy !== null ? segHoy : c.nuevos - c.perdidos;
   const neto = cu.reduce((a, c) => a + netoDia(c), 0);
-  const vistas = sum(cu, 'vistas'), vSeg = sum(cu, 'vSeg'), vNoSeg = sum(cu, 'vNoSeg'), inter = sum(cu, 'interacciones');
+  const vistas = sum(cu, 'vistas'), vSeg = sum(cu, 'vSeg'), vNoSeg = sum(cu, 'vNoSeg');
 
   // Mismo número de días justo antes, solo si hay datos de todos esos días
   const inicio = new Date(desde + 'T12:00');
@@ -901,12 +901,19 @@ function renderGeneral(desde, hasta, posts) {
       : !deBoton ? ' El número de personas solo está disponible para Hoy, 7 y 30 días.' : enCurso ? ' ' + RETRASO + '.' : ' Se actualiza en la próxima hora.');
   const boton = '<button type="button" class="ayuda" aria-label="Qué cuenta esta cifra" aria-expanded="false" onclick="const n=$(\'frAyuda\');' +
     'n.hidden=!n.hidden;this.setAttribute(\'aria-expanded\',!n.hidden)">?</button>';
+  // Reacciones a lo publicado en el periodo, de la más valiosa a la más sencilla (Instagram no las separa para toda la cuenta)
+  const rs = [['compartidos', 'compartido'], ['guardados', 'guardado'], ['comentarios', 'comentario'], ['likes', 'me gusta']].map(([k, uno]) => {
+    const n = sum(posts, k); return [n, n === 1 ? uno : (k === 'likes' ? 'me gusta' : k)];
+  });
+  const reac = rs.reduce((a, x) => a + x[0], 0), vPub = sum(posts, 'vistas');
+  const desglose = !posts.length ? 'No hay publicaciones en este periodo' : rs.map(x => fmt(x[0]) + ' ' + x[1]).join(' · ') +
+    (vPub ? ` · <b>${dec(reac / vPub * 100)}</b> por cada 100 vistas` : '');
   const fr = (v, l, c) => `<div class="fr"><div class="fr-1"><span class="fr-v">${v}</span>${l}</div><div class="fr-c">${c || ''}</div></div>`;
   $('franja').innerHTML =
     fr(total ? fmt(total.n) : '—', `<span class="fr-l">${total && total.n === 1 ? 'seguidor' : 'seguidores'}</span>`, ganados) +
     fr(tarde(vistas) ? '—' : fmt(vistas), `<span class="fr-l">${vistas === 1 ? 'vez se vio el contenido' : 'veces se vio el contenido'}</span>`, compara(vistas, vPrev, dias)) +
     fr(personas === null ? '—' : fmt(personas), `<span class="fr-l">${personas === 1 ? 'persona nos vio' : 'personas nos vieron'}</span>` + boton) +
-    fr(tarde(inter) ? '—' : fmt(inter), `<span class="fr-l" title="me gusta, comentarios, compartidos y guardados">reacciones</span>`, compara(inter, ant('interacciones'), dias)) +
+    fr(fmt(reac), `<span class="fr-l">${reac === 1 ? 'reacción' : 'reacciones'}</span>`, desglose) +
     `<div class="fr-ayuda" id="frAyuda" hidden>${ayuda}</div>`;
 
   // Lo que hay que saber: máximo 3 frases sobre lo publicado en el periodo que no salen en otro cuadro
