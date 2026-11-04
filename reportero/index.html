@@ -137,7 +137,6 @@ main.in{padding-bottom:28px}
   font:700 11px/16px var(--ui);cursor:pointer;vertical-align:4px}
 .ayuda[aria-expanded="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .k-ayuda{font-size:12px;line-height:1.45;color:var(--texto);background:var(--fondo);border-radius:8px;padding:8px 10px;margin-top:6px}
-.k-sigue{font-size:15px;font-weight:700;color:var(--magenta);margin-top:8px}
 .b-k2 .k-lbl{font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
 .empty{font-size:13px;color:var(--muted);padding:16px 0}
 
@@ -874,15 +873,11 @@ function renderVistos(desde, hasta, enCurso, vistas, vs) {
     return;
   }
   const prom = (vistas / al.total).toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  // Seguidores / no seguidores en una frase: se dice la parte que es mayoría
-  const totSN = al.seg !== null && al.noSeg !== null ? al.seg + al.noSeg : 0, pNo = pct(al.noSeg, totSN);
-  const sigue = !totSN ? '' : `<div class="k-sigue">${pNo >= 50 ? pNo + ' % aún no nos sigue' : (100 - pNo) + ' % ya nos sigue'}</div>`;
   $('kAlc').innerHTML = `<div class="k-frase"><b>${fmt(al.total)}</b> ${al.total === 1 ? 'persona nos vio' : 'personas nos vieron'}` +
     '<button type="button" class="ayuda" aria-label="Qué cuenta este cuadro" aria-expanded="false" onclick="const n=this.parentNode.nextElementSibling;' +
     'n.hidden=!n.hidden;this.setAttribute(\'aria-expanded\',!n.hidden)">?</button></div>' +
-    '<div class="k-ayuda" hidden>Una persona cuenta una sola vez; las veces suman cada vez que alguien ve algo. ' +
-    'Cuántos ya nos siguen y cuántos aún no es una estimación de Instagram.</div>' +
-    `<div class="k-cmp">Vieron el contenido ${veces} (${prom} cada una)</div>` + sigue + cmp;
+    '<div class="k-ayuda" hidden>Una persona cuenta una sola vez; las veces suman cada vez que alguien ve algo.</div>' +
+    `<div class="k-cmp">Vieron el contenido ${veces} (${prom} cada una)</div>` + cmp;
 }
 
 // La publicación que más se vio un día: por sus vistas de ese día (Historial); si no las hay, la más vista
@@ -903,7 +898,7 @@ function renderGeneral(desde, hasta, posts) {
   const segHoy = netoDeHoy();
   const netoDia = c => c.f === D.hoy && segHoy !== null ? segHoy : c.nuevos - c.perdidos;
   const neto = cu.reduce((a, c) => a + netoDia(c), 0);
-  const vistas = sum(cu, 'vistas'), inter = sum(cu, 'interacciones');
+  const vistas = sum(cu, 'vistas'), vSeg = sum(cu, 'vSeg'), vNoSeg = sum(cu, 'vNoSeg'), inter = sum(cu, 'interacciones');
   const llegaron = sum(cu, 'nuevos'), seFueron = sum(cu, 'perdidos');
 
   // Mismo número de días justo antes, solo si hay datos de todos esos días
@@ -960,9 +955,12 @@ function renderGeneral(desde, hasta, posts) {
   const edad = pub('Edad').sort((a, b) => a.valor < b.valor ? -1 : 1);
   $('edad').innerHTML = edad.length ? barrasHTML(edad, sum(edad, 'n'), x => x.valor) : '<div class="empty">Sin datos de edad.</div>';
 
-  // Cómo llegan las vistas: por tipo de contenido (seguidores / no seguidores ya está en el cuadro de personas)
+  // Cómo llegan las vistas: por tipo de contenido y según quién las hizo (cuenta vistas, no personas:
+  // un seguidor suele ver varias veces)
   const tipos = [['Reels', sum(cu, 'reels'), C.electrico], ['Fotos y carruseles', sum(cu, 'pubs'), C.magenta], ['Historias', sum(cu, 'historias'), C.naranja], ['Otras', sum(cu, 'otras'), C.gray]];
-  $('llegada').innerHTML = medidor('Por tipo de contenido', tipos) || `<div class="empty">${SIN_DATOS}</div>`;
+  $('llegada').innerHTML = (medidor('Por tipo de contenido', tipos) +
+    medidor('Vistas de seguidores y de quienes aún no nos siguen',
+      [['Vistas de quienes aún no nos siguen', vNoSeg, C.magenta], ['Vistas de seguidores', vSeg, C.electrico]])) || `<div class="empty">${SIN_DATOS}</div>`;
 
   // Principales ciudades
   const ciu = pub('Ciudad').sort((a, b) => b.n - a.n);
