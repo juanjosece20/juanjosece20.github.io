@@ -87,7 +87,6 @@ main.in{padding-bottom:28px}
 .fr-1{display:flex;align-items:baseline;gap:6px;white-space:nowrap;overflow:hidden}
 .fr-v{font:400 26px/1 var(--titulo);letter-spacing:.5px;color:var(--ink)}
 .fr-l{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
-.fr-d{font-size:13px}
 .fr-c{font-size:11px;color:var(--muted);margin-top:3px;min-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fr .ayuda{margin-left:0;vertical-align:0;flex:none}
 /* Lo más visto a lo ancho: miniaturas menos altas */
@@ -883,13 +882,19 @@ function renderGeneral(desde, hasta, posts) {
   // Solo hoy y en cero: es el retraso de Instagram, no que no haya pasado nada
   const tarde = v => enCurso && !v;
 
-  // Franja de arriba: seguidores al final del periodo (y lo ganado), veces que se vio, personas que nos vieron y reacciones.
-  // Las personas son distintas en el periodo (no la suma de cada día): Instagram las da solo para Hoy, 7 y 30 días
-  const sFin = D.seguidores.filter(x => x.f <= hasta).pop();
+  // Franja de arriba: seguidores (el total más reciente, el mismo de Hoy, y lo ganado en el periodo), veces que se vio,
+  // personas que nos vieron y reacciones. Las personas son distintas en el periodo (no la suma de cada día): Instagram las da solo para Hoy, 7 y 30 días
+  const total = D.seguidores[D.seguidores.length - 1];
   const al = (D.alcance || []).find(a => a.desde === desde && a.hasta === hasta);
   const personas = al && al.total ? al.total : null;
   const ayer = ymd(new Date(new Date(D.hoy + 'T12:00') - 864e5));
   const deBoton = enCurso || (hasta === ayer && (dias === 7 || dias === 30));
+  // Ganados en el periodo y en el anterior, con palabras según el filtro: "Esta semana: +0 (la anterior: +19)"
+  const cAyer = D.cuenta.find(c => c.f === ayer);
+  const ganPrev = enCurso ? (cAyer ? cAyer.nuevos - cAyer.perdidos : null) : netoPrev;
+  const [esteP, otroP] = enCurso ? ['Hoy', 'ayer'] : hasta === ayer && dias === 7 ? ['Esta semana', 'la anterior']
+    : hasta === ayer && dias === 30 ? ['Estos 30 días', 'los 30 anteriores'] : ['En estas fechas', `los ${dias} días anteriores`];
+  const ganados = `${esteP}: <span class="${neto >= 0 ? 'up' : 'down'}">${conSigno(neto)}</span>` + (typeof ganPrev === 'number' ? ` (${otroP}: ${conSigno(ganPrev)})` : '');
   const ayuda = 'Una persona cuenta una sola vez; las veces suman cada vez que alguien ve algo.' +
     (personas !== null ? ` En promedio, cada persona vio el contenido ${(vistas / personas).toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} veces.`
       : !deBoton ? ' El número de personas solo está disponible para Hoy, 7 y 30 días.' : enCurso ? ' ' + RETRASO + '.' : ' Se actualiza en la próxima hora.');
@@ -897,9 +902,7 @@ function renderGeneral(desde, hasta, posts) {
     'n.hidden=!n.hidden;this.setAttribute(\'aria-expanded\',!n.hidden)">?</button>';
   const fr = (v, l, c) => `<div class="fr"><div class="fr-1"><span class="fr-v">${v}</span>${l}</div><div class="fr-c">${c || ''}</div></div>`;
   $('franja').innerHTML =
-    // Sin total guardado para esas fechas (la pestaña Seguidores empezó el 27 de octubre), la cifra principal son los ganados
-    (sFin ? fr(fmt(sFin.n), `<span class="fr-l">seguidores</span><span class="fr-d ${neto >= 0 ? 'up' : 'down'}">${conSigno(neto)}</span>`, compara(neto, netoPrev, dias, true))
-      : fr(conSigno(neto), `<span class="fr-l">${Math.abs(neto) === 1 ? 'seguidor' : 'seguidores'} ${neto < 0 ? 'perdidos' : Math.abs(neto) === 1 ? 'ganado' : 'ganados'}</span>`, compara(neto, netoPrev, dias, true))) +
+    fr(total ? fmt(total.n) : '—', `<span class="fr-l">${total && total.n === 1 ? 'seguidor' : 'seguidores'}</span>`, ganados) +
     fr(tarde(vistas) ? '—' : fmt(vistas), `<span class="fr-l">${vistas === 1 ? 'vez se vio el contenido' : 'veces se vio el contenido'}</span>`, compara(vistas, vPrev, dias)) +
     fr(personas === null ? '—' : fmt(personas), `<span class="fr-l">${personas === 1 ? 'persona nos vio' : 'personas nos vieron'}</span>` + boton) +
     fr(tarde(inter) ? '—' : fmt(inter), `<span class="fr-l" title="me gusta, comentarios, compartidos y guardados">reacciones</span>`, compara(inter, ant('interacciones'), dias)) +
