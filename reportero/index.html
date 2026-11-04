@@ -79,7 +79,7 @@ main.in{padding-bottom:28px}
 /* ---------- Cuadrícula del Resumen ---------- */
 .grid{display:grid;gap:12px;grid-template-columns:250px repeat(3,minmax(0,1fr)) 290px;
   grid-template-areas:"hoy k1 k2 k2 ins" "pos pos pos pos ins" "lle lle lle ciu ciu"}
-.grid.det{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"vis vis vis vis" "rea rea pub pub" "com com com com"}
+.grid.det{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"rea rea pub pub" "com com com com"}
 /* Plegable "Ver detalle" */
 .detalle{margin-top:14px}
 .detalle>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font:600 13px var(--ui);color:var(--blue);
@@ -94,7 +94,7 @@ main.in{padding-bottom:28px}
 .b h3{font:400 19px/1 var(--titulo);letter-spacing:.5px;margin:0 0 10px;color:var(--ink)}
 .b h3 small{font:500 11px var(--ui);letter-spacing:0;color:var(--muted);margin-left:6px}
 .b-hoy{grid-area:hoy}.b-k1{grid-area:k1}.b-k2{grid-area:k2}.b-ins{grid-area:ins}
-.b-com{grid-area:com}.b-pub{grid-area:pub}.b-vis{grid-area:vis}.b-lle{grid-area:lle}.b-rea{grid-area:rea}.b-pos{grid-area:pos}.b-ciu{grid-area:ciu}
+.b-com{grid-area:com}.b-pub{grid-area:pub}.b-lle{grid-area:lle}.b-rea{grid-area:rea}.b-pos{grid-area:pos}.b-ciu{grid-area:ciu}
 
 /* Hoy */
 .b-hoy{background:linear-gradient(150deg,var(--navy),var(--blue));color:#fff;border:0}
@@ -311,7 +311,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
 @media (max-width:1199px){
   .grid,.grid.det{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:none;grid-auto-flow:dense}
   .grid>.b{grid-area:auto}
-  .grid>.b-ins,.grid>.b-vis,.grid>.b-pos,.grid>.b-com,.grid>.b-k2{grid-column:span 2}
+  .grid>.b-ins,.grid>.b-pos,.grid>.b-com,.grid>.b-k2{grid-column:span 2}
   .compartidas{grid-template-columns:repeat(2,minmax(0,1fr))}
   .portada{grid-template-columns:1fr;gap:20px}
   .cifra{border-left:0;padding-left:0}
@@ -329,7 +329,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .salir{position:absolute;top:10px;right:16px;padding:6px 10px}
   .filters{margin-left:0}
   .grid,.grid.det{grid-template-columns:minmax(0,1fr)}
-  .grid>.b-ins,.grid>.b-vis,.grid>.b-pos,.grid>.b-com,.grid>.b-k2{grid-column:auto}
+  .grid>.b-ins,.grid>.b-pos,.grid>.b-com,.grid>.b-k2{grid-column:auto}
   .compartidas{grid-template-columns:1fr}
   .munis td.pv,.munis th.pv{display:none}
   .munis th,.munis td{padding:6px 4px}
@@ -410,7 +410,6 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
     </div>
     <details class="detalle" id="detGeneral"><summary>Ver detalle</summary>
       <div class="grid det">
-        <div class="b b-vis"><h3>Los días que más nos vieron</h3><p class="frase" id="picos"></p></div>
         <div class="b b-rea" id="kInter"></div>
         <div class="b b-pub"><h3>Quiénes nos siguen <small>edad y sexo</small></h3>
           <p class="frase" id="sexoFrase"></p>
@@ -880,16 +879,6 @@ function renderVistos(desde, hasta, enCurso, vistas, vs) {
     `<div class="k-cmp">Vieron el contenido ${veces} (${prom} cada una)</div>` + cmp;
 }
 
-// La publicación que más se vio un día: por sus vistas de ese día (Historial); si no las hay, la más vista
-// de las publicadas ese día o los 2 anteriores (una publicación suele pegar fuerte en sus primeros días)
-function culpable(f) {
-  const delDia = D.posts.map(p => ({ p: p, v: (p.diario.find(d => d.f === f && d.seguido) || {}).v || 0 }))
-    .filter(x => x.v > 0).sort((a, b) => b.v - a.v)[0];
-  if (delDia) return delDia.p;
-  const desde = ymd(new Date(new Date(f + 'T12:00') - 2 * 864e5));
-  return D.posts.filter(p => p.dia >= desde && p.dia <= f).sort((a, b) => b.vistas - a.vistas)[0] || null;
-}
-
 function renderGeneral(desde, hasta, posts) {
   const cu = D.cuenta.filter(c => c.f >= desde && c.f <= hasta);
   const dias = diasEntre(desde, hasta);
@@ -937,11 +926,6 @@ function renderGeneral(desde, hasta, posts) {
     || `<div class="empty">No hay publicaciones en este periodo.</div>`;
 
   // ---- Ver detalle ----
-  // Los días que más nos vieron: los 3 picos, cada uno con la publicación que más se vio ese día
-  const picos = cu.filter(c => c.vistas > 0).sort((a, b) => b.vistas - a.vistas).slice(0, 3)
-    .map(c => { const p = culpable(c.f); return `<b>${diaMes(c.f)}</b>` + (p ? ` por «${esc(recortar(p.titulo, 60))}»` : '') + ` (${fmt(c.vistas)} veces)`; });
-  $('picos').innerHTML = picos.length ? picos.slice(0, -1).join(', ') + (picos.length > 1 ? ' y ' : '') + picos[picos.length - 1] + '.' : SIN_DATOS;
-
   // Quiénes nos siguen: sexo y edad
   const pub = t => D.publico.filter(x => x.tipo === t);
   const sx = pub('Sexo').sort((a, b) => b.n - a.n), totS = sum(sx, 'n');
