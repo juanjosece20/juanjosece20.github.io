@@ -897,8 +897,9 @@ function renderGeneral(desde, hasta, posts) {
     'n.hidden=!n.hidden;this.setAttribute(\'aria-expanded\',!n.hidden)">?</button>';
   const fr = (v, l, c) => `<div class="fr"><div class="fr-1"><span class="fr-v">${v}</span>${l}</div><div class="fr-c">${c || ''}</div></div>`;
   $('franja').innerHTML =
-    fr(sFin ? fmt(sFin.n) : '—', `<span class="fr-l">seguidores</span><span class="fr-d ${neto >= 0 ? 'up' : 'down'}">${conSigno(neto)}</span>`,
-      compara(neto, netoPrev, dias, true)) +
+    // Sin total guardado para esas fechas (la pestaña Seguidores empezó el 27 de octubre), la cifra principal son los ganados
+    (sFin ? fr(fmt(sFin.n), `<span class="fr-l">seguidores</span><span class="fr-d ${neto >= 0 ? 'up' : 'down'}">${conSigno(neto)}</span>`, compara(neto, netoPrev, dias, true))
+      : fr(conSigno(neto), `<span class="fr-l">${Math.abs(neto) === 1 ? 'seguidor' : 'seguidores'} ${neto < 0 ? 'perdidos' : Math.abs(neto) === 1 ? 'ganado' : 'ganados'}</span>`, compara(neto, netoPrev, dias, true))) +
     fr(tarde(vistas) ? '—' : fmt(vistas), `<span class="fr-l">${vistas === 1 ? 'vez se vio el contenido' : 'veces se vio el contenido'}</span>`, compara(vistas, vPrev, dias)) +
     fr(personas === null ? '—' : fmt(personas), `<span class="fr-l">${personas === 1 ? 'persona nos vio' : 'personas nos vieron'}</span>` + boton) +
     fr(tarde(inter) ? '—' : fmt(inter), `<span class="fr-l" title="me gusta, comentarios, compartidos y guardados">reacciones</span>`, compara(inter, ant('interacciones'), dias)) +
