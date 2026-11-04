@@ -142,6 +142,17 @@ main.in{padding-bottom:28px}
   border:1px solid var(--linea);border-radius:8px;padding:8px 10px;box-shadow:0 6px 18px rgba(9,22,61,.12)}
 .empty{font-size:13px;color:var(--muted);padding:16px 0}
 
+/* Análisis */
+.an-frase{margin-bottom:12px}
+.an-frase .frase{font-size:16px}
+.an-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+.ch.an-ch{height:260px}
+.an-punto{color:var(--red)}
+#aTemas{overflow-x:auto}
+#aTemas table{min-width:520px}
+.an-dia{font-size:13px;line-height:1.5;color:var(--texto);margin:10px 0 0;min-height:20px}
+.an-dia b{color:var(--ink)}
+
 /* Público */
 .pub-in{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center}
 .pub-sexo{display:flex;align-items:center;gap:12px}
@@ -355,6 +366,8 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .dato:nth-child(n+3){border-top:1px solid var(--linea)}
   .val{font-size:32px}
   .notas{grid-template-columns:1fr}
+  .an-grid{grid-template-columns:minmax(0,1fr)}
+  .ch.an-ch{height:220px}
   .nota.ancha,.notas .nota:last-child:nth-child(odd){grid-column:auto}
   .ordenar{display:block}
   #subTabla{display:none}
@@ -379,6 +392,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   <div class="tabs">
     <button class="tab on" data-t="general">Resumen</button>
     <button class="tab" data-t="pubs">Publicaciones</button>
+    <button class="tab" data-t="analisis">Análisis</button>
   </div>
   <button class="salir" id="salir" type="button">Cerrar sesión</button>
 </div></header>
@@ -476,6 +490,16 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
       <thead><tr id="thP"></tr></thead>
       <tbody id="tablaP"></tbody>
     </table></div>
+  </section>
+
+  <section id="analisis" style="display:none">
+    <div class="b an-frase"><h3>Lo que mejor funciona</h3><p class="frase" id="aFrase"></p></div>
+    <div class="an-grid">
+      <div class="b"><h3>Por tema <small>publicaciones del periodo</small></h3><div class="munis" id="aTemas"></div>
+        <div class="ley" id="aTemasNota"></div></div>
+      <div class="b"><h3>Veces que se vio el contenido, día por día <small><span class="an-punto">●</span> día con publicación</small></h3>
+        <div class="ch an-ch"><canvas id="cDias"></canvas></div><p class="an-dia" id="aDia"></p></div>
+    </div>
   </section>
 </main>
 <footer>El Reportero Ciudadano · Datos de Instagram: el bloque «Hoy» se actualiza cada hora y el resto cada 4 horas</footer>
@@ -796,12 +820,13 @@ function marcar(r) { document.querySelectorAll('.chip[data-r]').forEach(b => b.c
 function render() {
   $('general').style.display = tab === 'general' ? 'block' : 'none';
   $('pubs').style.display = tab === 'pubs' ? 'block' : 'none';
+  $('analisis').style.display = tab === 'analisis' ? 'block' : 'none';
   document.querySelectorAll('.solopubs').forEach(e => e.style.display = tab === 'pubs' ? 'inline-block' : 'none');
   const desde = $('desde').value, hasta = $('hasta').value;
   const nd = diasEntre(desde, hasta);
   $('periodoTxt').innerHTML = `Periodo: <b>${periodo(desde, hasta)}</b> · ${nd === 1 ? '1 día' : nd + ' días'}`;
   const posts = D.posts.filter(p => p.dia >= desde && p.dia <= hasta);
-  if (tab === 'general') renderGeneral(desde, hasta, posts); else renderPubs(desde, hasta, posts);
+  if (tab === 'general') renderGeneral(desde, hasta, posts); else if (tab === 'pubs') renderPubs(desde, hasta, posts); else renderAnalisis(desde, hasta, posts);
 }
 
 // Bloque "Hoy": no depende de los filtros de fecha
@@ -1177,6 +1202,68 @@ function celdaDias(p) {
 const textoEdad = e => e === 0 ? 'el día en que se publican' : e === 1 ? 'al día siguiente de publicadas' : `a los ${e} días de publicadas`;
 
 // Bloque arriba de la pestaña: no depende de los filtros, es lo que está pasando ahora
+// ---------- Análisis ----------
+// Por tema: publicaciones, vistas de una normal, compartidos de cada 1.000 vistas y segundos que se ve un reel normal.
+// Arriba, una frase con el tema y el formato que mejor funcionan; abajo, las vistas de cada día con un punto donde se publicó.
+const MIN_ANALISIS = 3;
+function renderAnalisis(desde, hasta, posts) {
+  const nombreTema = p => p.tema || 'Sin tema';
+  const g = {};
+  posts.forEach(p => (g[nombreTema(p)] = g[nombreTema(p)] || []).push(p));
+  const filas = Object.entries(g).map(([t, l]) => {
+    const seg = l.filter(p => p.formato === 'Reel' && p.reprod > 0).map(p => p.reprod);
+    return { t: t, n: l.length, med: mediana(l.map(p => p.vistas)), cpm: cpmDe(l), seg: seg.length ? mediana(seg) : null };
+  }).sort((a, b) => (a.t === 'Sin tema') - (b.t === 'Sin tema') || (b.n >= MIN_ANALISIS) - (a.n >= MIN_ANALISIS) || b.med - a.med);
+  $('aTemas').innerHTML = !filas.length ? '<div class="empty">No hay publicaciones en este periodo.</div>'
+    : '<table><thead><tr><th>Tema</th><th class="n">Publicaciones</th><th class="n">Vistas de una publicación normal</th>' +
+      '<th class="n">La compartieron, de cada 1.000</th><th class="n">Segundos que se ve un reel normal</th></tr></thead><tbody>' +
+      filas.map(f => `<tr${f.n < MIN_ANALISIS ? ' class="poco"' : ''}><td>${esc(f.t)}</td><td class="n">${fmt(f.n)}</td><td class="n med">${fmt(f.med)}</td>` +
+        `<td class="n">${f.cpm === null ? '—' : dec(f.cpm)}</td><td class="n">${f.seg === null ? '—' : dec(f.seg)}</td></tr>`).join('') + '</tbody></table>';
+  $('aTemasNota').textContent = filas.length ? 'De más a menos vistas. Con 1 o 2 publicaciones el dato todavía dice poco (en gris). El tema mal asignado se corrige en la pestaña Temas del Sheet.' : '';
+
+  // Frase: el tema y el formato con más vistas en una publicación normal (solo grupos con MIN_ANALISIS publicaciones)
+  const comparaGrupo = (clave, excluir) => {
+    const l = tipicas(posts, clave, 'vistas', MIN_ANALISIS, excluir);
+    if (l.length < 2) return null;
+    const resto = posts.filter(p => p[clave] !== l[0][0] && p[clave] !== excluir);
+    return { top: l[0][0], med: l[0][1], resto: mediana(resto.map(p => p.vistas)) };
+  };
+  const ct = comparaGrupo('tema', ''), cf = comparaGrupo('formato');
+  const PLURAL_F = { Reel: 'los reels', Imagen: 'las fotos', Carrusel: 'los carruseles', Video: 'los videos' };
+  const partes = [];
+  if (ct) partes.push(`El tema que mejor funciona es <b>${esc(ct.top)}</b>: una publicación normal se ve <b>${fmt(ct.med)} veces</b>, frente a ${fmt(ct.resto)} en los demás temas.`);
+  if (cf) partes.push(`En formato, ${ct ? '' : 'funcionan mejor '}<b>${PLURAL_F[cf.top] || esc(cf.top)}</b>: ${fmt(cf.med)} veces, frente a ${fmt(cf.resto)} en los otros formatos.`);
+  $('aFrase').innerHTML = partes.length ? partes.join(' ')
+    : posts.length ? 'Aún hay muy pocas publicaciones en estas fechas para comparar temas y formatos (se necesitan al menos 3 de cada uno).' : 'No hay publicaciones en este periodo.';
+
+  // Vistas de cada día (una sola escala); el punto marca los días con publicación y al tocarlo dice cuáles
+  const cu = D.cuenta.filter(c => c.f >= desde && c.f <= hasta);
+  const delDia = f => posts.filter(p => p.dia === f).sort((a, b) => b.vistas - a.vistas);
+  const contar = f => { const l = delDia(f); return l.length === 1 ? '1 publicación' : l.length + ' publicaciones'; };
+  const detalle = i => {
+    const c = cu[i], l = delDia(c.f);
+    $('aDia').innerHTML = `<b>${diaMes(c.f)}</b>: el contenido se vio ${fmt(c.vistas)} veces. ` + (l.length
+      ? 'Ese día se publicó ' + l.map(p => `«${esc(recortar(tema(p), 70))}» (${FORMATO[p.formato] || esc(p.formato)})`).join(', ') + '.'
+      : 'Ese día no se publicó nada.');
+  };
+  $('aDia').textContent = cu.length ? 'Toca un día para ver qué se publicó.' : '';
+  grafica('cDias', {
+    data: {
+      labels: cu.map(c => corto(c.f)),
+      datasets: [
+        { type: 'line', data: cu.map(c => delDia(c.f).length ? c.vistas : null), showLine: false, pointRadius: 5, pointHoverRadius: 7,
+          pointBackgroundColor: C.red, pointBorderColor: '#fff', pointBorderWidth: 2 },
+        { type: 'bar', data: cu.map(c => c.vistas), backgroundColor: '#8ba5f2', hoverBackgroundColor: C.blue, borderRadius: 4, maxBarThickness: 28 }
+      ]
+    },
+    options: Object.assign(opciones({ interaction: { mode: 'index', intersect: false } }), {
+      onClick: (e, el) => { if (el.length) detalle(el[0].index); },
+      plugins: { legend: { display: false }, tooltip: Object.assign(tooltip(), { filter: it => it.datasetIndex === 1,
+        callbacks: { title: it => diaMes(cu[it[0].dataIndex].f), label: it => fmt(it.parsed.y) + ' veces' + (delDia(cu[it.dataIndex].f).length ? ' · ' + contar(cu[it.dataIndex].f) : '') } }) }
+    })
+  });
+}
+
 function renderAlertas() {
   const lista = D.posts.filter(p => p.crece).sort((a, b) => b.crece.v / Math.max(b.crece.med, 1) - a.crece.v / Math.max(a.crece.med, 1));
   $('alertas').style.display = lista.length ? 'block' : 'none';
