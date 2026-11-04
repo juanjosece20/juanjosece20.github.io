@@ -79,7 +79,7 @@ main.in{padding-bottom:28px}
 /* ---------- Cuadrícula del Resumen ---------- */
 .grid{display:grid;gap:12px;grid-template-columns:250px repeat(3,minmax(0,1fr)) 290px;
   grid-template-areas:"hoy k1 k2 k2 ins" "pos pos pos pos ins" "lle lle lle ciu ciu"}
-.grid.det{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"vis vis seg seg" "rea rea pub pub" "com com com com"}
+.grid.det{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"vis vis vis vis" "rea rea pub pub" "com com com com"}
 /* Plegable "Ver detalle" */
 .detalle{margin-top:14px}
 .detalle>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font:600 13px var(--ui);color:var(--blue);
@@ -94,7 +94,7 @@ main.in{padding-bottom:28px}
 .b h3{font:400 19px/1 var(--titulo);letter-spacing:.5px;margin:0 0 10px;color:var(--ink)}
 .b h3 small{font:500 11px var(--ui);letter-spacing:0;color:var(--muted);margin-left:6px}
 .b-hoy{grid-area:hoy}.b-k1{grid-area:k1}.b-k2{grid-area:k2}.b-ins{grid-area:ins}
-.b-com{grid-area:com}.b-pub{grid-area:pub}.b-vis{grid-area:vis}.b-seg{grid-area:seg}.b-lle{grid-area:lle}.b-rea{grid-area:rea}.b-pos{grid-area:pos}.b-ciu{grid-area:ciu}
+.b-com{grid-area:com}.b-pub{grid-area:pub}.b-vis{grid-area:vis}.b-lle{grid-area:lle}.b-rea{grid-area:rea}.b-pos{grid-area:pos}.b-ciu{grid-area:ciu}
 
 /* Hoy */
 .b-hoy{background:linear-gradient(150deg,var(--navy),var(--blue));color:#fff;border:0}
@@ -408,7 +408,6 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
     <details class="detalle" id="detGeneral"><summary>Ver detalle</summary>
       <div class="grid det">
         <div class="b b-vis"><h3>Los días que más nos vieron</h3><p class="frase" id="picos"></p></div>
-        <div class="b b-seg"><h3>Quién llegó y quién se fue</h3><p class="frase" id="segFrase"></p></div>
         <div class="b b-rea" id="kInter"></div>
         <div class="b b-pub"><h3>Quiénes nos siguen <small>edad y sexo</small></h3>
           <p class="frase" id="sexoFrase"></p>
@@ -861,9 +860,12 @@ function renderGeneral(desde, hasta, posts) {
 
   // Solo hoy y en cero: es el retraso de Instagram, no que no haya pasado nada
   const tarde = v => enCurso && !v;
+  const masLlegaron = cu.reduce((m, c) => (!m || c.nuevos > m.nuevos) ? c : m, null);
+  // Con Hoy no se dice el mejor día: solo hay uno
+  const mejorDia = dias > 1 && masLlegaron && masLlegaron.nuevos > 0 ? ` · el mejor día fue el ${diaMes(masLlegaron.f)} (${fmt(masLlegaron.nuevos)})` : '';
   const verbo = neto > 0 ? 'La cuenta creció' : neto < 0 ? 'La cuenta bajó' : 'La cuenta se mantuvo';
   $('kSeg').innerHTML = kpi(verbo, `${conSigno(neto)}<small>${Math.abs(neto) === 1 ? 'seguidor' : 'seguidores'}</small>`,
-    enCurso && segHoy !== null ? 'total de seguidores ahora menos el de ayer' : `llegaron ${fmt(llegaron)} y se fueron ${fmt(seFueron)}`,
+    enCurso && segHoy !== null ? 'total de seguidores ahora menos el de ayer' : `Llegaron ${fmt(llegaron)} y se fueron ${fmt(seFueron)}${mejorDia}`,
     compara(neto, netoPrev, dias, true));
   renderVistos(desde, hasta, enCurso, vistas, compara(vistas, vPrev, dias));
   $('kInter').innerHTML = tarde(inter) ? kpi('Reacciones', '—', RETRASO)
@@ -874,7 +876,6 @@ function renderGeneral(desde, hasta, posts) {
   const totT = tipos.reduce((a, t) => a + t[1], 0);
   const topT = tipos.slice().sort((a, b) => b[1] - a[1])[0];
   const mejor = cu.reduce((m, c) => (!m || c.vistas > m.vistas) ? c : m, null);
-  const masLlegaron = cu.reduce((m, c) => (!m || c.nuevos > m.nuevos) ? c : m, null);
   const ins = [];
   if (dias > 1 && mejor && mejor.vistas) {
     const top = posts.filter(p => p.dia === mejor.f).sort((a, b) => b.vistas - a.vistas)[0];
@@ -899,11 +900,6 @@ function renderGeneral(desde, hasta, posts) {
   const picos = cu.filter(c => c.vistas > 0).sort((a, b) => b.vistas - a.vistas).slice(0, 3)
     .map(c => { const p = culpable(c.f); return `<b>${diaMes(c.f)}</b>` + (p ? ` por «${esc(recortar(p.titulo, 60))}»` : '') + ` (${fmt(c.vistas)} veces)`; });
   $('picos').innerHTML = picos.length ? picos.slice(0, -1).join(', ') + (picos.length > 1 ? ' y ' : '') + picos[picos.length - 1] + '.' : SIN_DATOS;
-
-  // Quién llegó y quién se fue, en una frase (casi todos los días son 0 o 1: una gráfica no dice más)
-  const sinDato = enCurso && !llegaron && !seFueron;
-  $('segFrase').innerHTML = sinDato ? RETRASO + '.' : `Llegaron <b>${fmt(llegaron)}</b> y se fueron <b>${fmt(seFueron)}</b>` +
-    (masLlegaron && masLlegaron.nuevos > 0 && dias > 1 ? `; el día que más llegaron fue el <b>${diaMes(masLlegaron.f)}</b> (${fmt(masLlegaron.nuevos)}).` : '.');
 
   // Quiénes nos siguen: sexo y edad
   const pub = t => D.publico.filter(x => x.tipo === t);
