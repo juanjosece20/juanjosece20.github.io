@@ -77,7 +77,8 @@ body{margin:0;font-family:var(--ui);background:var(--fondo);color:var(--ink);-we
 main.in{padding-bottom:28px}
 
 /* ---------- Cuadrícula del Resumen ---------- */
-.grid{display:grid;gap:12px;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"hoy lle lle lle" "sig sig int int"}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-areas:"pos pos pos" "lle ciu pub"}
+.grid.det{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"hoy ins ins ins" "com com com com"}
 /* Franja de arriba: cuatro cifras en una fila, cada una con su comparación debajo */
 .franja{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--card);border:1px solid var(--linea);
   border-radius:var(--radio);padding:10px 0;margin-bottom:12px}
@@ -86,11 +87,11 @@ main.in{padding-bottom:28px}
 .fr-1{display:flex;align-items:baseline;gap:6px;white-space:nowrap;overflow:hidden}
 .fr-v{font:400 26px/1 var(--titulo);letter-spacing:.5px;color:var(--ink)}
 .fr-l{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
-.fr-c{font-size:11px;line-height:1.35;color:var(--muted);margin-top:3px;min-height:14px}
-.fr-c b{color:var(--ink)}
+.fr-d{font-size:13px}
+.fr-c{font-size:11px;color:var(--muted);margin-top:3px;min-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fr .ayuda{margin-left:0;vertical-align:0;flex:none}
 /* Lo más visto a lo ancho: miniaturas menos altas */
-.b-pos .post-img{aspect-ratio:4/3}
+.grid>.b-pos .post-img{aspect-ratio:4/3}
 /* Plegable "Ver detalle" */
 .detalle{margin-top:14px}
 .detalle>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font:600 13px var(--ui);color:var(--blue);
@@ -102,8 +103,8 @@ main.in{padding-bottom:28px}
 .b{background:var(--card);border:1px solid var(--linea);border-radius:var(--radio);padding:14px 16px;min-width:0;position:relative}
 .b h3{font:400 19px/1 var(--titulo);letter-spacing:.5px;margin:0 0 10px;color:var(--ink)}
 .b h3 small{font:500 11px var(--ui);letter-spacing:0;color:var(--muted);margin-left:6px}
-.b-hoy{grid-area:hoy}
-.b-com{grid-area:com}.b-lle{grid-area:lle}.b-pos{grid-area:pos}.b-sig{grid-area:sig}.b-Int{grid-area:int}
+.b-hoy{grid-area:hoy}.b-ins{grid-area:ins}
+.b-com{grid-area:com}.b-pub{grid-area:pub}.b-lle{grid-area:lle}.b-pos{grid-area:pos}.b-ciu{grid-area:ciu}
 
 /* Hoy */
 .b-hoy{background:linear-gradient(150deg,var(--navy),var(--blue));color:#fff;border:0}
@@ -117,6 +118,15 @@ main.in{padding-bottom:28px}
 /* Cifras con comparación y mini-gráfica */
 .up{color:var(--verde);font-weight:700}.down{color:var(--red);font-weight:700}
 
+/* Conclusiones clave */
+.b-ins{background:var(--degradado);color:#fff;border:0;padding:20px 20px 16px;display:flex;flex-direction:column}
+.b-ins h3{color:#fff;font-size:24px;display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.b-ins h3:before{content:"";width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z'/%3E%3C/svg%3E") center/16px no-repeat}
+.ins{list-style:none;margin:0;padding:0 0 0 18px;border-left:1px solid rgba(255,255,255,.35);display:flex;flex-direction:column;gap:18px;flex:1}
+.ins li{position:relative;font-size:14px;line-height:1.5}
+.ins li:before{content:"";position:absolute;left:-23px;top:.45em;width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.25)}
+.ins b{font-weight:700}
+.ins-pie{font-size:11px;color:rgba(255,255,255,.75);margin-top:16px}
 
 /* Gráficas */
 .ch{position:relative;height:190px}
@@ -132,39 +142,21 @@ main.in{padding-bottom:28px}
   border:1px solid var(--linea);border-radius:8px;padding:8px 10px;box-shadow:0 6px 18px rgba(9,22,61,.12)}
 .empty{font-size:13px;color:var(--muted);padding:16px 0}
 
-/* Análisis */
-/* Publicaciones: lo más visto, temas, vistas por día y lo más compartido */
-.pgrid{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"pos pos" "tem dia" "com com";margin:0 0 16px}
-.b-tem{grid-area:tem}.b-dia{grid-area:dia}
-.ch.an-ch{height:260px}
-.an-punto{color:var(--red)}
-/* La tabla de temas se desliza de lado en pantallas angostas: sombra en el borde con más columnas y aviso */
-#aTemas{overflow-x:auto;background:linear-gradient(to right,var(--card) 30%,rgba(255,255,255,0)) left/24px 100% no-repeat local,
-  linear-gradient(to left,var(--card) 30%,rgba(255,255,255,0)) right/24px 100% no-repeat local,
-  radial-gradient(farthest-side at 0 50%,rgba(9,22,61,.18),rgba(9,22,61,0)) left/12px 100% no-repeat scroll,
-  radial-gradient(farthest-side at 100% 50%,rgba(9,22,61,.18),rgba(9,22,61,0)) right/12px 100% no-repeat scroll}
-.an-desliza{display:none;font-size:11px;font-weight:600;color:var(--blue);margin:0 0 6px;text-align:right}
-@media (max-width:600px){.an-desliza{display:block}}
-#aTemas table{min-width:520px}
-.an-dia{font-size:13px;line-height:1.5;color:var(--texto);margin:10px 0 0;min-height:20px}
-.an-dia b{color:var(--ink)}
-
 /* Público */
-/* Quiénes nos siguen / quiénes reaccionan: sexo, edad y ciudades lado a lado, con el mismo orden para comparar */
-.pub-in{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
-.pub-t{font-size:11px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.pub-in{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center}
 .pub-sexo{display:flex;align-items:center;gap:12px}
 .dona{position:relative;width:84px;height:84px;flex:none}
 .pub-sexo .ley{flex-direction:column;margin:0;gap:4px}
 .barras{display:flex;flex-direction:column;gap:5px}
 .barra-f{display:grid;grid-template-columns:50px minmax(0,1fr) 38px;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
 .barra-f .t{height:8px;border-radius:8px;background:var(--fondo);overflow:hidden}
-/* Un solo color; la barra mayor, en un tono más intenso del mismo azul (el fucsia es de Mujer y Aún no nos siguen) */
-.barra-f .t div{height:100%;border-radius:8px;background:#8ba5f2}
-.barra-f.top .t div{background:var(--blue)}
+.barra-f .t div{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--blue),var(--electrico))}
+.barra-f.top .t div{background:linear-gradient(90deg,var(--electrico),var(--magenta))}
 .barra-f .p{text-align:right;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
-.barras.ciu .barra-f{grid-template-columns:minmax(64px,90px) minmax(30px,1fr) 34px}
-.barras.ciu .barra-f span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);font-weight:500}
+.b-ciu .barra-f{grid-template-columns:minmax(70px,96px) minmax(40px,1fr) 38px;font-size:12px}
+.b-ciu .barras{gap:9px}
+.b-ciu .barra-f .t{height:10px}
+.b-ciu .barra-f span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);font-weight:500}
 
 /* Cómo llegan las vistas */
 .medidor+.medidor{margin-top:14px}
@@ -205,7 +197,6 @@ main.in{padding-bottom:28px}
 .post:hover .post-img{outline:3px solid var(--electrico);outline-offset:2px}
 .post-v{font:400 18px/1 var(--titulo);letter-spacing:.4px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .post-v small{display:block;font:500 10px var(--ui);letter-spacing:0;color:var(--muted);margin-top:2px}
-.post-s{font-size:11px;line-height:1.35;color:var(--texto);margin-top:3px}
 .post-m{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden}
 .post-m i{width:7px;height:7px;border-radius:50%;flex:none}
 
@@ -314,13 +305,16 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .hd .v{font-size:22px}
   .ch{height:150px}
   .barras{gap:3px}
+  .b-ciu .barras{gap:7px}
   .medidor+.medidor{margin-top:10px}
   .posts{gap:8px}
+  .ins{gap:14px}
 }
 
 /* Pantallas medianas: dos columnas */
 @media (max-width:1199px){
-  .grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"hoy lle" "sig sig" "int int"}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"pos pos" "lle ciu" "pub pub"}
+  .grid.det{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"hoy hoy" "ins ins" "com com"}
   .compartidas{grid-template-columns:repeat(2,minmax(0,1fr))}
   .portada{grid-template-columns:1fr;gap:20px}
   .cifra{border-left:0;padding-left:0}
@@ -337,7 +331,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .tabs{margin:0 auto}
   .salir{position:absolute;top:10px;right:16px;padding:6px 10px}
   .filters{margin-left:0}
-  .grid{grid-template-columns:minmax(0,1fr);grid-template-areas:none}
+  .grid,.grid.det{grid-template-columns:minmax(0,1fr);grid-template-areas:none}
   .grid>.b{grid-area:auto}
   .franja{grid-template-columns:repeat(2,minmax(0,1fr));padding:0}
   .fr{padding:10px 12px}
@@ -345,10 +339,11 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .fr:nth-child(n+3){border-top:1px solid var(--linea)}
   .fr-1{flex-wrap:wrap;row-gap:2px}
   .fr-v{font-size:24px}
-  .b-pos .posts{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .b-pos .post:first-child{grid-column:span 2}
-  .b-pos .post:first-child .post-img{aspect-ratio:16/9}
-  .pub-in{grid-template-columns:1fr;gap:14px}
+  .fr-c{white-space:normal}
+  .grid>.b-pos .posts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid>.b-pos .post:first-child{grid-column:span 2}
+  .grid>.b-pos .post:first-child .post-img{aspect-ratio:16/9}
+  .pub-in{grid-template-columns:1fr;gap:12px}
   .compartidas{grid-template-columns:1fr}
   .munis td.pv,.munis th.pv{display:none}
   .munis th,.munis td{padding:6px 4px}
@@ -359,9 +354,6 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .dato:nth-child(n+3){border-top:1px solid var(--linea)}
   .val{font-size:32px}
   .notas{grid-template-columns:1fr}
-  .pgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:none}
-  .pgrid>.b{grid-area:auto}
-  .ch.an-ch{height:220px}
   .nota.ancha,.notas .nota:last-child:nth-child(odd){grid-column:auto}
   .ordenar{display:block}
   #subTabla{display:none}
@@ -422,19 +414,20 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   <section id="general" style="display:none">
     <div class="franja" id="franja"></div>
     <div class="grid">
-      <div class="b b-hoy"><h3>Hoy <small id="hoyHora"></small></h3><div class="hoy-datos" id="hoyDatos"></div></div>
+      <div class="b b-pos"><h3>Lo más visto <small>publicado en el periodo · veces que se vio desde que salió</small></h3><div class="posts" id="top5"></div></div>
       <div class="b b-lle"><h3>Cómo llegan las vistas</h3><div id="llegada"></div></div>
-      <div class="b b-sig"><h3>Quiénes nos siguen <small id="pubSub">edad, sexo y ciudad</small></h3>
+      <div class="b b-ciu"><h3>Principales ciudades</h3><div class="barras" id="ciudades"></div><div class="ley" id="ciuNota"></div></div>
+      <div class="b b-pub"><h3>Quiénes nos siguen <small>edad y sexo</small></h3>
         <div class="pub-in"><div class="pub-sexo"><div class="dona"><canvas id="cSexo"></canvas></div><div class="ley" id="leySexo"></div></div>
-          <div><div class="pub-t">Edad</div><div class="barras" id="edad"></div></div>
-          <div><div class="pub-t">Ciudades</div><div class="barras ciu" id="ciudades"></div></div></div>
-        <div class="ley" id="ciuNota"></div></div>
-      <div class="b b-Int"><h3>Quiénes reaccionan <small id="pubSubInt">este mes</small></h3>
-        <div class="pub-in"><div class="pub-sexo"><div class="dona"><canvas id="cSexoInt"></canvas></div><div class="ley" id="leySexoInt"></div></div>
-          <div><div class="pub-t">Edad</div><div class="barras" id="edadInt"></div></div>
-          <div><div class="pub-t">Ciudades</div><div class="barras ciu" id="ciudadesInt"></div></div></div>
-        <div class="ley" id="ciuNotaInt"></div></div>
+          <div class="barras" id="edad"></div></div></div>
     </div>
+    <details class="detalle" id="detGeneral"><summary>Ver detalle</summary>
+      <div class="grid det">
+        <div class="b b-hoy"><h3>Hoy <small id="hoyHora"></small></h3><div class="hoy-datos" id="hoyDatos"></div></div>
+        <div class="b b-ins"><h3>Lo que hay que saber</h3><ul class="ins" id="ins"></ul><div class="ins-pie" id="insPie"></div></div>
+        <div class="b b-com"><h3>Lo más compartido <small>lo que la gente le pasó a otros</small></h3><div class="compartidas" id="topCom"></div></div>
+      </div>
+    </details>
   </section>
 
   <section id="pubs" class="pubs-in" style="display:none">
@@ -454,15 +447,6 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
       </aside>
     </div>
     <div class="alertas" id="alertas" style="display:none"></div>
-
-    <div class="pgrid">
-        <div class="b b-pos"><h3>Lo más visto <small>publicado en el periodo · veces que se vio desde que salió</small></h3><div class="posts" id="top5"></div></div>
-        <div class="b b-tem"><h3>Por tema <small>publicaciones del periodo</small></h3><div class="an-desliza" aria-hidden="true">Desliza la tabla para ver más →</div><div class="munis" id="aTemas"></div>
-        <div class="ley" id="aTemasNota"></div></div>
-        <div class="b b-dia"><h3>Veces que se vio el contenido, día por día <small><span class="an-punto">●</span> día con publicación</small></h3>
-        <div class="ch an-ch"><canvas id="cDias"></canvas></div><p class="an-dia" id="aDia"></p></div>
-        <div class="b b-com"><h3>Lo más compartido <small>lo que la gente le pasó a otros</small></h3><div class="compartidas" id="topCom"></div></div>
-    </div>
 
     <div class="notas">
       <article class="nota"><h3>Vistas de una publicación normal, por provincia</h3><p id="pProv"></p>
@@ -492,7 +476,6 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
       <tbody id="tablaP"></tbody>
     </table></div>
   </section>
-
 </main>
 <footer>El Reportero Ciudadano · Datos de Instagram: el bloque «Hoy» se actualiza cada hora y el resto cada 4 horas</footer>
 
@@ -552,6 +535,13 @@ function categoria(p) {
 }
 
 // ---------- Frases a partir de los datos ----------
+// "2,4 veces más vistas que" / "un 60 % más de vistas que"
+function comparar(r) {
+  if (r >= 1.95) return (r >= 10 ? String(Math.round(r)) : String(Math.round(r * 10) / 10).replace('.', ',')) + ' veces más vistas que';
+  if (r >= 1.1) return 'un ' + Math.round((r - 1) * 100) + ' % más de vistas que';
+  return 'casi las mismas vistas que';
+}
+
 // Vistas típicas (mediana) de cada grupo: una publicación viral no infla al grupo como lo haría el promedio.
 // Solo grupos con al menos `min` publicaciones con el dato; devuelve [grupo, mediana, cuántas] de mayor a menor.
 function tipicas(posts, clave, metrica, min, excluir) {
@@ -560,7 +550,15 @@ function tipicas(posts, clave, metrica, min, excluir) {
   return Object.entries(g).filter(([, v]) => v.length >= (min || 1)).map(([k, v]) => [k, mediana(v), v.length]).sort((a, b) => b[1] - a[1]);
 }
 
-// Frases de Publicaciones: tipo de noticia que más se compartió, municipio que mejor respondió y una recomendación
+// Grupo con más y con menos vistas típicas (solo grupos con 3 o más publicaciones)
+function extremos(posts, clave, excluir) {
+  const l = tipicas(posts, clave, 'vistas', 3, excluir);
+  if (l.length < 2 || !l[l.length - 1][1]) return null;
+  return { top: l[0][0], ult: l[l.length - 1][0], r: l[0][1] / l[l.length - 1][1] };
+}
+const fraseComp = (prefijo, x) => `${prefijo}${nombre(x.top)} suelen tener <b>${comparar(x.r)}</b> ${nombre(x.ult)}.`;
+
+// Lo que hay que saber: tipo de noticia que más se compartió, municipio que mejor respondió y una recomendación
 const MIN_GRUPO = 3, MIN_RECOMENDAR = 10, VENTAJA = 1.5;
 const DE_CAT = { 'Denuncia': 'de denuncia', 'Información': 'de información' };
 const FORMATOS = { Reel: 'reels', Imagen: 'fotos', Carrusel: 'carruseles', Video: 'videos' };
@@ -802,7 +800,7 @@ function render() {
   const nd = diasEntre(desde, hasta);
   $('periodoTxt').innerHTML = `Periodo: <b>${periodo(desde, hasta)}</b> · ${nd === 1 ? '1 día' : nd + ' días'}`;
   const posts = D.posts.filter(p => p.dia >= desde && p.dia <= hasta);
-  if (tab === 'general') renderGeneral(desde, hasta); else renderPubs(desde, hasta, posts);
+  if (tab === 'general') renderGeneral(desde, hasta, posts); else renderPubs(desde, hasta, posts);
 }
 
 // Bloque "Hoy": no depende de los filtros de fecha
@@ -863,7 +861,7 @@ function netoDeHoy() {
 }
 const conSigno = n => (n >= 0 ? '+' : '−') + fmt(Math.abs(n));
 
-function renderGeneral(desde, hasta) {
+function renderGeneral(desde, hasta, posts) {
   const cu = D.cuenta.filter(c => c.f >= desde && c.f <= hasta);
   const dias = diasEntre(desde, hasta);
   // El día de hoy no ha terminado: Instagram aún no entrega quién llegó y quién se fue, así que lo de hoy
@@ -885,53 +883,56 @@ function renderGeneral(desde, hasta) {
   // Solo hoy y en cero: es el retraso de Instagram, no que no haya pasado nada
   const tarde = v => enCurso && !v;
 
-  // Franja de arriba: seguidores (el total más reciente, el mismo de Hoy, y lo ganado en el periodo), veces que se vio,
-  // personas que nos vieron y reacciones. Las personas son distintas en el periodo (no la suma de cada día): Instagram las da solo para Hoy, 7 y 30 días
-  const total = D.seguidores[D.seguidores.length - 1];
+  // Franja de arriba: seguidores al final del periodo (y lo ganado), veces que se vio, personas que nos vieron y reacciones.
+  // Las personas son distintas en el periodo (no la suma de cada día): Instagram las da solo para Hoy, 7 y 30 días
+  const sFin = D.seguidores.filter(x => x.f <= hasta).pop();
   const al = (D.alcance || []).find(a => a.desde === desde && a.hasta === hasta);
   const personas = al && al.total ? al.total : null;
   const ayer = ymd(new Date(new Date(D.hoy + 'T12:00') - 864e5));
   const deBoton = enCurso || (hasta === ayer && (dias === 7 || dias === 30));
-  // Ganados en el periodo y en el anterior, con palabras según el filtro: "Esta semana: +0 (la anterior: +19)"
-  const cAyer = D.cuenta.find(c => c.f === ayer);
-  const ganPrev = enCurso ? (cAyer ? cAyer.nuevos - cAyer.perdidos : null) : netoPrev;
-  const [esteP, otroP] = enCurso ? ['Hoy', 'ayer'] : hasta === ayer && dias === 7 ? ['Esta semana', 'la anterior']
-    : hasta === ayer && dias === 30 ? ['Estos 30 días', 'los 30 anteriores'] : ['En estas fechas', `los ${dias} días anteriores`];
-  const ganados = `${esteP}: <span class="${neto >= 0 ? 'up' : 'down'}">${conSigno(neto)}</span>` + (typeof ganPrev === 'number' ? ` (${otroP}: ${conSigno(ganPrev)})` : '');
   const ayuda = 'Una persona cuenta una sola vez; las veces suman cada vez que alguien ve algo.' +
     (personas !== null ? ` En promedio, cada persona vio el contenido ${(vistas / personas).toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} veces.`
       : !deBoton ? ' El número de personas solo está disponible para Hoy, 7 y 30 días.' : enCurso ? ' ' + RETRASO + '.' : ' Se actualiza en la próxima hora.');
   const boton = '<button type="button" class="ayuda" aria-label="Qué cuenta esta cifra" aria-expanded="false" onclick="const n=$(\'frAyuda\');' +
     'n.hidden=!n.hidden;this.setAttribute(\'aria-expanded\',!n.hidden)">?</button>';
-  // Reacciones de toda la cuenta, por separado. Solo hay desglose desde que se empezó a guardar (noviembre de 2026):
-  // si el periodo empieza antes, se dice desde qué día cuenta
-  const conDesglose = cu.filter(c => c.likes !== null && c.likes !== undefined);
-  const rs = [['likes', 'me gusta', 'me gusta'], ['comentarios', 'comentario', 'comentarios'], ['compartidos', 'compartido', 'compartidos'], ['guardados', 'guardado', 'guardados']]
-    .map(([k, uno, varios]) => { const n = sum(conDesglose, k); return fmt(n) + ' ' + (n === 1 ? uno : varios); });
-  const desglose = (conDesglose.length ? (conDesglose.length < cu.length ? `Desde el ${diaMes(conDesglose[0].f)}: ` : '') + rs.join(' · ') : 'Aún sin separar en me gusta, comentarios, compartidos y guardados') +
-    (vistas && !tarde(inter) ? ` · <b>${dec(inter / vistas * 100)}</b> por cada 100 vistas` : '') +
-    (compara(inter, ant('interacciones'), dias) ? '<br>' + compara(inter, ant('interacciones'), dias) : '');
   const fr = (v, l, c) => `<div class="fr"><div class="fr-1"><span class="fr-v">${v}</span>${l}</div><div class="fr-c">${c || ''}</div></div>`;
   $('franja').innerHTML =
-    fr(total ? fmt(total.n) : '—', `<span class="fr-l">${total && total.n === 1 ? 'seguidor' : 'seguidores'}</span>`, ganados) +
+    // Sin total guardado para esas fechas (la pestaña Seguidores empezó el 27 de octubre), la cifra principal son los ganados
+    (sFin ? fr(fmt(sFin.n), `<span class="fr-l">seguidores</span><span class="fr-d ${neto >= 0 ? 'up' : 'down'}">${conSigno(neto)}</span>`, compara(neto, netoPrev, dias, true))
+      : fr(conSigno(neto), `<span class="fr-l">${Math.abs(neto) === 1 ? 'seguidor' : 'seguidores'} ${neto < 0 ? 'perdidos' : Math.abs(neto) === 1 ? 'ganado' : 'ganados'}</span>`, compara(neto, netoPrev, dias, true))) +
     fr(tarde(vistas) ? '—' : fmt(vistas), `<span class="fr-l">${vistas === 1 ? 'vez se vio el contenido' : 'veces se vio el contenido'}</span>`, compara(vistas, vPrev, dias)) +
     fr(personas === null ? '—' : fmt(personas), `<span class="fr-l">${personas === 1 ? 'persona nos vio' : 'personas nos vieron'}</span>` + boton) +
-    fr(tarde(inter) ? '—' : fmt(inter), `<span class="fr-l">${inter === 1 ? 'reacción' : 'reacciones'}</span>`, desglose) +
+    fr(tarde(inter) ? '—' : fmt(inter), `<span class="fr-l" title="me gusta, comentarios, compartidos y guardados">reacciones</span>`, compara(inter, ant('interacciones'), dias)) +
     `<div class="fr-ayuda" id="frAyuda" hidden>${ayuda}</div>`;
 
+  // Lo que hay que saber: máximo 3 frases sobre lo publicado en el periodo que no salen en otro cuadro
+  // ni en la pestaña Publicaciones (allá se comparan vistas por tipo y provincia; aquí, compartidos y municipios)
+  const ins = queSaber(posts);
+  $('ins').innerHTML = ins.length ? puntos(ins) : `<li>${posts.length ? 'Aún hay muy pocas publicaciones en este periodo para sacar conclusiones.' : 'No hay publicaciones en este periodo.'}</li>`;
+  $('insPie').textContent = `Con ${posts.length === 1 ? 'la publicación' : 'las ' + fmt(posts.length) + ' publicaciones'} de ` + periodo(desde, hasta) + '.';
 
-  // Quiénes nos siguen (hoy) frente a quiénes reaccionan (en el mes): no dependen de las fechas elegidas.
-  // Instagram solo da las ciudades principales: el porcentaje va sobre el total (seguidores o personas que reaccionaron)
-  const totSeg = D.seguidores.length ? D.seguidores[D.seguidores.length - 1].n : 0;
-  pintarPublico('', D.publico, totSeg, totSeg ? 'Porcentajes sobre los ' + fmt(totSeg) + ' seguidores.' : '',
-    'Instagram muestra el público cuando la cuenta pasa de 100 seguidores.');
-  const inte = D.interactuan || [], mes = inte.length ? inte[0].mes : '';
-  const totInt = sum(inte.filter(x => x.tipo === 'Sexo'), 'n');
-  const nombreMes = mes ? new Date(mes + '-15T12:00').toLocaleDateString('es-CO', { month: 'long' }) : '';
-  const esteMes = mes === D.hoy.slice(0, 7);
-  $('pubSubInt').textContent = !mes ? 'este mes' : esteMes ? 'este mes' : 'en ' + nombreMes;
-  pintarPublico('Int', inte, totInt, totInt ? `${fmt(totInt)} personas dieron me gusta, comentaron, compartieron o guardaron ${esteMes ? 'en lo que va de ' + nombreMes : 'en ' + nombreMes}. Porcentajes sobre ellas.` : '',
-    'Instagram lo muestra cuando el mes pasa de 100 reacciones.');
+  // Lo más visto, con miniaturas
+  $('top5').innerHTML = posts.slice().sort((a, b) => b.vistas - a.vistas).slice(0, 5).map(p => `<a class="post" href="${esc(p.enlace)}" title="${esc(p.titulo)}">
+    <div class="post-img">${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span>${esc(p.formato)}</span></div>
+    <div class="post-v" title="Se vio ${fmt(p.vistas)} veces desde que se publicó">${corta(p.vistas)}<small>veces vista</small></div>
+    <div class="post-m"><i style="background:${colorCat(p.cat)}" title="${p.cat}"></i>${fechaPost(p)}</div></a>`).join('')
+    || `<div class="empty">No hay publicaciones en este periodo.</div>`;
+
+  // ---- Ver detalle ----
+  // Quiénes nos siguen: sexo y edad
+  const pub = t => D.publico.filter(x => x.tipo === t);
+  const sx = pub('Sexo').sort((a, b) => b.n - a.n), totS = sum(sx, 'n');
+  const colSexo = { Mujer: C.magenta, Hombre: C.electrico };
+  if (sx.length) {
+    grafica('cSexo', {
+      type: 'doughnut',
+      data: { labels: sx.map(x => x.valor), datasets: [{ data: sx.map(x => x.n), backgroundColor: sx.map(x => colSexo[x.valor] || C.gray), borderColor: '#fff', borderWidth: 2, borderRadius: 4 }] },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false }, tooltip: tooltip() } }
+    });
+    $('leySexo').innerHTML = sx.map(x => `<span><i style="background:${colSexo[x.valor] || C.gray}"></i>${esc(x.valor)} <b>${pct(x.n, totS)} %</b></span>`).join('');
+  } else $('leySexo').innerHTML = '<span>Instagram muestra el sexo de los seguidores cuando la cuenta pasa de 100.</span>';
+  const edad = pub('Edad').sort((a, b) => a.valor < b.valor ? -1 : 1);
+  $('edad').innerHTML = edad.length ? barrasHTML(edad, sum(edad, 'n'), x => x.valor) : '<div class="empty">Sin datos de edad.</div>';
 
   // Cómo llegan las vistas: por tipo de contenido y según quién las hizo (cuenta vistas, no personas:
   // un seguidor suele ver varias veces)
@@ -939,29 +940,21 @@ function renderGeneral(desde, hasta) {
   $('llegada').innerHTML = (medidor('Por tipo de contenido', tipos) +
     medidor('Vistas de seguidores y de quienes aún no nos siguen',
       [['Vistas de quienes aún no nos siguen', vNoSeg, C.magenta], ['Vistas de seguidores', vSeg, C.electrico]])) || `<div class="empty">${SIN_DATOS}</div>`;
-}
 
-// Sexo (dona), edad y ciudades de una lista de público (D.publico o D.interactuan); suf distingue los dos cuadros
-function pintarPublico(suf, lista, total, nota, vacio) {
-  const de = t => lista.filter(x => x.tipo === t);
-  const sx = de('Sexo').sort((a, b) => b.n - a.n), totS = sum(sx, 'n');
-  const colSexo = { Mujer: C.magenta, Hombre: C.electrico };
-  if (sx.length) {
-    grafica('cSexo' + suf, {
-      type: 'doughnut',
-      data: { labels: sx.map(x => x.valor), datasets: [{ data: sx.map(x => x.n), backgroundColor: sx.map(x => colSexo[x.valor] || C.gray), borderColor: '#fff', borderWidth: 2, borderRadius: 4 }] },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false }, tooltip: tooltip() } }
-    });
-    $('leySexo' + suf).innerHTML = sx.map(x => `<span><i style="background:${colSexo[x.valor] || C.gray}"></i>${esc(x.valor)} <b>${pct(x.n, totS)} %</b></span>`).join('');
-  } else {
-    if (charts['cSexo' + suf]) { charts['cSexo' + suf].destroy(); delete charts['cSexo' + suf]; }
-    $('leySexo' + suf).innerHTML = `<span>${vacio}</span>`;
-  }
-  const edad = de('Edad').sort((a, b) => a.valor < b.valor ? -1 : 1);
-  $('edad' + suf).innerHTML = edad.length ? barrasHTML(edad, sum(edad, 'n'), x => x.valor) : '<div class="empty">Sin datos de edad.</div>';
-  const ciu = de('Ciudad').sort((a, b) => b.n - a.n);
-  $('ciudades' + suf).innerHTML = ciu.length ? barrasHTML(ciu.slice(0, 6), Math.max(total, sum(ciu, 'n')), x => x.valor.split(',')[0]) : '<div class="empty">Sin datos de ciudades.</div>';
-  $('ciuNota' + suf).textContent = nota;
+  // Principales ciudades
+  const ciu = pub('Ciudad').sort((a, b) => b.n - a.n);
+  // Instagram solo da las ciudades principales: el porcentaje se calcula sobre el total de seguidores, no sobre esa suma
+  const totSeg = D.seguidores.length ? D.seguidores[D.seguidores.length - 1].n : sum(ciu, 'n');
+  $('ciuNota').textContent = ciu.length ? 'Porcentaje sobre el total de ' + fmt(totSeg) + ' seguidores.' : '';
+  $('ciudades').innerHTML = ciu.length ? barrasHTML(ciu.slice(0, 6), Math.max(totSeg, sum(ciu, 'n')), x => x.valor.split(',')[0]) : '<div class="empty">Sin datos de ciudades.</div>';
+
+  // Lo más compartido: lo que más lleva las noticias a gente nueva
+  const comp = posts.filter(p => p.compartidos > 0).sort((a, b) => b.compartidos - a.compartidos).slice(0, 5);
+  $('topCom').innerHTML = comp.map(p => `<a class="comp" href="${esc(p.enlace)}" title="${esc(p.titulo)}">
+    <div class="comp-img">${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}</div>
+    <div class="comp-t">${p.municipio || p.provincia ? `<b>${esc(p.municipio || p.provincia)}:</b> ` : ''}${esc(recortar(tema(p), 110))}</div>
+    <div class="comp-m"><b>${fmt(p.compartidos)}</b> ${p.compartidos === 1 ? 'vez compartida' : 'veces compartida'} · ${fechaPost(p)}</div></a>`).join('')
+    || `<div class="empty">No hay publicaciones compartidas en este periodo.</div>`;
 }
 
 function renderPubs(desde, hasta, todos) {
@@ -976,33 +969,22 @@ function renderPubs(desde, hasta, todos) {
   // Publicación normal = la del medio (mediana): una muy viral no la cambia como cambiaría el promedio
   const tipica = posts.length ? mediana(posts.map(p => p.vistas)) : 0;
 
-  // Frases principales: el tema y el formato que mejor funcionan, el tipo de noticia que más se comparte, el municipio
-  // que mejor respondió y una recomendación (lo más visto, lo más compartido, provincias y tipos tienen su cuadro abajo)
-  const l = queFunciona(posts).concat(queSaber(posts));
-  if (posts.length && !l.length) l.push('Aún hay muy pocas publicaciones con estos filtros para sacar conclusiones (se necesitan al menos 3 de cada grupo).');
+  // Frases principales: por tipo, formato y lugar, y las que más se vieron y compartieron (el Resumen no las repite)
+  const l = [];
+  const cc = extremos(posts, 'cat', OTRA.nombre), cf = extremos(posts, 'formato');
+  if (cc) l.push(fraseComp('Por tipo de noticia, ', cc));
+  if (cf) l.push(fraseComp('Por formato, ', cf));
+  const cp = extremos(posts, 'prov', SIN_LUGAR);
+  if (cp) l.push(fraseComp('Por lugar, ', cp));
+  const mejor = posts.slice().sort((a, b) => b.vistas - a.vistas)[0];
+  if (mejor) l.push(`La más vista fue «${esc(recortar(mejor.titulo, 80))}»: se vio <b>${fmt(mejor.vistas)} veces</b>.`);
+  const masComp = posts.filter(p => p.compartidos > 0).sort((a, b) => b.compartidos - a.compartidos)[0];
+  if (masComp) l.push(`La más compartida fue «${esc(recortar(masComp.titulo, 80))}»: <b>${fmt(masComp.compartidos)} ${masComp.compartidos === 1 ? 'vez' : 'veces'}</b>.`);
   if (!posts.length) l.push('No hay publicaciones con estos filtros.');
 
   const filtros = [cat === 'Todas las noticias' ? '' : cat, form === 'Todos los formatos' ? '' : form, prov === 'Todas las provincias' ? '' : prov].filter(Boolean);
   $('pAnte').textContent = periodo(desde, hasta) + (filtros.length ? ' · ' + filtros.join(' · ') : '');
   $('pPuntos').innerHTML = puntos(l);
-
-  // Lo más visto, con miniaturas
-  $('top5').innerHTML = posts.slice().sort((a, b) => b.vistas - a.vistas).slice(0, 5).map(p => `<a class="post" href="${esc(p.enlace)}" title="${esc(p.titulo)}">
-    <div class="post-img">${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span>${esc(p.formato)}</span></div>
-    <div class="post-v" title="Se vio ${fmt(p.vistas)} veces desde que se publicó">${corta(p.vistas)}<small>veces vista</small></div>
-    <div class="post-s">${fmt(p.compartidos)} ${p.compartidos === 1 ? 'vez compartida' : 'veces compartida'} · ${fmt(p.comentarios)} ${p.comentarios === 1 ? 'comentario' : 'comentarios'}</div>
-    <div class="post-m"><i style="background:${colorCat(p.cat)}" title="${p.cat}"></i>${FORMATO[p.formato] || esc(p.formato)} · ${fechaPost(p)}</div></a>`).join('')
-    || `<div class="empty">No hay publicaciones en este periodo.</div>`;
-
-  // Lo más compartido: lo que más lleva las noticias a gente nueva
-  const comp = posts.filter(p => p.compartidos > 0).sort((a, b) => b.compartidos - a.compartidos).slice(0, 5);
-  $('topCom').innerHTML = comp.map(p => `<a class="comp" href="${esc(p.enlace)}" title="${esc(p.titulo)}">
-    <div class="comp-img">${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}</div>
-    <div class="comp-t">${p.municipio || p.provincia ? `<b>${esc(p.municipio || p.provincia)}:</b> ` : ''}${esc(recortar(tema(p), 110))}</div>
-    <div class="comp-m"><b>${fmt(p.compartidos)}</b> ${p.compartidos === 1 ? 'vez compartida' : 'veces compartida'} · ${fechaPost(p)}</div></a>`).join('')
-    || `<div class="empty">No hay publicaciones compartidas en este periodo.</div>`;
-
-  renderTemasYDias(desde, hasta, posts);
   $('pCifra').textContent = fmt(tipica);
   $('pCifraC').textContent = posts.length > 1
     ? `La mitad de las publicaciones tuvo más de ${fmt(tipica)} vistas y la otra mitad, menos. Así, una muy viral no cambia esta cifra.` : '';
@@ -1104,7 +1086,6 @@ function tema(p) {
   const cuerpo = lineas.slice(lineas[0] && /[#|]/.test(lineas[0]) ? 1 : 0).map(limpiar).find(l => l.length > 3);
   return cuerpo || limpiar((lineas[0] || '').split('|').pop()) || p.titulo;
 }
-const FORMATO = { Reel: 'Reel', Imagen: 'Foto', Carrusel: 'Carrusel', Video: 'Video' };
 const fechaPost = p => p.fechaObj.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
 const etiquetaCat = p => `<span class="cat"><i style="background:${colorCat(p.cat)}"></i>${p.cat}</span>`;
 
@@ -1182,68 +1163,6 @@ function celdaDias(p) {
 const textoEdad = e => e === 0 ? 'el día en que se publican' : e === 1 ? 'al día siguiente de publicadas' : `a los ${e} días de publicadas`;
 
 // Bloque arriba de la pestaña: no depende de los filtros, es lo que está pasando ahora
-// ---------- Temas y vistas por día (pestaña Publicaciones) ----------
-// Por tema: publicaciones, vistas de una normal, compartidos de cada 1.000 vistas y segundos que se ve un reel normal;
-// al lado, las vistas de cada día con un punto donde se publicó.
-const MIN_ANALISIS = 3;
-// El tema y el formato con más vistas en una publicación normal (solo grupos con MIN_ANALISIS publicaciones)
-function queFunciona(posts) {
-  const comparaGrupo = (clave, excluir) => {
-    const l = tipicas(posts, clave, 'vistas', MIN_ANALISIS, excluir);
-    if (l.length < 2) return null;
-    const resto = posts.filter(p => p[clave] !== l[0][0] && p[clave] !== excluir);
-    return { top: l[0][0], med: l[0][1], resto: mediana(resto.map(p => p.vistas)) };
-  };
-  const ct = comparaGrupo('tema', ''), cf = comparaGrupo('formato');
-  const PLURAL_F = { Reel: 'los reels', Imagen: 'las fotos', Carrusel: 'los carruseles', Video: 'los videos' };
-  const l = [];
-  if (ct) l.push(`El tema que mejor funciona es <b>${esc(ct.top)}</b>: una publicación normal se ve <b>${fmt(ct.med)} veces</b>, frente a ${fmt(ct.resto)} en los demás temas.`);
-  if (cf) l.push(`Por formato, funcionan mejor <b>${PLURAL_F[cf.top] || esc(cf.top)}</b>: ${fmt(cf.med)} veces, frente a ${fmt(cf.resto)} en los otros formatos.`);
-  return l;
-}
-function renderTemasYDias(desde, hasta, posts) {
-  const nombreTema = p => p.tema || 'Sin tema';
-  const g = {};
-  posts.forEach(p => (g[nombreTema(p)] = g[nombreTema(p)] || []).push(p));
-  const filas = Object.entries(g).map(([t, l]) => {
-    const seg = l.filter(p => p.formato === 'Reel' && p.reprod > 0).map(p => p.reprod);
-    return { t: t, n: l.length, med: mediana(l.map(p => p.vistas)), cpm: cpmDe(l), seg: seg.length ? mediana(seg) : null };
-  }).sort((a, b) => (a.t === 'Sin tema') - (b.t === 'Sin tema') || (b.n >= MIN_ANALISIS) - (a.n >= MIN_ANALISIS) || b.med - a.med);
-  $('aTemas').innerHTML = !filas.length ? '<div class="empty">No hay publicaciones en este periodo.</div>'
-    : '<table><thead><tr><th>Tema</th><th class="n">Publicaciones</th><th class="n">Vistas de una publicación normal</th>' +
-      '<th class="n">La compartieron, de cada 1.000</th><th class="n">Segundos que se ve un reel normal</th></tr></thead><tbody>' +
-      filas.map(f => `<tr${f.n < MIN_ANALISIS ? ' class="poco"' : ''}><td>${esc(f.t)}</td><td class="n">${fmt(f.n)}</td><td class="n med">${fmt(f.med)}</td>` +
-        `<td class="n">${f.cpm === null ? '—' : dec(f.cpm)}</td><td class="n">${f.seg === null ? '—' : dec(f.seg)}</td></tr>`).join('') + '</tbody></table>';
-  $('aTemasNota').textContent = filas.length ? 'De más a menos vistas. Con 1 o 2 publicaciones el dato todavía dice poco (en gris). El tema mal asignado se corrige en la pestaña Temas del Sheet.' : '';
-
-  // Vistas de cada día (una sola escala); el punto marca los días con publicación y al tocarlo dice cuáles
-  const cu = D.cuenta.filter(c => c.f >= desde && c.f <= hasta);
-  const delDia = f => posts.filter(p => p.dia === f).sort((a, b) => b.vistas - a.vistas);
-  const contar = f => { const l = delDia(f); return l.length === 1 ? '1 publicación' : l.length + ' publicaciones'; };
-  const detalle = i => {
-    const c = cu[i], l = delDia(c.f);
-    $('aDia').innerHTML = `<b>${diaMes(c.f)}</b>: el contenido se vio ${fmt(c.vistas)} veces. ` + (l.length
-      ? 'Ese día se publicó ' + l.map(p => `«${esc(recortar(tema(p), 70))}» (${FORMATO[p.formato] || esc(p.formato)})`).join(', ') + '.'
-      : 'Ese día no se publicó nada.');
-  };
-  $('aDia').textContent = cu.length ? 'Toca un día para ver qué se publicó.' : '';
-  grafica('cDias', {
-    data: {
-      labels: cu.map(c => corto(c.f)),
-      datasets: [
-        { type: 'line', data: cu.map(c => delDia(c.f).length ? c.vistas : null), showLine: false, pointRadius: 5, pointHoverRadius: 7,
-          pointBackgroundColor: C.red, pointBorderColor: '#fff', pointBorderWidth: 2 },
-        { type: 'bar', data: cu.map(c => c.vistas), backgroundColor: '#8ba5f2', hoverBackgroundColor: C.blue, borderRadius: 4, maxBarThickness: 28 }
-      ]
-    },
-    options: Object.assign(opciones({ interaction: { mode: 'index', intersect: false } }), {
-      onClick: (e, el) => { if (el.length) detalle(el[0].index); },
-      plugins: { legend: { display: false }, tooltip: Object.assign(tooltip(), { filter: it => it.datasetIndex === 1,
-        callbacks: { title: it => diaMes(cu[it[0].dataIndex].f), label: it => fmt(it.parsed.y) + ' veces' + (delDia(cu[it.dataIndex].f).length ? ' · ' + contar(cu[it.dataIndex].f) : '') } }) }
-    })
-  });
-}
-
 function renderAlertas() {
   const lista = D.posts.filter(p => p.crece).sort((a, b) => b.crece.v / Math.max(b.crece.med, 1) - a.crece.v / Math.max(a.crece.med, 1));
   $('alertas').style.display = lista.length ? 'block' : 'none';
