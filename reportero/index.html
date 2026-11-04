@@ -545,6 +545,55 @@ function extremos(posts, clave, excluir) {
 }
 const fraseComp = (prefijo, x) => `${prefijo}${nombre(x.top)} suelen tener <b>${comparar(x.r)}</b> ${nombre(x.ult)}.`;
 
+// Lo que hay que saber: tipo de noticia que más se compartió, municipio que mejor respondió y una recomendación
+const MIN_GRUPO = 3, MIN_RECOMENDAR = 10, VENTAJA = 1.5;
+const DE_CAT = { 'Denuncia': 'de denuncia', 'Información': 'de información' };
+const FORMATOS = { Reel: 'reels', Imagen: 'fotos', Carrusel: 'carruseles', Video: 'videos' };
+const ZONA = p => p === 'Metropolitana' ? 'en el área metropolitana' : 'en la provincia ' + p;
+function queSaber(posts) {
+  const l = [];
+  const conV = posts.filter(p => p.vistas > 0);
+  // 1) Tipo de noticia que más se compartió (de cada 1.000 vistas), si hay al menos dos tipos para comparar
+  const cats = Object.keys(DE_CAT).map(c => { const g = conV.filter(p => p.cat === c); return [c, g.length, cpmDe(g)]; })
+    .filter(x => x[1] >= MIN_GRUPO && x[2] !== null).sort((a, b) => b[2] - a[2]);
+  if (cats.length > 1 && cats[0][2] > 0) l.push(`Las noticias <b>${DE_CAT[cats[0][0]]}</b> son las que más se compartieron: ` +
+    `de cada 1.000 que las vieron, <b>${dec(cats[0][2])}</b> las pasaron a otros (las ${DE_CAT[cats[1][0]]}, ${dec(cats[1][2])}).`);
+  // 2) Municipio que mejor respondió: el de más vistas en una publicación normal, frente a las demás publicaciones
+  const munis = {};
+  posts.filter(p => p.municipio).forEach(p => (munis[p.municipio] = munis[p.municipio] || []).push(p));
+  const mm = Object.entries(munis).filter(([, g]) => g.length >= MIN_GRUPO).map(([m, g]) => [m, mediana(g.map(p => p.vistas))]).sort((a, b) => b[1] - a[1])[0];
+  if (mm) {
+    const resto = posts.filter(p => p.municipio !== mm[0]);
+    const mr = resto.length >= MIN_GRUPO ? mediana(resto.map(p => p.vistas)) : 0;
+    if (mr && mm[1] >= mr * 1.1) l.push(`<b>${esc(mm[0])}</b> fue el municipio que mejor respondió: una publicación normal de allí se vio ` +
+      `<b>${fmt(mm[1])} veces</b>, frente a ${fmt(mr)} en los demás lugares.`);
+  }
+  // 3) Recomendación: la combinación de formato con tipo de noticia y/o zona que más se vio, con al menos
+  // MIN_GRUPO publicaciones y VENTAJA veces lo normal del resto; solo si el periodo tiene MIN_RECOMENDAR publicaciones
+  if (posts.length >= MIN_RECOMENDAR) {
+    const ok = p => FORMATOS[p.formato];
+    const llaves = [p => ok(p) && DE_CAT[p.cat] && p.provincia ? [p.formato, p.cat, p.provincia] : null,
+      p => ok(p) && DE_CAT[p.cat] ? [p.formato, p.cat, ''] : null, p => ok(p) && p.provincia ? [p.formato, '', p.provincia] : null];
+    let mejor = null;
+    llaves.forEach(k => {
+      const g = {};
+      posts.forEach(p => { const x = k(p); if (x) (g[x.join('|')] = g[x.join('|')] || []).push(p); });
+      Object.entries(g).forEach(([clave, grupo]) => {
+        const resto = posts.filter(p => !grupo.includes(p));
+        if (grupo.length < MIN_GRUPO || resto.length < MIN_GRUPO) return;
+        const mg = mediana(grupo.map(p => p.vistas)), mr = mediana(resto.map(p => p.vistas));
+        if (mr && mg >= mr * VENTAJA && (!mejor || mg > mejor.mg)) mejor = { clave: clave.split('|'), mg: mg, mr: mr };
+      });
+    });
+    if (mejor) {
+      const [f, c, z] = mejor.clave;
+      l.push(`<b>Recomendación:</b> publiquen más ${FORMATOS[f]}${c ? ' ' + DE_CAT[c] : ''}${z ? ' ' + ZONA(z) : ''}. ` +
+        `Una publicación así se vio ${fmt(mejor.mg)} veces; una normal del resto, ${fmt(mejor.mr)}.`);
+    }
+  }
+  return l;
+}
+
 // ---------- Servidor (Apps Script) ----------
 // Se envía como texto plano para evitar la consulta previa de CORS. La ficha y la clave van en el cuerpo, nunca en la URL.
 const API = 'https://script.google.com/macros/s/AKfycbw8pU8hu-lguAs51WtIY1GqwZjxXT1-Y_b19JVccuctVAHt6JMwEZ8RdppMWUjjmUef/exec';
@@ -871,22 +920,11 @@ function renderGeneral(desde, hasta, posts) {
   $('kInter').innerHTML = tarde(inter) ? kpi('Reacciones', '—', RETRASO)
     : kpi('Reacciones', fmt(inter), 'me gusta, comentarios, compartidos y guardados', compara(inter, ant('interacciones'), dias));
 
-  // Lo que hay que saber: máximo 3 frases que no repiten las cifras de los recuadros ni las de Publicaciones
-  const tipos = [['Reels', sum(cu, 'reels'), C.electrico], ['Fotos y carruseles', sum(cu, 'pubs'), C.magenta], ['Historias', sum(cu, 'historias'), C.naranja], ['Otras', sum(cu, 'otras'), C.gray]];
-  const totT = tipos.reduce((a, t) => a + t[1], 0);
-  const topT = tipos.slice().sort((a, b) => b[1] - a[1])[0];
-  const mejor = cu.reduce((m, c) => (!m || c.vistas > m.vistas) ? c : m, null);
-  const ins = [];
-  if (dias > 1 && mejor && mejor.vistas) {
-    const top = posts.filter(p => p.dia === mejor.f).sort((a, b) => b.vistas - a.vistas)[0];
-    ins.push(`El día con más movimiento fue el <b>${diaMes(mejor.f)}</b>: el contenido se vio ${fmt(mejor.vistas)} veces` +
-      (top ? `, impulsado por «${esc(recortar(top.titulo, 60))}».` : '.'));
-  }
-  if (dias > 1 && masLlegaron && masLlegaron.nuevos > 1 && masLlegaron.f !== (mejor && mejor.f))
-    ins.push(`El día que más gente empezó a seguirnos fue el <b>${diaMes(masLlegaron.f)}</b>: ${fmt(masLlegaron.nuevos)} personas.`);
-  if (totT && topT[1]) ins.push(`<b>${Math.round(topT[1] / totT * 10)} de cada 10</b> veces que se vio algo, fue${topT[0] === 'Reels' ? ' un reel' : topT[0] === 'Historias' ? ' una historia' : topT[0] === 'Otras' ? ' otro formato' : ' una foto o carrusel'}.`);
-  $('ins').innerHTML = ins.length ? puntos(ins.slice(0, 3)) : `<li>${SIN_DATOS}</li>`;
-  $('insPie').textContent = 'Con los datos de ' + periodo(desde, hasta) + '.';
+  // Lo que hay que saber: máximo 3 frases sobre lo publicado en el periodo que no salen en otro cuadro
+  // ni en la pestaña Publicaciones (allá se comparan vistas por tipo y provincia; aquí, compartidos y municipios)
+  const ins = queSaber(posts);
+  $('ins').innerHTML = ins.length ? puntos(ins) : `<li>${posts.length ? 'Aún hay muy pocas publicaciones en este periodo para sacar conclusiones.' : 'No hay publicaciones en este periodo.'}</li>`;
+  $('insPie').textContent = `Con ${posts.length === 1 ? 'la publicación' : 'las ' + fmt(posts.length) + ' publicaciones'} de ` + periodo(desde, hasta) + '.';
 
   // Lo más visto, con miniaturas
   $('top5').innerHTML = posts.slice().sort((a, b) => b.vistas - a.vistas).slice(0, 5).map(p => `<a class="post" href="${esc(p.enlace)}" title="${esc(p.titulo)}">
@@ -915,6 +953,7 @@ function renderGeneral(desde, hasta, posts) {
   $('edad').innerHTML = edad.length ? barrasHTML(edad, sum(edad, 'n'), x => x.valor) : '<div class="empty">Sin datos de edad.</div>';
 
   // Cómo llegan las vistas: por tipo de contenido (seguidores / no seguidores ya está en el cuadro de personas)
+  const tipos = [['Reels', sum(cu, 'reels'), C.electrico], ['Fotos y carruseles', sum(cu, 'pubs'), C.magenta], ['Historias', sum(cu, 'historias'), C.naranja], ['Otras', sum(cu, 'otras'), C.gray]];
   $('llegada').innerHTML = medidor('Por tipo de contenido', tipos) || `<div class="empty">${SIN_DATOS}</div>`;
 
   // Principales ciudades
