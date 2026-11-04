@@ -197,6 +197,7 @@ main.in{padding-bottom:28px}
 .post:hover .post-img{outline:3px solid var(--electrico);outline-offset:2px}
 .post-v{font:400 18px/1 var(--titulo);letter-spacing:.4px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .post-v small{display:block;font:500 10px var(--ui);letter-spacing:0;color:var(--muted);margin-top:2px}
+.post-s{font-size:11px;line-height:1.35;color:var(--texto);margin-top:3px}
 .post-m{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden}
 .post-m i{width:7px;height:7px;border-radius:50%;flex:none}
 
@@ -919,7 +920,8 @@ function renderGeneral(desde, hasta, posts) {
   $('top5').innerHTML = posts.slice().sort((a, b) => b.vistas - a.vistas).slice(0, 5).map(p => `<a class="post" href="${esc(p.enlace)}" title="${esc(p.titulo)}">
     <div class="post-img">${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span>${esc(p.formato)}</span></div>
     <div class="post-v" title="Se vio ${fmt(p.vistas)} veces desde que se publicó">${corta(p.vistas)}<small>veces vista</small></div>
-    <div class="post-m"><i style="background:${colorCat(p.cat)}" title="${p.cat}"></i>${fechaPost(p)}</div></a>`).join('')
+    <div class="post-s">${fmt(p.compartidos)} ${p.compartidos === 1 ? 'vez compartida' : 'veces compartida'} · ${fmt(p.comentarios)} ${p.comentarios === 1 ? 'comentario' : 'comentarios'}</div>
+    <div class="post-m"><i style="background:${colorCat(p.cat)}" title="${p.cat}"></i>${FORMATO[p.formato] || esc(p.formato)} · ${fechaPost(p)}</div></a>`).join('')
     || `<div class="empty">No hay publicaciones en este periodo.</div>`;
 
   // ---- Ver detalle ----
@@ -1090,6 +1092,7 @@ function tema(p) {
   const cuerpo = lineas.slice(lineas[0] && /[#|]/.test(lineas[0]) ? 1 : 0).map(limpiar).find(l => l.length > 3);
   return cuerpo || limpiar((lineas[0] || '').split('|').pop()) || p.titulo;
 }
+const FORMATO = { Reel: 'Reel', Imagen: 'Foto', Carrusel: 'Carrusel', Video: 'Video' };
 const fechaPost = p => p.fechaObj.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
 const etiquetaCat = p => `<span class="cat"><i style="background:${colorCat(p.cat)}"></i>${p.cat}</span>`;
 
