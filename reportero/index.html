@@ -149,8 +149,9 @@ main.in{padding-bottom:28px}
 .barras{display:flex;flex-direction:column;gap:5px}
 .barra-f{display:grid;grid-template-columns:50px minmax(0,1fr) 38px;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
 .barra-f .t{height:8px;border-radius:8px;background:var(--fondo);overflow:hidden}
-.barra-f .t div{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--blue),var(--electrico))}
-.barra-f.top .t div{background:linear-gradient(90deg,var(--electrico),var(--magenta))}
+/* Un solo color; la barra mayor, en un tono más intenso del mismo azul (el fucsia es de Mujer y Aún no nos siguen) */
+.barra-f .t div{height:100%;border-radius:8px;background:#8ba5f2}
+.barra-f.top .t div{background:var(--blue)}
 .barra-f .p{text-align:right;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
 .b-ciu .barra-f{grid-template-columns:minmax(70px,96px) minmax(40px,1fr) 38px;font-size:12px}
 .b-ciu .barras{gap:9px}
