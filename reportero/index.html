@@ -139,60 +139,33 @@ main.in{padding-bottom:28px}
 .r-pista{height:10px;background:var(--r-pista);border-radius:5px;overflow:hidden}
 .r-pista div{height:10px}
 
-/* Ver detalle del Resumen: cifras de la cuenta, Hoy y Lo que hay que saber */
-.grid{display:grid;gap:12px}
-.grid.det{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"hoy ins ins ins"}
-/* Cifras de la cuenta: tres en una fila, cada una con su comparación debajo */
-.franja{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--card);border:1px solid var(--linea);
-  border-radius:var(--radio);padding:10px 0;margin-bottom:12px}
-.fr{min-width:0;padding:0 16px}
-.fr+.fr{border-left:1px solid var(--linea)}
-.fr-1{display:flex;align-items:baseline;gap:6px;white-space:nowrap;overflow:hidden}
-.fr-v{font:400 26px/1 var(--titulo);letter-spacing:.5px;color:var(--ink)}
-.fr-l{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
-.fr-c{font-size:11px;color:var(--muted);margin-top:3px;min-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fr .ayuda{margin-left:0;vertical-align:0;flex:none}
-/* Plegable "Ver detalle" */
+/* 4. Más datos: tres cifras arriba; Hoy y Lo que hay que saber debajo (3 columnas, sin huecos) */
+.r-mas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.r-ancha{grid-column:span 2}
+.r-dato{gap:8px}
+.r-num{font:400 48px/1 var(--titulo);letter-spacing:.8px}
+.r-dato .r-comp{font-size:13px}
+.r-cab h3 small{font:500 12px var(--ui);color:var(--r-muted);margin-left:8px}
+.hoy-datos{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.hd .l{font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--r-muted)}
+.hd .v{font:400 32px/1.1 var(--titulo);letter-spacing:.5px}
+.ins{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.ins li{position:relative;padding-left:20px;font-size:14px;line-height:1.5}
+.ins li:before{content:"";position:absolute;left:0;top:.5em;width:8px;height:8px;border-radius:50%;background:var(--r-fuerte)}
+.ins b{font-weight:700}
+
+/* Plegable "Ver detalle" (pestaña Publicaciones) */
 .detalle{margin-top:14px}
-#general>.detalle{margin-top:36px}
 .detalle>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font:600 13px var(--ui);color:var(--blue);
   background:var(--card);border:1px solid var(--linea);border-radius:8px;padding:9px 14px;margin-bottom:12px}
 .detalle>summary::-webkit-details-marker{display:none}
 .detalle>summary:after{content:"▾";transition:transform .15s}
 .detalle[open]>summary:after{transform:rotate(180deg)}
 .detalle[open]>summary{color:var(--ink)}
-.b{background:var(--card);border:1px solid var(--linea);border-radius:var(--radio);padding:14px 16px;min-width:0;position:relative}
-.b h3{font:400 19px/1 var(--titulo);letter-spacing:.5px;margin:0 0 10px;color:var(--ink)}
-.b h3 small{font:500 11px var(--ui);letter-spacing:0;color:var(--muted);margin-left:6px}
-.b-hoy{grid-area:hoy}.b-ins{grid-area:ins}
-
-/* Hoy */
-.b-hoy{background:linear-gradient(150deg,var(--navy),var(--blue));color:#fff;border:0}
-.b-hoy h3{color:#fff;display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px}
-.b-hoy h3 small{color:rgba(255,255,255,.7);margin:0;text-align:right}
-.hoy-datos{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
-.hd .l{font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:rgba(255,255,255,.7)}
-.hd .v{font:400 26px/1.05 var(--titulo);letter-spacing:.5px}
-.hd .v.up{color:#5fe0a0}.hd .v.down{color:#ff8a8a}
 
 /* Cifras con comparación */
 .up{color:var(--verde);font-weight:700}.down{color:var(--red);font-weight:700}
 
-/* Conclusiones clave */
-.b-ins{background:var(--degradado);color:#fff;border:0;padding:20px 20px 16px;display:flex;flex-direction:column}
-.b-ins h3{color:#fff;font-size:24px;display:flex;align-items:center;gap:10px;margin-bottom:18px}
-.b-ins h3:before{content:"";width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z'/%3E%3C/svg%3E") center/16px no-repeat}
-.ins{list-style:none;margin:0;padding:0 0 0 18px;border-left:1px solid rgba(255,255,255,.35);display:flex;flex-direction:column;gap:18px;flex:1}
-.ins li{position:relative;font-size:14px;line-height:1.5}
-.ins li:before{content:"";position:absolute;left:-23px;top:.45em;width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.25)}
-.ins b{font-weight:700}
-.ins-pie{font-size:11px;color:rgba(255,255,255,.75);margin-top:16px}
-
-.ayuda{width:18px;height:18px;margin-left:6px;padding:0;border:1px solid var(--muted);border-radius:50%;background:none;color:var(--muted);
-  font:700 11px/16px var(--ui);cursor:pointer;vertical-align:4px}
-.ayuda[aria-expanded="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
-.fr-ayuda{position:absolute;z-index:5;top:calc(100% + 6px);left:16px;right:16px;font-size:12px;line-height:1.45;color:var(--texto);background:var(--card);
-  border:1px solid var(--linea);border-radius:8px;padding:8px 10px;box-shadow:0 6px 18px rgba(9,22,61,.12)}
 .empty{font-size:13px;color:var(--muted);padding:16px 0}
 
 .cifra-2{margin-top:18px}
@@ -309,17 +282,14 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
 @media (min-width:1200px) and (max-height:880px){
   .barra .in{padding-top:4px;padding-bottom:4px}
   .filtros .in{padding-top:8px;padding-bottom:8px}
-  .grid{gap:10px}
-  .b{padding:12px 14px}
-  .b h3{margin-bottom:8px}
-  .hd .v{font-size:22px}
-  .ins{gap:14px}
 }
 
 /* Pantallas medianas: dos columnas */
 @media (max-width:1199px){
-  .grid.det{grid-template-columns:minmax(0,1fr);grid-template-areas:"hoy" "ins"}
   .r-tops{grid-template-columns:repeat(3,minmax(0,1fr))}
+  /* 5 publicaciones en 3 columnas sin hueco: la primera ocupa dos, con la misma altura */
+  .r-tops .r-post:first-child{grid-column:span 2}
+  .r-tops .r-post:first-child .r-mini{aspect-ratio:auto;height:0;flex:1}
   .portada{grid-template-columns:1fr;gap:20px}
   .cifra{border-left:0;padding-left:0}
   .cifra-n{font-size:clamp(52px,18cqi,104px)}
@@ -335,15 +305,10 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .tabs{margin:0 auto}
   .salir{position:absolute;top:10px;right:16px;padding:6px 10px}
   .filters{margin-left:0}
-  .grid.det{grid-template-areas:none}
-  .grid.det>.b{grid-area:auto}
-  .franja{grid-template-columns:minmax(0,1fr);padding:0}
-  .fr{padding:10px 12px}
-  .fr+.fr{border-left:0;border-top:1px solid var(--linea)}
-  .fr-1{flex-wrap:wrap;row-gap:2px}
-  .fr-v{font-size:24px}
-  .fr-c{white-space:normal}
-  .r-sec+.r-sec,#general>.detalle{margin-top:28px}
+  .r-sec+.r-sec{margin-top:28px}
+  .r-mas{grid-template-columns:minmax(0,1fr)}
+  .r-ancha{grid-column:auto}
+  .r-num{font-size:44px}
   .r-h2{font-size:26px}
   .r-card,.r-seg{padding:18px 16px}
   .r-seg{grid-template-columns:minmax(0,1fr);gap:22px}
@@ -354,7 +319,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .r-sel button{flex:1;padding:10px 8px}
   .r-tops{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px}
   .r-tops .r-post:first-child{grid-column:span 2}
-  .r-tops .r-post:first-child .r-mini{aspect-ratio:4/3}
+  .r-tops .r-post:first-child .r-mini{aspect-ratio:4/3;height:auto;flex:none}
   .r-pub{grid-template-columns:minmax(0,1fr)}
   .munis td.pv,.munis th.pv{display:none}
   .munis th,.munis td{padding:6px 4px}
@@ -445,13 +410,16 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
         <div class="r-card"><h3>Quiénes nos siguen</h3><p class="r-frase" id="pubFrase"></p><div class="r-filas r-edad" id="edad"></div></div>
       </div>
     </section>
-    <details class="detalle" id="detGeneral"><summary>Ver detalle</summary>
-      <div class="franja" id="franja"></div>
-      <div class="grid det">
-        <div class="b b-hoy"><h3>Hoy <small id="hoyHora"></small></h3><div class="hoy-datos" id="hoyDatos"></div></div>
-        <div class="b b-ins"><h3>Lo que hay que saber</h3><ul class="ins" id="ins"></ul><div class="ins-pie" id="insPie"></div></div>
+    <section class="r-sec">
+      <h2 class="r-h2">4. Más datos</h2>
+      <div class="r-mas">
+        <div class="r-card r-dato" id="datoVistas"></div>
+        <div class="r-card r-dato" id="datoPersonas"></div>
+        <div class="r-card r-dato" id="datoReac"></div>
+        <div class="r-card"><div class="r-cab"><h3>Hoy <small id="hoyHora"></small></h3></div><div class="hoy-datos" id="hoyDatos"></div></div>
+        <div class="r-card r-ancha"><h3>Lo que hay que saber</h3><ul class="ins" id="ins"></ul><p class="r-nota" id="insPie"></p></div>
       </div>
-    </details>
+    </section>
   </section>
 
   <section id="pubs" class="pubs-in" style="display:none">
@@ -927,22 +895,19 @@ function renderGeneral(desde, hasta, posts) {
   $('pubFrase').textContent = frasePublico(pub('Sexo'), edad) || 'Instagram muestra la edad y el sexo de los seguidores cuando la cuenta pasa de 100.';
   $('edad').innerHTML = edad.length ? barrasHTML(edad, sum(edad, 'n'), x => x.valor) : '';
 
-  // ---- Ver detalle ----
+  // ---- 4. Más datos ----
   // Cifras de la cuenta: veces que se vio, personas que nos vieron y reacciones. Las personas son distintas en el periodo
   // (no la suma de cada día): Instagram las da solo para Hoy, 7 y 30 días
   const al = (D.alcance || []).find(a => a.desde === desde && a.hasta === hasta);
   const personas = al && al.total ? al.total : null;
-  const ayuda = 'Una persona cuenta una sola vez; las veces suman cada vez que alguien ve algo.' +
-    (personas !== null ? ` En promedio, cada persona vio el contenido ${(vistas / personas).toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} veces.`
-      : !deBoton ? ' El número de personas solo está disponible para Hoy, 7 y 30 días.' : enCurso ? ' ' + RETRASO + '.' : ' Se actualiza en la próxima hora.');
-  const boton = '<button type="button" class="ayuda" aria-label="Qué cuenta esta cifra" aria-expanded="false" onclick="const n=$(\'frAyuda\');' +
-    'n.hidden=!n.hidden;this.setAttribute(\'aria-expanded\',!n.hidden)">?</button>';
-  const fr = (v, l, c) => `<div class="fr"><div class="fr-1"><span class="fr-v">${v}</span>${l}</div><div class="fr-c">${c || ''}</div></div>`;
-  $('franja').innerHTML =
-    fr(tarde(vistas) ? '—' : fmt(vistas), `<span class="fr-l">${vistas === 1 ? 'vez se vio el contenido' : 'veces se vio el contenido'}</span>`, compara(vistas, vPrev, dias)) +
-    fr(personas === null ? '—' : fmt(personas), `<span class="fr-l">${personas === 1 ? 'persona nos vio' : 'personas nos vieron'}</span>` + boton) +
-    fr(tarde(inter) ? '—' : fmt(inter), `<span class="fr-l" title="me gusta, comentarios, compartidos y guardados">reacciones</span>`, compara(inter, ant('interacciones'), dias)) +
-    `<div class="fr-ayuda" id="frAyuda" hidden>${ayuda}</div>`;
+  const notaPersonas = 'Cada persona cuenta una sola vez, aunque haya visto varias cosas.' +
+    (personas !== null ? ` En promedio, cada una vio el contenido ${(vistas / personas).toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} veces.`
+      : !deBoton ? ' Este dato solo está disponible para Hoy, 7 y 30 días.' : enCurso ? ' ' + RETRASO + '.' : ' Se actualiza en la próxima hora.');
+  const dato = (lbl, v, nota, comp) => `<span class="r-lbl">${lbl}</span><span class="r-num">${v}</span><p class="r-nota">${nota}</p>` +
+    (comp ? `<span class="r-comp">${comp}</span>` : '');
+  $('datoVistas').innerHTML = dato('Veces que se vio el contenido', tarde(vistas) ? '—' : fmt(vistas), 'Suma cada vez que alguien vio algo nuestro.', compara(vistas, vPrev, dias));
+  $('datoPersonas').innerHTML = dato('Personas que nos vieron', personas === null ? '—' : fmt(personas), notaPersonas);
+  $('datoReac').innerHTML = dato('Reacciones', tarde(inter) ? '—' : fmt(inter), 'Me gusta, comentarios, compartidos y guardados.', compara(inter, ant('interacciones'), dias));
 
   // Lo que hay que saber: máximo 3 frases sobre lo publicado en el periodo que no salen en otro cuadro
   // ni en la pestaña Publicaciones (allá se comparan vistas por tipo y provincia; aquí, compartidos y municipios)
