@@ -7,7 +7,7 @@
 <meta name="description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
 <meta name="robots" content="noindex">
 <!-- Solo se permite cargar código de este sitio y de cdnjs, y hablar solo con la API de Apps Script -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-WcgDlZMTHnqenZteLaGiKfb+jWHrwUHKCOmu33Cfc7c=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <base target="_blank">
 
@@ -518,6 +518,8 @@ const ymd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0
 const colorCat = n => (CATEGORIAS.find(c => c.nombre === n) || OTRA).color;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const sum = (arr, k) => arr.reduce((a, x) => a + (x[k] || 0), 0);
+// Miniatura que no carga (enlace vencido de Instagram): se quita. Va aquí y no en onerror porque la CSP no deja código en los atributos
+document.addEventListener('error', e => { if (e.target.tagName === 'IMG') e.target.remove(); }, true);
 const mayus = s => s.charAt(0).toUpperCase() + s.slice(1);
 const nombre = k => PLURAL[k] || k.toLowerCase();
 const puntos = l => l.map(x => `<li>${x}</li>`).join('');
@@ -995,7 +997,7 @@ function renderTop(posts) {
     const cifra = vis ? `${corta(n)} ${n === 1 ? 'vista' : 'vistas'}` : `${fmt(n)} ${n === 1 ? 'vez' : 'veces'}`;
     const det = [p.tema, p.municipio || p.provincia, fechaPost(p)].filter(Boolean).map(esc).join(' · ');
     return `<a class="r-post" href="${esc(p.enlace)}" rel="noopener" title="${esc(p.titulo)}">
-      <div class="r-mini">${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span>${esc(FORMATO[p.formato] || p.formato)}</span></div>
+      <div class="r-mini">${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}<span>${esc(FORMATO[p.formato] || p.formato)}</span></div>
       <span class="r-cifra">${cifra}</span><span class="r-det">${det}</span></a>`;
   }).join('') || `<div class="empty">${vis ? 'No hay publicaciones en este periodo.' : 'Nadie compartió las publicaciones de este periodo.'}</div>`;
 }
@@ -1251,7 +1253,7 @@ function renderAlertas() {
     <p>Están ganando vistas mucho más rápido de lo normal: al menos ${MULT_CRECE} veces lo que suelen ganar las demás publicaciones a la misma edad.</p>` +
     lista.map(p => {
       const c = p.crece, veces = String(Math.round(c.v / Math.max(c.med, 1) * 10) / 10).replace('.', ',');
-      const img = p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '';
+      const img = p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : '';
       return `<a class="alerta" href="${esc(p.enlace)}"><div class="alerta-img">${img}</div>
         <div><div class="alerta-t">${esc(recortar(p.titulo, 100))}</div>
         <div class="alerta-m">${fechaPost(p)} · ${esc(p.formato)} · <b>${veces} veces</b> lo normal (${fmt(c.med)} vistas ${textoEdad(c.edad)})</div></div>
