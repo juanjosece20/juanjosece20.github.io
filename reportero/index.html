@@ -76,11 +76,74 @@ body{margin:0;font-family:var(--ui);background:var(--fondo);color:var(--ink);-we
 
 main.in{padding-bottom:28px}
 
-/* ---------- Cuadrícula del Resumen ---------- */
-.grid{display:grid;gap:12px;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-areas:"pos pos pos" "lle ciu pub"}
-.grid.det{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"hoy ins ins ins" "com com com com"}
-/* Franja de arriba: cuatro cifras en una fila, cada una con su comparación debajo */
-.franja{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--card);border:1px solid var(--linea);
+/* ---------- Resumen (diseño del boceto: tarjetas blancas sin borde, tres bloques numerados) ---------- */
+#general{--r-ink:#0B1F4D;--r-muted:#4B5876;--r-fuerte:#1D4ED8;--r-suave:#93B4F5;--r-verde:#0F7A4A;--r-ambar:#F59E0B;--r-linea:#D5DBE6;--r-pista:#EEF1F6;--r-foto:#DCE3EE;
+  color:var(--r-ink);padding-top:16px}
+#general .up{color:var(--r-verde)}
+.r-sec{display:flex;flex-direction:column;gap:16px}
+.r-sec+.r-sec{margin-top:36px}
+.r-h2{margin:0;font:400 30px/1 var(--titulo);letter-spacing:.6px;text-transform:uppercase}
+.r-sec>.r-nota{margin-top:-10px}
+.r-card{background:var(--card);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.r-card h3{margin:0;font:700 17px var(--ui)}
+.r-lbl{font-size:13px;font-weight:700;letter-spacing:.4px;color:var(--r-muted)}
+.r-txt{font-size:14px;color:var(--r-ink)}
+.r-nota{margin:0;font-size:12px;line-height:1.5;color:var(--r-muted)}
+/* 1. Seguidores */
+.r-seg{padding:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px;align-items:center}
+.r-tot{display:flex;flex-direction:column;gap:8px}
+.r-tot .r-lbl{text-transform:uppercase}
+.r-big{font:400 72px/1 var(--titulo);letter-spacing:1px}
+.r-big small{font:400 28px var(--titulo);letter-spacing:.5px}
+.r-gan{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:18px}
+.r-gan>b{font-weight:700}
+.r-comp{font-size:14px;color:var(--r-muted)}
+.r-tot .r-txt{color:var(--r-muted)}
+.r-graf{display:flex;flex-direction:column;gap:10px;min-width:0}
+.r-gtit{font-size:14px;font-weight:700}
+.r-barras{display:grid;gap:14px;align-items:end;height:150px;border-bottom:1px solid var(--r-linea)}
+.r-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;min-width:0}
+.r-col span{font-size:13px;font-weight:700}
+.r-col div{width:100%;border-radius:6px 6px 0 0}
+.r-ejes{display:grid;gap:14px;font-size:12px;line-height:1.3;color:var(--r-muted);text-align:center}
+.r-hoy{font-size:18px}
+.r-hoy b{font:400 56px/1 var(--titulo);letter-spacing:1px;margin-left:6px;vertical-align:-6px}
+/* 2. Lo que mejor funcionó */
+.r-cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.r-sel{display:flex;gap:4px;background:var(--r-pista);padding:4px;border-radius:10px}
+.r-sel button{font:500 14px var(--ui);color:var(--r-muted);background:none;border:0;border-radius:8px;padding:9px 16px;cursor:pointer}
+.r-sel button.on{background:var(--card);color:var(--r-ink);font-weight:700;box-shadow:0 1px 3px rgba(11,31,77,.12)}
+.r-sub{margin:-6px 0 0;font-size:13px;color:var(--r-muted)}
+.r-tops{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.r-tops .empty{grid-column:1/-1}
+.r-post{display:flex;flex-direction:column;gap:6px;min-width:0;text-decoration:none;color:var(--r-ink)}
+.r-mini{position:relative;aspect-ratio:4/5;border-radius:10px;overflow:hidden;background:var(--r-foto);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--r-muted)}
+.r-mini img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.r-post:hover .r-mini,.r-post:focus-visible .r-mini{outline:3px solid var(--r-fuerte);outline-offset:2px}
+.r-cifra{font:400 28px/1 var(--titulo);letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-det{font-size:13px;line-height:1.4;color:var(--r-muted)}
+/* 3. Nuestro público */
+.r-pub{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.r-pub .r-card{gap:12px}
+.r-pub .r-lbl+.r-card-in{display:flex;flex-direction:column;gap:12px}
+.r-meter{margin-top:-2px}
+.r-pub .r-txt+.r-lbl{margin-top:6px}
+.r-card-in{display:flex;flex-direction:column;gap:12px}
+.r-meter{display:flex;height:16px;border-radius:8px;overflow:hidden}
+.r-frase{margin:0;font-size:14px;line-height:1.5}
+.r-fila{display:grid;grid-template-columns:110px minmax(0,1fr) 44px;gap:10px;align-items:center;font-size:14px}
+.r-fila>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-fila>b{text-align:right;font-variant-numeric:tabular-nums}
+.r-edad .r-fila{grid-template-columns:50px minmax(0,1fr) 44px;font-size:13px}
+.r-filas{display:flex;flex-direction:column;gap:12px}
+.r-pista{height:10px;background:var(--r-pista);border-radius:5px;overflow:hidden}
+.r-pista div{height:10px}
+
+/* Ver detalle del Resumen: cifras de la cuenta, Hoy y Lo que hay que saber */
+.grid{display:grid;gap:12px}
+.grid.det{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"hoy ins ins ins"}
+/* Cifras de la cuenta: tres en una fila, cada una con su comparación debajo */
+.franja{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--card);border:1px solid var(--linea);
   border-radius:var(--radio);padding:10px 0;margin-bottom:12px}
 .fr{min-width:0;padding:0 16px}
 .fr+.fr{border-left:1px solid var(--linea)}
@@ -89,10 +152,9 @@ main.in{padding-bottom:28px}
 .fr-l{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
 .fr-c{font-size:11px;color:var(--muted);margin-top:3px;min-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fr .ayuda{margin-left:0;vertical-align:0;flex:none}
-/* Lo más visto a lo ancho: miniaturas menos altas */
-.grid>.b-pos .post-img{aspect-ratio:4/3}
 /* Plegable "Ver detalle" */
 .detalle{margin-top:14px}
+#general>.detalle{margin-top:36px}
 .detalle>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font:600 13px var(--ui);color:var(--blue);
   background:var(--card);border:1px solid var(--linea);border-radius:8px;padding:9px 14px;margin-bottom:12px}
 .detalle>summary::-webkit-details-marker{display:none}
@@ -103,7 +165,6 @@ main.in{padding-bottom:28px}
 .b h3{font:400 19px/1 var(--titulo);letter-spacing:.5px;margin:0 0 10px;color:var(--ink)}
 .b h3 small{font:500 11px var(--ui);letter-spacing:0;color:var(--muted);margin-left:6px}
 .b-hoy{grid-area:hoy}.b-ins{grid-area:ins}
-.b-com{grid-area:com}.b-pub{grid-area:pub}.b-lle{grid-area:lle}.b-pos{grid-area:pos}.b-ciu{grid-area:ciu}
 
 /* Hoy */
 .b-hoy{background:linear-gradient(150deg,var(--navy),var(--blue));color:#fff;border:0}
@@ -114,7 +175,7 @@ main.in{padding-bottom:28px}
 .hd .v{font:400 26px/1.05 var(--titulo);letter-spacing:.5px}
 .hd .v.up{color:#5fe0a0}.hd .v.down{color:#ff8a8a}
 
-/* Cifras con comparación y mini-gráfica */
+/* Cifras con comparación */
 .up{color:var(--verde);font-weight:700}.down{color:var(--red);font-weight:700}
 
 /* Conclusiones clave */
@@ -127,13 +188,6 @@ main.in{padding-bottom:28px}
 .ins b{font-weight:700}
 .ins-pie{font-size:11px;color:rgba(255,255,255,.75);margin-top:16px}
 
-/* Gráficas */
-.ch{position:relative;height:190px}
-.ley{display:flex;gap:4px 14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:8px}
-.ley i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-/* Frases que reemplazan gráficas */
-.frase{font-size:15px;line-height:1.6;color:var(--texto);margin:0}
-.frase b{color:var(--ink)}
 .ayuda{width:18px;height:18px;margin-left:6px;padding:0;border:1px solid var(--muted);border-radius:50%;background:none;color:var(--muted);
   font:700 11px/16px var(--ui);cursor:pointer;vertical-align:4px}
 .ayuda[aria-expanded="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
@@ -141,42 +195,6 @@ main.in{padding-bottom:28px}
   border:1px solid var(--linea);border-radius:8px;padding:8px 10px;box-shadow:0 6px 18px rgba(9,22,61,.12)}
 .empty{font-size:13px;color:var(--muted);padding:16px 0}
 
-/* Público */
-.pub-in{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center}
-.pub-sexo{display:flex;align-items:center;gap:12px}
-.dona{position:relative;width:84px;height:84px;flex:none}
-.pub-sexo .ley{flex-direction:column;margin:0;gap:4px}
-.barras{display:flex;flex-direction:column;gap:5px}
-.barra-f{display:grid;grid-template-columns:50px minmax(0,1fr) 38px;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
-.barra-f .t{height:8px;border-radius:8px;background:var(--fondo);overflow:hidden}
-/* Un solo color; la barra mayor, en un tono más intenso del mismo azul (el fucsia es de Mujer y Aún no nos siguen) */
-.barra-f .t div{height:100%;border-radius:8px;background:#8ba5f2}
-.barra-f.top .t div{background:var(--blue)}
-.barra-f .p{text-align:right;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
-.b-ciu .barra-f{grid-template-columns:minmax(70px,96px) minmax(40px,1fr) 38px;font-size:12px}
-.b-ciu .barras{gap:9px}
-.b-ciu .barra-f .t{height:10px}
-.b-ciu .barra-f span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);font-weight:500}
-
-/* Cómo llegan las vistas */
-.medidor+.medidor{margin-top:14px}
-.medidor .l{font-size:11px;font-weight:600;color:var(--ink);margin-bottom:6px}
-.meter{display:flex;gap:2px;height:14px}
-.meter div{min-width:0}
-.meter div:first-child{border-radius:7px 0 0 7px}.meter div:last-child{border-radius:0 7px 7px 0}
-.meter div:only-child{border-radius:7px}
-
-/* Miniaturas */
-.posts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-.posts .empty{grid-column:1/-1}
-.compartidas{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px 16px}
-.compartidas .empty{grid-column:1/-1}
-.comp{display:grid;grid-template-columns:56px minmax(0,1fr);gap:4px 10px;text-decoration:none;color:var(--ink);align-items:start}
-.comp-img{width:56px;height:56px;border-radius:8px;overflow:hidden;background:var(--linea);grid-row:span 2}
-.comp-img img{width:100%;height:100%;object-fit:cover;display:block}
-.comp-t{font-size:12px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.comp-m{font-size:11px;color:var(--muted);line-height:1.35}
-.comp-m b{color:var(--ink);font-size:13px}
 .cifra-2{margin-top:18px}
 .chart.alta{height:260px}
 .tablaP th.n{white-space:normal;min-width:84px;line-height:1.3;vertical-align:bottom}
@@ -191,15 +209,6 @@ main.in{padding-bottom:28px}
 .munis th{white-space:normal;vertical-align:bottom;line-height:1.3}
 .munis tr.poco td.n.med{color:var(--muted)}
 .munis details summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--blue);padding:10px 8px;list-style:none}
-.post{text-decoration:none;color:var(--ink);min-width:0}
-.post-img{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--degradado);display:flex;align-items:center;justify-content:center;color:#fff;font:400 16px var(--titulo);letter-spacing:.5px}
-.post-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-.post:hover .post-img{outline:3px solid var(--electrico);outline-offset:2px}
-.post-v{font:400 18px/1 var(--titulo);letter-spacing:.4px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.post-v small{display:block;font:500 10px var(--ui);letter-spacing:0;color:var(--muted);margin-top:2px}
-.post-s{font-size:11px;line-height:1.35;color:var(--texto);margin-top:3px}
-.post-m{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden}
-.post-m i{width:7px;height:7px;border-radius:50%;flex:none}
 
 /* ---------- Pestaña Publicaciones ---------- */
 .pubs-in{padding-top:6px}
@@ -304,19 +313,13 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .b{padding:12px 14px}
   .b h3{margin-bottom:8px}
   .hd .v{font-size:22px}
-  .ch{height:150px}
-  .barras{gap:3px}
-  .b-ciu .barras{gap:7px}
-  .medidor+.medidor{margin-top:10px}
-  .posts{gap:8px}
   .ins{gap:14px}
 }
 
 /* Pantallas medianas: dos columnas */
 @media (max-width:1199px){
-  .grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"pos pos" "lle ciu" "pub pub"}
-  .grid.det{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"hoy hoy" "ins ins" "com com"}
-  .compartidas{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid.det{grid-template-columns:minmax(0,1fr);grid-template-areas:"hoy" "ins"}
+  .r-tops{grid-template-columns:repeat(3,minmax(0,1fr))}
   .portada{grid-template-columns:1fr;gap:20px}
   .cifra{border-left:0;padding-left:0}
   .cifra-n{font-size:clamp(52px,18cqi,104px)}
@@ -332,20 +335,27 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .tabs{margin:0 auto}
   .salir{position:absolute;top:10px;right:16px;padding:6px 10px}
   .filters{margin-left:0}
-  .grid,.grid.det{grid-template-columns:minmax(0,1fr);grid-template-areas:none}
-  .grid>.b{grid-area:auto}
-  .franja{grid-template-columns:repeat(2,minmax(0,1fr));padding:0}
+  .grid.det{grid-template-areas:none}
+  .grid.det>.b{grid-area:auto}
+  .franja{grid-template-columns:minmax(0,1fr);padding:0}
   .fr{padding:10px 12px}
-  .fr:nth-child(odd){border-left:0}
-  .fr:nth-child(n+3){border-top:1px solid var(--linea)}
+  .fr+.fr{border-left:0;border-top:1px solid var(--linea)}
   .fr-1{flex-wrap:wrap;row-gap:2px}
   .fr-v{font-size:24px}
   .fr-c{white-space:normal}
-  .grid>.b-pos .posts{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .grid>.b-pos .post:first-child{grid-column:span 2}
-  .grid>.b-pos .post:first-child .post-img{aspect-ratio:16/9}
-  .pub-in{grid-template-columns:1fr;gap:12px}
-  .compartidas{grid-template-columns:1fr}
+  .r-sec+.r-sec,#general>.detalle{margin-top:28px}
+  .r-h2{font-size:26px}
+  .r-card,.r-seg{padding:18px 16px}
+  .r-seg{grid-template-columns:minmax(0,1fr);gap:22px}
+  .r-big{font-size:64px}
+  .r-barras,.r-ejes{gap:8px}
+  .r-ejes{font-size:11px}
+  .r-sel{width:100%}
+  .r-sel button{flex:1;padding:10px 8px}
+  .r-tops{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px}
+  .r-tops .r-post:first-child{grid-column:span 2}
+  .r-tops .r-post:first-child .r-mini{aspect-ratio:4/3}
+  .r-pub{grid-template-columns:minmax(0,1fr)}
   .munis td.pv,.munis th.pv{display:none}
   .munis th,.munis td{padding:6px 4px}
   .encifras{grid-template-columns:1fr 1fr}
@@ -413,20 +423,33 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   <div id="estado">Cargando datos…</div>
 
   <section id="general" style="display:none">
-    <div class="franja" id="franja"></div>
-    <div class="grid">
-      <div class="b b-pos"><h3>Lo más visto <small>publicado en el periodo · veces que se vio desde que salió</small></h3><div class="posts" id="top5"></div></div>
-      <div class="b b-lle"><h3>Cómo llegan las vistas</h3><div id="llegada"></div></div>
-      <div class="b b-ciu"><h3>Principales ciudades</h3><div class="barras" id="ciudades"></div><div class="ley" id="ciuNota"></div></div>
-      <div class="b b-pub"><h3>Quiénes nos siguen <small>edad y sexo</small></h3>
-        <div class="pub-in"><div class="pub-sexo"><div class="dona"><canvas id="cSexo"></canvas></div><div class="ley" id="leySexo"></div></div>
-          <div class="barras" id="edad"></div></div></div>
-    </div>
+    <section class="r-sec">
+      <h2 class="r-h2">1. Nuestros seguidores</h2>
+      <div class="r-card r-seg"><div class="r-tot" id="segTot"></div><div class="r-graf" id="segGraf"></div></div>
+    </section>
+    <section class="r-sec">
+      <h2 class="r-h2">2. Lo que mejor funcionó</h2>
+      <div class="r-card">
+        <div class="r-cab"><h3 id="topTit">Lo más visto</h3>
+          <div class="r-sel" role="group" aria-label="Ordenar publicaciones"><button type="button" data-top="vistas">Más vistas</button><button type="button" data-top="compartidos">Más compartidas</button></div></div>
+        <p class="r-sub" id="topSub"></p>
+        <div class="r-tops" id="top5"></div>
+      </div>
+    </section>
+    <section class="r-sec">
+      <h2 class="r-h2">3. Nuestro público</h2>
+      <p class="r-nota">Datos de todos los seguidores; no cambian con el filtro</p>
+      <div class="r-pub">
+        <div class="r-card"><h3>Cómo llegan las vistas</h3><div class="r-card-in" id="llegada"></div></div>
+        <div class="r-card"><h3>Dónde están nuestros seguidores</h3><div class="r-filas" id="ciudades"></div><p class="r-nota" id="ciuNota"></p></div>
+        <div class="r-card"><h3>Quiénes nos siguen</h3><p class="r-frase" id="pubFrase"></p><div class="r-filas r-edad" id="edad"></div></div>
+      </div>
+    </section>
     <details class="detalle" id="detGeneral"><summary>Ver detalle</summary>
+      <div class="franja" id="franja"></div>
       <div class="grid det">
         <div class="b b-hoy"><h3>Hoy <small id="hoyHora"></small></h3><div class="hoy-datos" id="hoyDatos"></div></div>
         <div class="b b-ins"><h3>Lo que hay que saber</h3><ul class="ins" id="ins"></ul><div class="ins-pie" id="insPie"></div></div>
-        <div class="b b-com"><h3>Lo más compartido <small>lo que la gente le pasó a otros</small></h3><div class="compartidas" id="topCom"></div></div>
       </div>
     </details>
   </section>
@@ -755,6 +778,7 @@ function preparar(refresco) {
     render();
   });
   document.querySelectorAll('.chip[data-r]').forEach(b => b.onclick = () => rango(b.dataset.r));
+  document.querySelectorAll('.r-sel button').forEach(b => b.onclick = () => { topModo = b.dataset.top; render(); });
   ['cat', 'form', 'prov'].forEach(id => $(id).onchange = render);
   document.querySelectorAll('.comparar .chip').forEach(b => b.onclick = () => {
     compEdad = b.dataset.e;
@@ -838,19 +862,12 @@ function compara(actual, anterior, dias, absoluto) {
   const txt = absoluto ? fmt(Math.abs(d)) : Math.abs(Math.round(d)) + ' %';
   return `<span class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '▲' : '▼'} ${txt} ${d >= 0 ? 'más' : 'menos'}</span> que ${dias === 1 ? 'el día anterior' : 'los ' + dias + ' días anteriores'}`;
 }
+// Filas con barra: la mayor, en el azul fuerte; las demás, en el suave
 const barrasHTML = (filas, total, nombreFn) => {
   const max = Math.max(...filas.map(x => x.n));
-  return filas.map(x => `<div class="barra-f${x.n === max ? ' top' : ''}"><span>${esc(nombreFn(x))}</span>
-  <div class="t"><div style="width:${max ? x.n / max * 100 : 0}%"></div></div><span class="p">${pct(x.n, total)} %</span></div>`).join('');
+  return filas.map(x => `<div class="r-fila"><span title="${esc(nombreFn(x))}">${esc(nombreFn(x))}</span>
+  <div class="r-pista"><div style="width:${max ? x.n / max * 100 : 0}%;background:var(${x.n === max ? '--r-fuerte' : '--r-suave'})"></div></div><b>${pct(x.n, total)} %</b></div>`).join('');
 };
-
-function medidor(titulo, partes) {
-  const tot = partes.reduce((a, p) => a + p[1], 0);
-  if (!tot) return '';
-  return `<div class="medidor"><div class="l">${titulo}</div><div class="meter">` +
-    partes.filter(p => p[1] > 0).map(p => `<div style="width:${p[1] / tot * 100}%;background:${p[2]}" title="${esc(p[0])}: ${fmt(p[1])}"></div>`).join('') + '</div>' +
-    '<div class="ley">' + partes.filter(p => p[1] > 0).map(p => `<span><i style="background:${p[2]}"></i>${esc(p[0])} ${pct(p[1], tot)} %</span>`).join('') + '</div></div>';
-}
 
 const RETRASO = 'Instagram entrega este dato con unas horas de retraso';
 
@@ -883,20 +900,38 @@ function renderGeneral(desde, hasta, posts) {
 
   // Solo hoy y en cero: es el retraso de Instagram, no que no haya pasado nada
   const tarde = v => enCurso && !v;
-
-  // Franja de arriba: seguidores (el total más reciente, el mismo de Hoy, y lo ganado en el periodo), veces que se vio,
-  // personas que nos vieron y reacciones. Las personas son distintas en el periodo (no la suma de cada día): Instagram las da solo para Hoy, 7 y 30 días
-  const total = D.seguidores[D.seguidores.length - 1];
-  const al = (D.alcance || []).find(a => a.desde === desde && a.hasta === hasta);
-  const personas = al && al.total ? al.total : null;
   const ayer = ymd(new Date(new Date(D.hoy + 'T12:00') - 864e5));
   const deBoton = enCurso || (hasta === ayer && (dias === 7 || dias === 30));
-  // Ganados en el periodo y en el anterior, con palabras según el filtro: "Esta semana: +0 (la anterior: +19)"
-  const cAyer = D.cuenta.find(c => c.f === ayer);
-  const ganPrev = enCurso ? (cAyer ? cAyer.nuevos - cAyer.perdidos : null) : netoPrev;
-  const [esteP, otroP] = enCurso ? ['Hoy', 'ayer'] : hasta === ayer && dias === 7 ? ['Esta semana', 'la anterior']
-    : hasta === ayer && dias === 30 ? ['Estos 30 días', 'los 30 anteriores'] : ['En estas fechas', `los ${dias} días anteriores`];
-  const ganados = `${esteP}: <span class="${neto >= 0 ? 'up' : 'down'}">${conSigno(neto)}</span>` + (typeof ganPrev === 'number' ? ` (${otroP}: ${conSigno(ganPrev)})` : '');
+
+  renderSeguidores(desde, hasta, cu, neto, netoPrev, enCurso, deBoton);
+  renderTop(posts);
+
+  // ---- 3. Nuestro público ----
+  // Cómo llegan las vistas: según quién las hizo y por tipo de contenido (cuenta vistas, no personas:
+  // un seguidor suele ver varias veces). Sigue el filtro; ciudades, edad y sexo no.
+  const tipos = [['Reels', sum(cu, 'reels'), 'var(--r-fuerte)'], ['Fotos y carruseles', sum(cu, 'pubs'), 'var(--r-ambar)'],
+    ['Historias', sum(cu, 'historias'), 'var(--r-ink)'], ['Otras', sum(cu, 'otras'), C.gray]];
+  const llegada = cuota('¿Quién nos ve?', [['aún no nos sigue', vNoSeg, 'var(--r-suave)'], ['ya nos sigue', vSeg, 'var(--r-ink)']], (n, p) => `${p}\u00a0% ${n}`) +
+    cuota('¿Qué ven?', tipos, (n, p) => `${n} ${p}\u00a0%`);
+  $('llegada').innerHTML = llegada ? llegada + `<p class="r-nota">Vistas de ${periodo(desde, hasta)}: este cuadro sí cambia con el filtro.</p>` : `<div class="empty">${SIN_DATOS}</div>`;
+
+  // Dónde están: el porcentaje se calcula sobre el total de seguidores (Instagram solo da las ciudades principales)
+  const pub = t => D.publico.filter(x => x.tipo === t);
+  const ciu = pub('Ciudad').sort((a, b) => b.n - a.n);
+  const totSeg = D.seguidores.length ? D.seguidores[D.seguidores.length - 1].n : sum(ciu, 'n');
+  $('ciuNota').textContent = ciu.length ? `Las ${Math.min(5, ciu.length)} ciudades con más seguidores, sobre el total de ${fmt(totSeg)}.` : '';
+  $('ciudades').innerHTML = ciu.length ? barrasHTML(ciu.slice(0, 5), Math.max(totSeg, sum(ciu, 'n')), x => x.valor.split(',')[0]) : '<div class="empty">Sin datos de ciudades.</div>';
+
+  // Quiénes nos siguen: sexo y edad en una frase, y la edad en barras
+  const edad = pub('Edad').sort((a, b) => a.valor < b.valor ? -1 : 1);
+  $('pubFrase').textContent = frasePublico(pub('Sexo'), edad) || 'Instagram muestra la edad y el sexo de los seguidores cuando la cuenta pasa de 100.';
+  $('edad').innerHTML = edad.length ? barrasHTML(edad, sum(edad, 'n'), x => x.valor) : '';
+
+  // ---- Ver detalle ----
+  // Cifras de la cuenta: veces que se vio, personas que nos vieron y reacciones. Las personas son distintas en el periodo
+  // (no la suma de cada día): Instagram las da solo para Hoy, 7 y 30 días
+  const al = (D.alcance || []).find(a => a.desde === desde && a.hasta === hasta);
+  const personas = al && al.total ? al.total : null;
   const ayuda = 'Una persona cuenta una sola vez; las veces suman cada vez que alguien ve algo.' +
     (personas !== null ? ` En promedio, cada persona vio el contenido ${(vistas / personas).toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} veces.`
       : !deBoton ? ' El número de personas solo está disponible para Hoy, 7 y 30 días.' : enCurso ? ' ' + RETRASO + '.' : ' Se actualiza en la próxima hora.');
@@ -904,7 +939,6 @@ function renderGeneral(desde, hasta, posts) {
     'n.hidden=!n.hidden;this.setAttribute(\'aria-expanded\',!n.hidden)">?</button>';
   const fr = (v, l, c) => `<div class="fr"><div class="fr-1"><span class="fr-v">${v}</span>${l}</div><div class="fr-c">${c || ''}</div></div>`;
   $('franja').innerHTML =
-    fr(total ? fmt(total.n) : '—', `<span class="fr-l">${total && total.n === 1 ? 'seguidor' : 'seguidores'}</span>`, ganados) +
     fr(tarde(vistas) ? '—' : fmt(vistas), `<span class="fr-l">${vistas === 1 ? 'vez se vio el contenido' : 'veces se vio el contenido'}</span>`, compara(vistas, vPrev, dias)) +
     fr(personas === null ? '—' : fmt(personas), `<span class="fr-l">${personas === 1 ? 'persona nos vio' : 'personas nos vieron'}</span>` + boton) +
     fr(tarde(inter) ? '—' : fmt(inter), `<span class="fr-l" title="me gusta, comentarios, compartidos y guardados">reacciones</span>`, compara(inter, ant('interacciones'), dias)) +
@@ -915,52 +949,111 @@ function renderGeneral(desde, hasta, posts) {
   const ins = queSaber(posts);
   $('ins').innerHTML = ins.length ? puntos(ins) : `<li>${posts.length ? 'Aún hay muy pocas publicaciones en este periodo para sacar conclusiones.' : 'No hay publicaciones en este periodo.'}</li>`;
   $('insPie').textContent = `Con ${posts.length === 1 ? 'la publicación' : 'las ' + fmt(posts.length) + ' publicaciones'} de ` + periodo(desde, hasta) + '.';
+}
 
-  // Lo más visto, con miniaturas
-  $('top5').innerHTML = posts.slice().sort((a, b) => b.vistas - a.vistas).slice(0, 5).map(p => `<a class="post" href="${esc(p.enlace)}" title="${esc(p.titulo)}">
-    <div class="post-img">${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span>${esc(p.formato)}</span></div>
-    <div class="post-v" title="Se vio ${fmt(p.vistas)} veces desde que se publicó">${corta(p.vistas)}<small>veces vista</small></div>
-    <div class="post-s">${fmt(p.compartidos)} ${p.compartidos === 1 ? 'vez compartida' : 'veces compartida'} · ${fmt(p.comentarios)} ${p.comentarios === 1 ? 'comentario' : 'comentarios'}</div>
-    <div class="post-m"><i style="background:${colorCat(p.cat)}" title="${p.cat}"></i>${FORMATO[p.formato] || esc(p.formato)} · ${fechaPost(p)}</div></a>`).join('')
-    || `<div class="empty">No hay publicaciones en este periodo.</div>`;
+// 1. Nuestros seguidores: el total, lo ganado en el periodo frente al anterior y cuántos llegaron cada día o cada semana
+function renderSeguidores(desde, hasta, cu, neto, netoPrev, enCurso, deBoton) {
+  const dias = diasEntre(desde, hasta);
+  const total = D.seguidores[D.seguidores.length - 1];
+  const cuando = enCurso ? 'hoy' : deBoton ? `en estos ${dias} días` : 'en estas fechas';
+  // El porcentaje solo tiene sentido si el periodo anterior también creció
+  const comp = typeof netoPrev === 'number' && netoPrev > 0 && neto >= 0 ? compara(neto, netoPrev, dias) : '';
+  const llegaron = sum(cu, 'nuevos'), seFueron = sum(cu, 'perdidos');
+  $('segTot').innerHTML = `<span class="r-lbl">Tenemos</span>
+    <span class="r-big">${total ? fmt(total.n) : '—'} <small>${total && total.n === 1 ? 'seguidor' : 'seguidores'}</small></span>
+    <span class="r-gan"><b class="${neto >= 0 ? 'up' : 'down'}">${conSigno(neto)} ${cuando}</b>${comp ? `<span class="r-comp">${comp}</span>` : ''}</span>` +
+    (enCurso ? '' : `<span class="r-txt">${seFueron ? `Llegaron ${fmt(llegaron)} y se ${seFueron === 1 ? 'fue' : 'fueron'} ${fmt(seFueron)}.` : `Llegaron ${fmt(llegaron)} y no se fue nadie.`}</span>`);
 
-  // ---- Ver detalle ----
-  // Quiénes nos siguen: sexo y edad
-  const pub = t => D.publico.filter(x => x.tipo === t);
-  const sx = pub('Sexo').sort((a, b) => b.n - a.n), totS = sum(sx, 'n');
-  const colSexo = { Mujer: C.magenta, Hombre: C.electrico };
-  if (sx.length) {
-    grafica('cSexo', {
-      type: 'doughnut',
-      data: { labels: sx.map(x => x.valor), datasets: [{ data: sx.map(x => x.n), backgroundColor: sx.map(x => colSexo[x.valor] || C.gray), borderColor: '#fff', borderWidth: 2, borderRadius: 4 }] },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false }, tooltip: tooltip() } }
-    });
-    $('leySexo').innerHTML = sx.map(x => `<span><i style="background:${colSexo[x.valor] || C.gray}"></i>${esc(x.valor)} <b>${pct(x.n, totS)} %</b></span>`).join('');
-  } else $('leySexo').innerHTML = '<span>Instagram muestra el sexo de los seguidores cuando la cuenta pasa de 100.</span>';
-  const edad = pub('Edad').sort((a, b) => a.valor < b.valor ? -1 : 1);
-  $('edad').innerHTML = edad.length ? barrasHTML(edad, sum(edad, 'n'), x => x.valor) : '<div class="empty">Sin datos de edad.</div>';
+  // Hoy: solo la cifra (lo que da Instagram o, si aún no lo da, el cambio del total desde ayer)
+  if (enCurso) {
+    const cHoy = cu.find(c => c.f === D.hoy), n = cHoy && cHoy.nuevos ? cHoy.nuevos : Math.max(0, netoDeHoy() || 0);
+    $('segGraf').innerHTML = `<div class="r-hoy">Hoy llegaron <b>${fmt(n)}</b></div>` + (n ? '' : `<p class="r-nota">${RETRASO}.</p>`);
+    return;
+  }
+  const tramos = tramosDe(desde, hasta);
+  const v = tramos.map(t => sum(cu.filter(c => c.f >= t[0] && c.f <= t[1]), 'nuevos'));
+  const max = Math.max(...v);
+  const ultimo = tramos[tramos.length - 1];
+  const cada = ultimo[0] === ultimo[1] ? 'cada día' : diasEntre(ultimo[0], ultimo[1]) === 7 ? 'cada semana' : 'en cada tramo';
+  const cols = `style="grid-template-columns:repeat(${tramos.length},minmax(0,1fr))"`;
+  $('segGraf').innerHTML = `<span class="r-gtit">Cuántos llegaron ${cada} · ${deBoton ? 'últimos ' + dias + ' días' : periodo(desde, hasta)}</span>
+    <div class="r-barras" ${cols}>` + tramos.map((t, i) => `<div class="r-col" title="${t[0] === t[1] ? corto(t[0]) : corto(t[0]) + ' – ' + corto(t[1])}: llegaron ${fmt(v[i])}">` +
+      `<span>${fmt(v[i])}</span><div style="height:${max ? Math.max(v[i] ? 3 : 0, Math.round(v[i] / max * 110)) : 0}px;background:var(${v[i] === max && max ? '--r-fuerte' : '--r-suave'})"></div></div>`).join('') +
+    `</div><div class="r-ejes" ${cols}>${tramos.map(t => `<span>${etiquetaTramo(t)}</span>`).join('')}</div>`;
+}
 
-  // Cómo llegan las vistas: por tipo de contenido y según quién las hizo (cuenta vistas, no personas:
-  // un seguidor suele ver varias veces)
-  const tipos = [['Reels', sum(cu, 'reels'), C.electrico], ['Fotos y carruseles', sum(cu, 'pubs'), C.magenta], ['Historias', sum(cu, 'historias'), C.naranja], ['Otras', sum(cu, 'otras'), C.gray]];
-  $('llegada').innerHTML = (medidor('Por tipo de contenido', tipos) +
-    medidor('Vistas de seguidores y de quienes aún no nos siguen',
-      [['Vistas de quienes aún no nos siguen', vNoSeg, C.magenta], ['Vistas de seguidores', vSeg, C.electrico]])) || `<div class="empty">${SIN_DATOS}</div>`;
+// Barras de la gráfica de seguidores: una por día hasta 14 días; si no, semanas contadas hacia atrás desde el último día
+// (la primera se queda con los días que sobran), y como mucho 12 barras
+function tramosDe(desde, hasta) {
+  const dias = diasEntre(desde, hasta), n = dias <= 14 ? dias : Math.min(12, Math.floor(dias / 7)), largo = dias <= 14 ? 1 : Math.floor(dias / n);
+  const mover = (f, k) => ymd(new Date(new Date(f + 'T12:00').getTime() + k * 864e5));
+  const t = [];
+  for (let i = 0; i < n; i++) t.unshift([i === n - 1 ? desde : mover(hasta, -(i + 1) * largo + 1), mover(hasta, -i * largo)]);
+  return t;
+}
+// "lun 2" para un día; "8–14 oct" o "29 oct–6 nov" para varios
+const mesCorto = f => new Date(f + 'T12:00').toLocaleDateString('es-CO', { month: 'short' }).replace('.', '');
+const diaSemana = f => new Date(f + 'T12:00').toLocaleDateString('es-CO', { weekday: 'short' }).replace('.', '');
+const etiquetaTramo = t => {
+  const d = f => Number(f.slice(8));
+  if (t[0] === t[1]) return `${diaSemana(t[0])}<br>${d(t[0])}`;
+  return mesCorto(t[0]) === mesCorto(t[1]) ? `${d(t[0])}–${d(t[1])} ${mesCorto(t[1])}` : `${d(t[0])} ${mesCorto(t[0])}–${d(t[1])} ${mesCorto(t[1])}`;
+};
 
-  // Principales ciudades
-  const ciu = pub('Ciudad').sort((a, b) => b.n - a.n);
-  // Instagram solo da las ciudades principales: el porcentaje se calcula sobre el total de seguidores, no sobre esa suma
-  const totSeg = D.seguidores.length ? D.seguidores[D.seguidores.length - 1].n : sum(ciu, 'n');
-  $('ciuNota').textContent = ciu.length ? 'Porcentaje sobre el total de ' + fmt(totSeg) + ' seguidores.' : '';
-  $('ciudades').innerHTML = ciu.length ? barrasHTML(ciu.slice(0, 6), Math.max(totSeg, sum(ciu, 'n')), x => x.valor.split(',')[0]) : '<div class="empty">Sin datos de ciudades.</div>';
+// 2. Lo que mejor funcionó: las 5 publicaciones del periodo con más vistas o más compartidas (botones arriba)
+let topModo = 'vistas';
+function renderTop(posts) {
+  const vis = topModo === 'vistas';
+  const l = vis ? posts.slice().sort((a, b) => b.vistas - a.vistas)
+    : posts.filter(p => p.compartidos > 0).sort((a, b) => b.compartidos - a.compartidos || b.vistas - a.vistas);
+  document.querySelectorAll('.r-sel button').forEach(b => { b.classList.toggle('on', b.dataset.top === topModo); b.setAttribute('aria-pressed', b.dataset.top === topModo); });
+  $('topTit').textContent = vis ? 'Lo más visto' : 'Lo más compartido';
+  $('topSub').textContent = (vis ? 'Las 5 publicaciones del periodo con más vistas desde que salieron.' : 'Las 5 publicaciones del periodo que más veces le pasaron a otros.') +
+    ' Toca una para abrirla en Instagram.';
+  $('top5').innerHTML = l.slice(0, 5).map(p => {
+    const n = vis ? p.vistas : p.compartidos;
+    const cifra = vis ? `${corta(n)} ${n === 1 ? 'vista' : 'vistas'}` : `${fmt(n)} ${n === 1 ? 'vez' : 'veces'}`;
+    const det = [p.tema, p.municipio || p.provincia, fechaPost(p)].filter(Boolean).map(esc).join(' · ');
+    return `<a class="r-post" href="${esc(p.enlace)}" rel="noopener" title="${esc(p.titulo)}">
+      <div class="r-mini">${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span>${esc(FORMATO[p.formato] || p.formato)}</span></div>
+      <span class="r-cifra">${cifra}</span><span class="r-det">${det}</span></a>`;
+  }).join('') || `<div class="empty">${vis ? 'No hay publicaciones en este periodo.' : 'Nadie compartió las publicaciones de este periodo.'}</div>`;
+}
 
-  // Lo más compartido: lo que más lleva las noticias a gente nueva
-  const comp = posts.filter(p => p.compartidos > 0).sort((a, b) => b.compartidos - a.compartidos).slice(0, 5);
-  $('topCom').innerHTML = comp.map(p => `<a class="comp" href="${esc(p.enlace)}" title="${esc(p.titulo)}">
-    <div class="comp-img">${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}</div>
-    <div class="comp-t">${p.municipio || p.provincia ? `<b>${esc(p.municipio || p.provincia)}:</b> ` : ''}${esc(recortar(tema(p), 110))}</div>
-    <div class="comp-m"><b>${fmt(p.compartidos)}</b> ${p.compartidos === 1 ? 'vez compartida' : 'veces compartida'} · ${fechaPost(p)}</div></a>`).join('')
-    || `<div class="empty">No hay publicaciones compartidas en este periodo.</div>`;
+// Barra partida con su frase debajo: "85 % aún no nos sigue · 15 % ya nos sigue"
+function cuota(titulo, partes, texto) {
+  partes = partes.filter(p => p[1] > 0);
+  const tot = partes.reduce((a, p) => a + p[1], 0);
+  if (!tot) return '';
+  return `<span class="r-lbl">${titulo}</span><div class="r-meter">` +
+    partes.map(p => `<span style="width:${p[1] / tot * 100}%;background:${p[2]}" title="${esc(p[0])}: ${fmt(p[1])} vistas"></span>`).join('') +
+    `</div><span class="r-txt">${partes.map(p => texto(p[0], pct(p[1], tot))).join(' · ')}</span>`;
+}
+
+// "Casi por igual mujeres (48 %) y hombres (42 %). La mayoría (80 %) tiene entre 25 y 54 años."
+// La mayoría = el tramo seguido de edades más corto que reúne al menos el 60 %
+function frasePublico(sx, edad) {
+  let f = '';
+  const tS = sum(sx, 'n'), m = sum(sx.filter(x => x.valor === 'Mujer'), 'n'), h = sum(sx.filter(x => x.valor === 'Hombre'), 'n');
+  if (tS && (m || h)) {
+    const pm = pct(m, tS), ph = pct(h, tS);
+    f = Math.abs(pm - ph) <= 10 ? `Casi por igual mujeres (${pm}\u00a0%) y hombres (${ph}\u00a0%).`
+      : pm > ph ? `Más mujeres (${pm}\u00a0%) que hombres (${ph}\u00a0%).` : `Más hombres (${ph}\u00a0%) que mujeres (${pm}\u00a0%).`;
+  }
+  const tE = sum(edad, 'n');
+  let mejor = null;
+  for (let i = 0; i < edad.length && tE; i++) {
+    let s = 0;
+    for (let j = i; j < edad.length; j++) {
+      s += edad[j].n;
+      if (s >= tE * 0.6) { if (!mejor || j - i < mejor[1] - mejor[0] || (j - i === mejor[1] - mejor[0] && s > mejor[2])) mejor = [i, j, s]; break; }
+    }
+  }
+  if (mejor) {
+    const de = edad[mejor[0]].valor.split('-')[0].replace('+', ''), ult = edad[mejor[1]].valor;
+    f += ` La mayoría (${pct(mejor[2], tE)}\u00a0%) tiene ` + (ult.endsWith('+') ? `${de} años o más.` : `entre ${de} y ${ult.split('-')[1]} años.`);
+  }
+  return f.trim();
 }
 
 function renderPubs(desde, hasta, todos) {
