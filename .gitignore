@@ -1,0 +1,15 @@
+# Archivos de prueba: el repositorio es público
+prueba*
+test*
+t_*.html
+captura*.png
+*_prueba.*
+# Secretos y credenciales
+.env
+.env.*
+.clasprc.json
+*.pem
+*.key
+# Del sistema
+.DS_Store
+*.log
