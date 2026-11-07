@@ -276,6 +276,8 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
 #login input:focus{outline:2px solid var(--blue);outline-offset:-1px;border-color:var(--blue)}
 #login button{font:inherit;font-size:14px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;width:100%;margin-top:20px;padding:12px;border:0;border-radius:6px;background:var(--red);color:#fff;cursor:pointer}
 #login button:disabled{opacity:.6;cursor:wait}
+#login .recordar{display:flex;align-items:center;gap:8px;margin:14px 0 0;font-size:13px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink);cursor:pointer}
+#login .recordar input{width:auto;margin:0;padding:0;accent-color:var(--red);cursor:pointer}
 #loginError{font-size:13px;color:var(--red);font-weight:600;text-align:center;margin-top:12px;min-height:18px}
 
 /* Escritorio con poca altura (p. ej. 1280×800): compactar para que quepa en una pantalla */
@@ -366,6 +368,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
     <input id="loginUsuario" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
     <label for="loginClave">Clave</label>
     <input id="loginClave" name="password" type="password" autocomplete="current-password" required>
+    <label class="recordar"><input type="checkbox" id="noRecordar"> No recordarme en este equipo</label>
     <button type="submit" id="loginBtn">Entrar</button>
     <div id="loginError"></div>
   </form>
@@ -626,12 +629,17 @@ async function abrirPaquete(p) {
 // ---------- Sesión ----------
 // En este navegador se guardan la ficha y los últimos datos recibidos (comprimidos), para mostrarlos al instante
 // la próxima vez. Ambos se borran al cerrar sesión o cuando el servidor rechaza la sesión.
+// Con «No recordarme en este equipo» van en sessionStorage: se borran también al cerrar el navegador.
 const CLAVE_FICHA = 'rc_ficha', CLAVE_DATOS = 'rc_datos';
-const leerFicha = () => { try { return localStorage.getItem(CLAVE_FICHA); } catch (e) { return null; } };
-const guardarFicha = f => { try { localStorage.setItem(CLAVE_FICHA, f); } catch (e) { } };
-const borrarFicha = () => { try { localStorage.removeItem(CLAVE_FICHA); localStorage.removeItem(CLAVE_DATOS); } catch (e) { } };
-const leerDatos = () => { try { return JSON.parse(localStorage.getItem(CLAVE_DATOS)); } catch (e) { return null; } };
-const guardarDatos = p => { try { localStorage.setItem(CLAVE_DATOS, JSON.stringify({ gz: p.gz, hoy: p.hoy, actualizado: p.actualizado })); } catch (e) { } };
+let almacen = null;
+try { almacen = sessionStorage.getItem(CLAVE_FICHA) ? sessionStorage : localStorage; } catch (e) { }
+const leerFicha = () => { try { return almacen.getItem(CLAVE_FICHA); } catch (e) { return null; } };
+const guardarFicha = f => { try { almacen.setItem(CLAVE_FICHA, f); } catch (e) { } };
+const borrarFicha = () => {
+  [() => localStorage, () => sessionStorage].forEach(a => { try { a().removeItem(CLAVE_FICHA); a().removeItem(CLAVE_DATOS); } catch (e) { } });
+};
+const leerDatos = () => { try { return JSON.parse(almacen.getItem(CLAVE_DATOS)); } catch (e) { return null; } };
+const guardarDatos = p => { try { almacen.setItem(CLAVE_DATOS, JSON.stringify({ gz: p.gz, hoy: p.hoy, actualizado: p.actualizado })); } catch (e) { } };
 let ficha = leerFicha();
 
 // La ficha lleva su fecha de vencimiento (la firma solo la puede comprobar el servidor)
@@ -671,7 +679,7 @@ const horaDe = iso => iso ? new Date(iso).toLocaleString('es-CO', { day: 'numeri
 
 async function cargarDatos() {
   const guardado = GZ && leerDatos();
-  if (!D && guardado) { try { mostrarDatos(await abrirPaquete(guardado)); } catch (e) { try { localStorage.removeItem(CLAVE_DATOS); } catch (x) { } } }
+  if (!D && guardado) { try { mostrarDatos(await abrirPaquete(guardado)); } catch (e) { try { almacen.removeItem(CLAVE_DATOS); } catch (x) { } } }
   if (D) aviso('Actualizando…');
   try {
     const r = await api(conFormato({ accion: 'datos', ficha: ficha }));
@@ -690,6 +698,8 @@ $('loginForm').onsubmit = ev => {
   $('loginBtn').disabled = true; $('loginError').textContent = '';
   api(conFormato({ accion: 'login', usuario: $('loginUsuario').value, clave: $('loginClave').value }))
     .then(async r => {
+      borrarFicha();
+      try { almacen = $('noRecordar').checked ? sessionStorage : localStorage; } catch (e) { }
       ficha = r.ficha; guardarFicha(ficha); $('loginClave').value = '';
       // El servidor manda los datos en la misma respuesta
       if (GZ && r.gz) { guardarDatos(r); mostrarDatos(await abrirPaquete(r)); }
