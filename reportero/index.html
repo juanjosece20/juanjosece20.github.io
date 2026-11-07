@@ -698,7 +698,12 @@ $('loginForm').onsubmit = ev => {
     .catch(e => { $('loginBtn').disabled = false; $('loginError').textContent = e.message; $('loginClave').value = ''; $('loginClave').focus(); });
 };
 
-$('salir').onclick = () => salirDeSesion();
+// Se borra aquí al instante y se pide al servidor cortar las sesiones del usuario en todos los equipos
+$('salir').onclick = () => {
+  const f = ficha;
+  salirDeSesion();
+  if (f) api({ accion: 'salir', ficha: f }).catch(() => { });
+};
 
 // Los plegables "Ver detalle" se recuerdan en este navegador (cerrados la primera vez)
 document.querySelectorAll('details.detalle').forEach(d => {
