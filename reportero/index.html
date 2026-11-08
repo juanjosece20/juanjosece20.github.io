@@ -7,7 +7,7 @@
 <meta name="description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
 <meta name="robots" content="noindex">
 <!-- Solo se permite cargar código de este sitio y de cdnjs, y hablar solo con la API de Apps Script -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-G0NyRx6KGt+UXh2rFXM81SbblPP1YQw0L4HiHkiTmlY=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-6jaGQWEkf8irnAiMaUz8DhTaWV+Og1jY3TGAixkXkhY=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Si otra página muestra el panel dentro de la suya (para engañar con clics), no se ve nada -->
 <script>if (window.top !== window.self) document.documentElement.style.display = 'none';</script>
@@ -149,6 +149,15 @@ main.in{padding-bottom:28px}
 .r-dato{gap:8px}
 .r-num{font:400 48px/1 var(--titulo);letter-spacing:.8px}
 .r-dato .r-comp{font-size:13px}
+/* Reacciones por tipo: compartidos y guardados (las de más valor) grandes; me gusta y comentarios pequeños */
+.r-reac{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+.r-reac div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.r-reac b{font:400 40px/1 var(--titulo);letter-spacing:.8px;font-weight:400}
+.r-reac small{font-size:12px;line-height:1.35;color:var(--r-muted)}
+.r-reac .r-lbl{font-size:12px;text-transform:uppercase}
+.r-reac .menor{flex-direction:row;align-items:baseline;gap:6px;padding-top:10px;border-top:1px solid var(--r-pista)}
+.r-reac .menor b{font-size:24px}
+.r-reac .menor .r-lbl{text-transform:none;font-size:13px;font-weight:600}
 .r-cab h3 small{font:500 12px var(--ui);color:var(--r-muted);margin-left:8px}
 .hoy-datos{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
 .hd .l{font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--r-muted)}
@@ -928,7 +937,7 @@ function renderGeneral(desde, hasta, posts) {
     (comp ? `<span class="r-comp">${comp}</span>` : '');
   $('datoVistas').innerHTML = dato('Veces que se vio el contenido', tarde(vistas) ? '—' : fmt(vistas), 'Suma cada vez que alguien vio algo nuestro.', compara(vistas, vPrev, dias));
   $('datoPersonas').innerHTML = dato('Personas que nos vieron', personas === null ? '—' : fmt(personas), notaPersonas);
-  $('datoReac').innerHTML = dato('Reacciones', tarde(inter) ? '—' : fmt(inter), 'Me gusta, comentarios, compartidos y guardados.', compara(inter, ant('interacciones'), dias));
+  renderReacciones(cu, inter, ant('interacciones'), dias, tarde(inter), dato);
 
   // Lo que hay que saber: máximo 3 frases sobre lo publicado en el periodo que no salen en otro cuadro
   // ni en la pestaña Publicaciones (allá se comparan vistas por tipo y provincia; aquí, compartidos y municipios)
@@ -1004,6 +1013,27 @@ function renderTop(posts) {
   $('topComp').innerHTML = posts.filter(p => p.compartidos > 0).sort((a, b) => b.compartidos - a.compartidos || b.vistas - a.vistas).slice(0, 5)
     .map((p, i) => fila(p, i, fmt(p.compartidos), p.compartidos === 1 ? 'vez' : 'veces')).join('') ||
     `<li class="empty">${posts.length ? 'Nadie compartió las publicaciones de este periodo.' : 'No hay publicaciones en este periodo.'}</li>`;
+}
+
+// Reacciones por tipo. Compartidos y guardados van grandes: muestran que la publicación sirvió (se la pasaron a otros
+// o la guardaron para después). Instagram da el detalle por día desde el 6 de octubre de 2026; antes, solo el total
+function renderReacciones(cu, inter, interPrev, dias, tarde, dato) {
+  const conDetalle = cu.filter(c => c.likes !== null && c.likes !== undefined);
+  if (tarde || !conDetalle.length) {
+    const desde = D.cuenta.find(c => c.likes !== null && c.likes !== undefined);
+    $('datoReac').innerHTML = dato('Reacciones', tarde ? '—' : fmt(inter),
+      'Me gusta, comentarios, compartidos y guardados.' + (!tarde && desde ? ` El detalle por tipo está desde el ${corto(desde.f)}.` : ''), tarde ? '' : compara(inter, interPrev, dias));
+    return;
+  }
+  const n = k => fmt(sum(conDetalle, k));
+  const mayor = (lbl, k, nota) => `<div><span class="r-lbl">${lbl}</span><b>${n(k)}</b><small>${nota}</small></div>`;
+  const menor = (lbl, k) => `<div class="menor"><b>${n(k)}</b><span class="r-lbl">${lbl}</span></div>`;
+  const parcial = conDetalle.length < cu.length ? ` El detalle por tipo cuenta desde el ${corto(conDetalle[0].f)}.` : '';
+  const comp = compara(inter, interPrev, dias);
+  $('datoReac').innerHTML = `<span class="r-lbl">Reacciones</span><div class="r-reac">` +
+    mayor('Compartidos', 'compartidos', 'se la pasaron a otros') + mayor('Guardados', 'guardados', 'la guardaron para verla después') +
+    menor('me gusta', 'likes') + menor('comentarios', 'comentarios') + `</div>` +
+    `<p class="r-nota">En total, ${fmt(inter)} reacciones.${parcial}</p>` + (comp ? `<span class="r-comp">${comp}</span>` : '');
 }
 
 // Barra partida con su frase debajo: "85 % aún no nos sigue · 15 % ya nos sigue"
