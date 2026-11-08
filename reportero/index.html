@@ -7,7 +7,7 @@
 <meta name="description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
 <meta name="robots" content="noindex">
 <!-- Solo se permite cargar código de este sitio y de cdnjs, y hablar solo con la API de Apps Script -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-abYlynHit6tCKkFUbAIffyJo/MiODqAoHxtqsN9qxaY=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-iRypSQ8jhmGF6aYQsuVaa0EOWAn+hgWJ6pHoSXFvLRM=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Si otra página muestra el panel dentro de la suya (para engañar con clics), no se ve nada -->
 <script>if (window.top !== window.self) document.documentElement.style.display = 'none';</script>
@@ -544,12 +544,13 @@ const nombre = k => PLURAL[k] || k.toLowerCase();
 const puntos = l => l.map(x => `<li>${x}</li>`).join('');
 if (window.Chart) Chart.defaults.font.family = 'Montserrat, system-ui, sans-serif';
 
-// Primero los hashtags; si no hay, el encabezado: "DENUNCIA CIUDADANA | …" cuenta aunque no lleve # (se quitan emojis y # del inicio)
+// Primero los hashtags; si no hay, el encabezado: "DENUNCIA CIUDADANA" cuenta con o sin # y aunque vaya después
+// de otro hashtag o emoji ("#Movilidad 🚨 DENUNCIA CIUDADANA")
 function categoria(p) {
   const t = norm(p.hashtags);
   for (const c of CATEGORIAS) if (c.claves.some(k => t.includes(k))) return c.nombre;
-  const enc = norm(p.texto.split('\n').find(l => l.trim()) || '').replace(/^[^A-Z]+/, '');
-  for (const c of CATEGORIAS) if (enc.startsWith(c.encabezado)) return c.nombre;
+  const enc = norm(p.texto.split('\n').find(l => l.trim()) || '').replace(/#/g, ' ');
+  for (const c of CATEGORIAS) if (new RegExp('\\b' + c.encabezado + '\\b').test(enc)) return c.nombre;
   return OTRA.nombre;
 }
 
