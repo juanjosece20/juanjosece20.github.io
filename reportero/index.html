@@ -36,7 +36,7 @@
   /* Identidad del Reportero */
   --navy:#09163d;--navy2:#061236;--blue:#103db0;--red:#e8191b;--arc:#0f2266;
   /* Paleta moderna */
-  --fondo:#f3f5fa;--card:#fff;--linea:#e4e8f2;--line:#e4e8f2;--ink:#09163d;--muted:#66708c;--texto:#2a3350;
+  --fondo:#f3f5fa;--card:#fff;--zebra:#f5f7fb;--linea:#e4e8f2;--line:#e4e8f2;--ink:#09163d;--muted:#66708c;--texto:#2a3350;
   --electrico:#2f5bea;--magenta:#e8458b;--naranja:#f07a2e;--gris:#8a93ab;--verde:#12a15f;--coral:#ff5a5a;--green:#12a15f;
   --degradado:linear-gradient(160deg,#103db0 0%,#a0249a 55%,#e8191b 100%);
   --titulo:"Bebas Neue",sans-serif;--ui:Montserrat,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -243,6 +243,8 @@ th.act:after{content:" ▼"}
 td{padding:12px 8px;border-bottom:1px solid var(--linea);vertical-align:top}
 tr:last-child td{border-bottom:0}
 .n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+/* Filas alternas con un fondo muy suave, para seguir la línea hasta la última columna */
+.tablaP tbody tr:nth-child(even) td{background:var(--zebra)}
 td.fuerte{font-weight:700}
 .nd{color:var(--muted)}
 .titulo{min-width:260px}
@@ -351,6 +353,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .tablaP,.tablaP tbody{display:block}
   .tablaP tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 12px;padding:14px;margin-bottom:10px;background:var(--card);border:1px solid var(--linea);border-radius:12px}
   .tablaP td{padding:0;border:0;text-align:left;min-width:0}
+  .tablaP tbody tr:nth-child(even) td{background:none}
   .tablaP td.titulo,.tablaP td.tipo,.tablaP td.vpd{grid-column:1/-1}
   .alerta{grid-template-columns:48px minmax(0,1fr);gap:4px 12px}
   .alerta-img{width:48px;height:48px;grid-row:span 2}
