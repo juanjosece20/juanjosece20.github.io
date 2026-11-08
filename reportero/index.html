@@ -7,7 +7,7 @@
 <meta name="description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
 <meta name="robots" content="noindex">
 <!-- Solo se permite cargar código de este sitio y de cdnjs, y hablar solo con la API de Apps Script -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-etLklh/iKK13oRvgYIyLL770q+qR4bF6vz7VFNhRwlA=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-abYlynHit6tCKkFUbAIffyJo/MiODqAoHxtqsN9qxaY=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Si otra página muestra el panel dentro de la suya (para engañar con clics), no se ve nada -->
 <script>if (window.top !== window.self) document.documentElement.style.display = 'none';</script>
@@ -1045,7 +1045,8 @@ function renderReacciones(cu, inter, interPrev, dias, tarde, dato) {
   $('datoReac').innerHTML = `<span class="r-lbl">Reacciones</span><div class="r-reac">` +
     mayor('Compartidos', 'compartidos', 'se la pasaron a otros') + mayor('Guardados', 'guardados', 'la guardaron para verla después') +
     menor('me gusta', 'likes') + menor('comentarios', 'comentarios') + `</div>` +
-    `<p class="r-nota">En total, ${fmt(inter)} reacciones.${parcial}</p>` + (comp ? `<span class="r-comp">${comp}</span>` : '');
+    `<p class="r-nota">En total, ${fmt(inter)} reacciones.${parcial}<br>El total incluye otras reacciones que Instagram no separa por tipo.</p>` +
+    (comp ? `<span class="r-comp">${comp}</span>` : '');
 }
 
 // Barra partida con su frase debajo: "85 % aún no nos sigue · 15 % ya nos sigue"
