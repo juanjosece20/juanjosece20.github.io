@@ -7,7 +7,7 @@
 <meta name="description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
 <meta name="robots" content="noindex">
 <!-- Solo se permite cargar código de este sitio y de cdnjs, y hablar solo con la API de Apps Script -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-6jaGQWEkf8irnAiMaUz8DhTaWV+Og1jY3TGAixkXkhY=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-2kdJvGvYJrars3LXy5Icr8RzBhKgwzGlfnZHgpR0kxg=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Si otra página muestra el panel dentro de la suya (para engañar con clics), no se ve nada -->
 <script>if (window.top !== window.self) document.documentElement.style.display = 'none';</script>
@@ -319,6 +319,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .tabs{margin:0 auto}
   .salir{position:absolute;top:10px;right:16px;padding:6px 10px}
   .filters{margin-left:0}
+  .refresco{white-space:normal;margin-left:0}
   .r-sec+.r-sec{margin-top:28px}
   .r-mas{grid-template-columns:minmax(0,1fr)}
   .r-ancha{grid-column:auto}
@@ -338,6 +339,10 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .r-pub{grid-template-columns:minmax(0,1fr)}
   .munis td.pv,.munis th.pv{display:none}
   .munis th,.munis td{padding:6px 4px}
+  /* Que la tabla quepa en la pantalla: títulos con menos espacio entre letras (las palabras largas se parten con guion) */
+  .munis th{letter-spacing:.2px}
+  .munis td{hyphens:auto;-webkit-hyphens:auto}
+  .munis td:first-child{min-width:8em}
   .encifras{grid-template-columns:1fr 1fr}
   .dato{padding:14px 12px 14px 0}
   .dato+.dato{padding-left:12px}
@@ -359,7 +364,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .alerta-img{width:48px;height:48px;grid-row:span 2}
   .alerta-v{text-align:left;font-size:24px}
   .alerta-v small{display:inline;margin-left:6px}
-  .tablaP td[data-l]:before{content:attr(data-l);display:block;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+  .tablaP td[data-l]:before{content:attr(data-l);display:block;white-space:normal;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
 }
 </style>
 </head>
@@ -1182,7 +1187,7 @@ function renderMunicipios(posts) {
     'Con 1 o 2 publicaciones el dato todavía dice poco. Los lugares mal detectados se corrigen en la pestaña Lugares del Sheet.';
   const fila = f => `<tr${f.n < 3 ? ' class="poco"' : ''}><td>${esc(f.lugar)}</td><td class="pv">${f.lugar === SIN_LUGAR || f.lugar.startsWith('Toda') ? '' : esc(f.prov)}</td>` +
     `<td class="n">${fmt(f.n)}</td><td class="n med">${fmt(f.med)}</td><td class="n">${f.cpm === null ? '—' : dec(f.cpm)}</td></tr>`;
-  const tabla = l => `<table><thead><tr><th>Lugar</th><th class="pv">Provincia</th><th class="n">Publicaciones</th><th class="n">Vistas de una publicación normal</th><th class="n">La compartieron, de cada 1.000</th></tr></thead><tbody>${l.map(fila).join('')}</tbody></table>`;
+  const tabla = l => `<table><thead><tr><th>Lugar</th><th class="pv">Provincia</th><th class="n">Publi&shy;caciones</th><th class="n">Vistas de una publi&shy;cación normal</th><th class="n">La compar&shy;tieron, de cada 1.000</th></tr></thead><tbody>${l.map(fila).join('')}</tbody></table>`;
   const corte = filas.length > MAX_MUNIS + 1 ? MAX_MUNIS : filas.length;
   $('tMuni').innerHTML = tabla(filas.slice(0, corte)) +
     (filas.length > corte ? `<details><summary>Ver los ${filas.length - corte} lugares restantes</summary>${tabla(filas.slice(corte))}</details>` : '');
