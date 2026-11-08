@@ -54,7 +54,7 @@ body{margin:0;font-family:var(--ui);background:var(--fondo);color:var(--ink);-we
 .barra-tit span{font-size:12px;color:var(--muted)}
 .tabs{display:flex;gap:4px;margin-left:auto;background:var(--fondo);border-radius:10px;padding:4px}
 .tab{font:600 13px var(--ui);background:none;border:0;color:var(--muted);padding:9px 16px;border-radius:8px;cursor:pointer}
-.tab.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(9,22,61,.12)}
+.tab.on{background:var(--card);color:var(--ink);box-shadow:inset 0 -3px 0 var(--red),0 1px 3px rgba(9,22,61,.12)}
 .salir{font:600 12px var(--ui);background:none;border:1px solid var(--linea);border-radius:8px;color:var(--ink);padding:8px 12px;cursor:pointer}
 .salir:hover{border-color:var(--red);color:var(--red)}
 
@@ -73,7 +73,8 @@ body{margin:0;font-family:var(--ui);background:var(--fondo);color:var(--ink);-we
 .filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-left:auto}
 .filters input,.filters select,.chip{font:500 12px var(--ui);padding:7px 11px;border:1px solid var(--linea);border-radius:8px;background:var(--card);color:var(--ink);min-width:0}
 .chip{cursor:pointer}
-.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+/* Rojo del logo como acento: botón activo (blanco sobre rojo, contraste 4,6:1) */
+.chip.on{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
 .solopubs{display:none}
 
 main.in{padding-bottom:28px}
@@ -85,6 +86,7 @@ main.in{padding-bottom:28px}
 .r-sec{display:flex;flex-direction:column;gap:16px}
 .r-sec+.r-sec{margin-top:36px}
 .r-h2{margin:0;font:400 30px/1 var(--titulo);letter-spacing:.6px;text-transform:uppercase}
+.r-h2 span{color:var(--red)}
 .r-sec>.r-nota{margin-top:-10px}
 .r-card{background:var(--card);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px;min-width:0}
 .r-card h3{margin:0;font:700 17px var(--ui)}
@@ -119,6 +121,9 @@ main.in{padding-bottom:28px}
 .r-item:hover .r-tit{text-decoration:underline}
 .r-item:focus-visible{outline:3px solid var(--r-fuerte);outline-offset:2px;border-radius:8px}
 .r-cifra{font:400 26px/1 var(--titulo);letter-spacing:.5px;text-align:right;white-space:nowrap}
+/* Azul para las vistas y rojo para lo compartido */
+#topVistas .r-cifra{color:var(--r-fuerte)}
+#topComp .r-cifra{color:var(--red)}
 .r-cifra small{display:block;font:600 11px var(--ui);letter-spacing:.2px;color:var(--r-muted);margin-top:4px}
 .r-det{font-size:12px;line-height:1.4;color:var(--r-muted)}
 /* 3. Nuestro público */
@@ -388,12 +393,12 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
 
   <section id="general" style="display:none">
     <section class="r-sec">
-      <h2 class="r-h2">1. Nuestros seguidores</h2>
+      <h2 class="r-h2"><span>1.</span> Nuestros seguidores</h2>
       <div class="r-card r-seg"><div class="r-cifras" id="segCifras"></div>
         <div class="r-graf" id="segGraf"><span class="r-gtit" id="segTit"></span><div class="r-linea" id="segLinea"><canvas id="cSeg" role="img" aria-label="Total de seguidores día a día"></canvas></div><p class="r-nota" id="segNota"></p></div></div>
     </section>
     <section class="r-sec">
-      <h2 class="r-h2">2. Lo que mejor funcionó</h2>
+      <h2 class="r-h2"><span>2.</span> Lo que mejor funcionó</h2>
       <div class="r-dos">
         <div class="r-card"><h3>Lo más visto</h3><p class="r-sub">Las 5 publicaciones del periodo con más vistas desde que salieron.</p><ol class="r-lista" id="topVistas"></ol></div>
         <div class="r-card"><h3>Lo más compartido</h3><p class="r-sub">Las 5 publicaciones del periodo que más veces le pasaron a otros.</p><ol class="r-lista" id="topComp"></ol></div>
@@ -401,7 +406,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
       <p class="r-nota">Toca una publicación para abrirla en Instagram.</p>
     </section>
     <section class="r-sec">
-      <h2 class="r-h2">3. Nuestro público</h2>
+      <h2 class="r-h2"><span>3.</span> Nuestro público</h2>
       <p class="r-nota">Datos de todos los seguidores; no cambian con el filtro</p>
       <div class="r-pub">
         <div class="r-card"><h3>Cómo llegan las vistas</h3><div class="r-card-in" id="llegada"></div></div>
@@ -410,7 +415,7 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
       </div>
     </section>
     <section class="r-sec">
-      <h2 class="r-h2">4. Más datos</h2>
+      <h2 class="r-h2"><span>4.</span> Más datos</h2>
       <div class="r-mas">
         <div class="r-card r-dato" id="datoVistas"></div>
         <div class="r-card r-dato" id="datoPersonas"></div>
