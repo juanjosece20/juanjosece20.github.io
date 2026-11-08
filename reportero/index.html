@@ -7,7 +7,7 @@
 <meta name="description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
 <meta name="robots" content="noindex">
 <!-- Solo se permite cargar código de este sitio y de cdnjs, y hablar solo con la API de Apps Script -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-er8FSc8TnUlG631PKFxNI2efiqO7amD5ycF82RpTg5M=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-AZOpYaSnKgvW3zX+de1NXiop2tqkHIZY9JKw8UgxIiU=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Si otra página muestra el panel dentro de la suya (para engañar con clics), no se ve nada -->
 <script>if (window.top !== window.self) document.documentElement.style.display = 'none';</script>
@@ -91,25 +91,18 @@ main.in{padding-bottom:28px}
 .r-lbl{font-size:13px;font-weight:700;letter-spacing:.4px;color:var(--r-muted)}
 .r-txt{font-size:14px;color:var(--r-ink)}
 .r-nota{margin:0;font-size:12px;line-height:1.5;color:var(--r-muted)}
-/* 1. Seguidores */
-.r-seg{padding:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px;align-items:center}
-.r-tot{display:flex;flex-direction:column;gap:8px}
-.r-tot .r-lbl{text-transform:uppercase}
-.r-big{font:400 72px/1 var(--titulo);letter-spacing:1px}
-.r-big small{font:400 28px var(--titulo);letter-spacing:.5px}
-.r-gan{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:18px}
-.r-gan>b{font-weight:700}
-.r-comp{font-size:14px;color:var(--r-muted)}
-.r-tot .r-txt{color:var(--r-muted)}
-.r-graf{display:flex;flex-direction:column;gap:10px;min-width:0}
+/* 1. Seguidores: cuatro cifras en fila y debajo el total día a día */
+.r-seg{padding:20px 22px;gap:16px}
+.r-cifras{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.r-cif{display:flex;flex-direction:column;gap:4px;min-width:0}
+.r-cif+.r-cif{border-left:1px solid var(--r-linea);padding-left:16px}
+.r-cif .r-lbl{text-transform:uppercase;font-size:12px}
+.r-cif b{font:400 44px/1 var(--titulo);letter-spacing:.8px;font-weight:400}
+.r-graf{display:flex;flex-direction:column;gap:8px;min-width:0;border-top:1px solid var(--r-linea);padding-top:14px}
 .r-gtit{font-size:14px;font-weight:700}
-.r-barras{display:grid;gap:14px;align-items:end;height:150px;border-bottom:1px solid var(--r-linea)}
-.r-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;min-width:0}
-.r-col span{font-size:13px;font-weight:700}
-.r-col div{width:100%;border-radius:6px 6px 0 0}
-.r-ejes{display:grid;gap:14px;font-size:12px;line-height:1.3;color:var(--r-muted);text-align:center}
-.r-hoy{font-size:18px}
-.r-hoy b{font:400 56px/1 var(--titulo);letter-spacing:1px;margin-left:6px;vertical-align:-6px}
+.r-linea{position:relative;height:140px}
+/* Comparación con el periodo anterior (aquí y en 4. Más datos) */
+.r-comp{font-size:14px;color:var(--r-muted)}
 /* 2. Lo que mejor funcionó */
 .r-cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
 .r-sel{display:flex;gap:4px;background:var(--r-pista);padding:4px;border-radius:10px}
@@ -315,10 +308,11 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .r-num{font-size:44px}
   .r-h2{font-size:26px}
   .r-card,.r-seg{padding:18px 16px}
-  .r-seg{grid-template-columns:minmax(0,1fr);gap:22px}
-  .r-big{font-size:64px}
-  .r-barras,.r-ejes{gap:8px}
-  .r-ejes{font-size:11px}
+  .r-cifras{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px}
+  .r-cif+.r-cif{border-left:0;padding-left:0}
+  .r-cif:nth-child(even){border-left:1px solid var(--r-linea);padding-left:12px}
+  .r-cif b{font-size:38px}
+  .r-linea{height:120px}
   .r-sel{width:100%}
   .r-sel button{flex:1;padding:10px 8px}
   .r-tops{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px}
@@ -395,7 +389,8 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   <section id="general" style="display:none">
     <section class="r-sec">
       <h2 class="r-h2">1. Nuestros seguidores</h2>
-      <div class="r-card r-seg"><div class="r-tot" id="segTot"></div><div class="r-graf" id="segGraf"></div></div>
+      <div class="r-card r-seg"><div class="r-cifras" id="segCifras"></div>
+        <div class="r-graf" id="segGraf"><span class="r-gtit" id="segTit"></span><div class="r-linea" id="segLinea"><canvas id="cSeg" role="img" aria-label="Total de seguidores día a día"></canvas></div><p class="r-nota" id="segNota"></p></div></div>
     </section>
     <section class="r-sec">
       <h2 class="r-h2">2. Lo que mejor funcionó</h2>
@@ -939,54 +934,55 @@ function renderGeneral(desde, hasta, posts) {
   $('insPie').textContent = `Con ${posts.length === 1 ? 'la publicación' : 'las ' + fmt(posts.length) + ' publicaciones'} de ` + periodo(desde, hasta) + '.';
 }
 
-// 1. Nuestros seguidores: el total, lo ganado en el periodo frente al anterior y cuántos llegaron cada día o cada semana
+// 1. Nuestros seguidores: cuatro cifras (total, llegaron, se fueron y cuánto crecimos frente al periodo anterior)
+// y debajo el total de seguidores día a día del periodo
 function renderSeguidores(desde, hasta, cu, neto, netoPrev, enCurso, deBoton) {
   const dias = diasEntre(desde, hasta);
   const total = D.seguidores[D.seguidores.length - 1];
   const cuando = enCurso ? 'hoy' : deBoton ? `en estos ${dias} días` : 'en estas fechas';
+  // Hoy: lo que da Instagram o, si aún no lo da, el cambio del total desde ayer
+  const cHoy = enCurso ? cu.find(c => c.f === D.hoy) : null, tarde = enCurso && !(cHoy && cHoy.nuevos);
+  const llegaron = enCurso ? (tarde ? Math.max(0, netoDeHoy() || 0) : cHoy.nuevos) : sum(cu, 'nuevos');
   // El porcentaje solo tiene sentido si el periodo anterior también creció
   const comp = typeof netoPrev === 'number' && netoPrev > 0 && neto >= 0 ? compara(neto, netoPrev, dias) : '';
-  const llegaron = sum(cu, 'nuevos'), seFueron = sum(cu, 'perdidos');
-  $('segTot').innerHTML = `<span class="r-lbl">Tenemos</span>
-    <span class="r-big">${total ? fmt(total.n) : '—'} <small>${total && total.n === 1 ? 'seguidor' : 'seguidores'}</small></span>
-    <span class="r-gan"><b class="${neto >= 0 ? 'up' : 'down'}">${conSigno(neto)} ${cuando}</b>${comp ? `<span class="r-comp">${comp}</span>` : ''}</span>` +
-    (enCurso ? '' : `<span class="r-txt">${seFueron ? `Llegaron ${fmt(llegaron)} y se ${seFueron === 1 ? 'fue' : 'fueron'} ${fmt(seFueron)}.` : `Llegaron ${fmt(llegaron)} y no se fue nadie.`}</span>`);
+  const cifra = (lbl, num, nota, clase) => `<div class="r-cif"><span class="r-lbl">${lbl}</span><b${clase ? ` class="${clase}"` : ''}>${num}</b><span class="r-nota">${nota}</span></div>`;
+  $('segCifras').innerHTML =
+    cifra('Tenemos', total ? fmt(total.n) : '—', total && total.n === 1 ? 'seguidor' : 'seguidores') +
+    cifra('Llegaron', fmt(llegaron), tarde ? RETRASO : `empezaron a seguirnos ${cuando}`) +
+    cifra('Se fueron', fmt(sum(cu, 'perdidos')), `dejaron de seguirnos ${cuando}`) +
+    cifra(neto >= 0 ? 'Crecimos' : 'Bajamos', conSigno(neto), comp || 'los que llegaron menos los que se fueron', neto >= 0 ? 'up' : 'down');
 
-  // Hoy: solo la cifra (lo que da Instagram o, si aún no lo da, el cambio del total desde ayer)
-  if (enCurso) {
-    const cHoy = cu.find(c => c.f === D.hoy), n = cHoy && cHoy.nuevos ? cHoy.nuevos : Math.max(0, netoDeHoy() || 0);
-    $('segGraf').innerHTML = `<div class="r-hoy">Hoy llegaron <b>${fmt(n)}</b></div>` + (n ? '' : `<p class="r-nota">${RETRASO}.</p>`);
+  // Total día a día (la pestaña Seguidores guarda uno por día); con Hoy sería un solo punto
+  $('segGraf').style.display = enCurso ? 'none' : '';
+  const puntos = D.seguidores.filter(s => s.f >= desde && s.f <= hasta);
+  $('segLinea').style.display = puntos.length >= 2 ? '' : 'none';
+  if (enCurso || puntos.length < 2) {
+    if (charts.cSeg) { charts.cSeg.destroy(); delete charts.cSeg; }
+    $('segTit').textContent = 'Total de seguidores día a día';
+    $('segNota').textContent = enCurso ? '' : `No hay totales guardados para estas fechas: se guardan desde el ${corto(D.seguidores[0].f)}.`;
     return;
   }
-  const tramos = tramosDe(desde, hasta);
-  const v = tramos.map(t => sum(cu.filter(c => c.f >= t[0] && c.f <= t[1]), 'nuevos'));
-  const max = Math.max(...v);
-  const ultimo = tramos[tramos.length - 1];
-  const cada = ultimo[0] === ultimo[1] ? 'cada día' : diasEntre(ultimo[0], ultimo[1]) === 7 ? 'cada semana' : 'en cada tramo';
-  const cols = `style="grid-template-columns:repeat(${tramos.length},minmax(0,1fr))"`;
-  $('segGraf').innerHTML = `<span class="r-gtit">Cuántos llegaron ${cada} · ${deBoton ? 'últimos ' + dias + ' días' : periodo(desde, hasta)}</span>
-    <div class="r-barras" ${cols}>` + tramos.map((t, i) => `<div class="r-col" title="${t[0] === t[1] ? corto(t[0]) : corto(t[0]) + ' – ' + corto(t[1])}: llegaron ${fmt(v[i])}">` +
-      `<span>${fmt(v[i])}</span><div style="height:${max ? Math.max(v[i] ? 3 : 0, Math.round(v[i] / max * 110)) : 0}px;background:var(${v[i] === max && max ? '--r-fuerte' : '--r-suave'})"></div></div>`).join('') +
-    `</div><div class="r-ejes" ${cols}>${tramos.map(t => `<span>${etiquetaTramo(t)}</span>`).join('')}</div>`;
+  const v = puntos.map(s => s.n), primero = puntos[0], ultimo = puntos[puntos.length - 1];
+  $('segTit').textContent = `Total de seguidores día a día · ${deBoton ? 'últimos ' + dias + ' días' : periodo(desde, hasta)}`;
+  $('segNota').textContent = `Del ${corto(primero.f)} al ${corto(ultimo.f)} pasamos de ${fmt(primero.n)} a ${fmt(ultimo.n)}.` +
+    (primero.f > desde ? ` Los totales se guardan desde el ${corto(D.seguidores[0].f)}.` : '');
+  // El eje no empieza en cero (la línea quedaría plana), pero abarca al menos 10 seguidores o el 2 % del total para no exagerar cambios pequeños
+  const min = Math.min(...v), max = Math.max(...v), medio = (min + max) / 2, mitad = Math.max((max - min) * .65, 5, max * .01);
+  // Marcas redondas del eje (de 1, 2, 5, 10, 20, 50… seguidores), unas cuatro
+  const paso = [1, 2, 5].map(m => m * 10 ** Math.floor(Math.log10(mitad / 2))).concat(10 ** Math.ceil(Math.log10(mitad / 2))).find(p => p >= mitad / 2);
+  const o = opciones({});
+  Object.assign(o.scales.y, { beginAtZero: false, min: Math.floor((medio - mitad) / paso) * paso, max: Math.ceil((medio + mitad) / paso) * paso });
+  Object.assign(o.scales.y.ticks, { precision: 0, stepSize: paso });
+  o.scales.x.ticks.maxTicksLimit = 6;
+  o.plugins.tooltip.callbacks.label = c => fmt(c.parsed.y) + ' seguidores';
+  const color = getComputedStyle($('general')).getPropertyValue('--r-fuerte').trim();
+  grafica('cSeg', {
+    type: 'line',
+    data: { labels: puntos.map(s => corto(s.f)), datasets: [{ data: v, borderColor: color, backgroundColor: color, borderWidth: 2, tension: .25,
+      pointRadius: puntos.length > 14 ? 0 : 2.5, pointHoverRadius: 4, fill: false }] },
+    options: o
+  });
 }
-
-// Barras de la gráfica de seguidores: una por día hasta 14 días; si no, semanas contadas hacia atrás desde el último día
-// (la primera se queda con los días que sobran), y como mucho 12 barras
-function tramosDe(desde, hasta) {
-  const dias = diasEntre(desde, hasta), n = dias <= 14 ? dias : Math.min(12, Math.floor(dias / 7)), largo = dias <= 14 ? 1 : Math.floor(dias / n);
-  const mover = (f, k) => ymd(new Date(new Date(f + 'T12:00').getTime() + k * 864e5));
-  const t = [];
-  for (let i = 0; i < n; i++) t.unshift([i === n - 1 ? desde : mover(hasta, -(i + 1) * largo + 1), mover(hasta, -i * largo)]);
-  return t;
-}
-// "lun 2" para un día; "8–14 oct" o "29 oct–6 nov" para varios
-const mesCorto = f => new Date(f + 'T12:00').toLocaleDateString('es-CO', { month: 'short' }).replace('.', '');
-const diaSemana = f => new Date(f + 'T12:00').toLocaleDateString('es-CO', { weekday: 'short' }).replace('.', '');
-const etiquetaTramo = t => {
-  const d = f => Number(f.slice(8));
-  if (t[0] === t[1]) return `${diaSemana(t[0])}<br>${d(t[0])}`;
-  return mesCorto(t[0]) === mesCorto(t[1]) ? `${d(t[0])}–${d(t[1])} ${mesCorto(t[1])}` : `${d(t[0])} ${mesCorto(t[0])}–${d(t[1])} ${mesCorto(t[1])}`;
-};
 
 // 2. Lo que mejor funcionó: las 5 publicaciones del periodo con más vistas o más compartidas (botones arriba)
 let topModo = 'vistas';
