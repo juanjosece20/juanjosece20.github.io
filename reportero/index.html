@@ -7,7 +7,7 @@
 <meta name="description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
 <meta name="robots" content="noindex">
 <!-- Solo se permite cargar código de este sitio y de cdnjs, y hablar solo con la API de Apps Script -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-AZOpYaSnKgvW3zX+de1NXiop2tqkHIZY9JKw8UgxIiU=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-G0NyRx6KGt+UXh2rFXM81SbblPP1YQw0L4HiHkiTmlY=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Si otra página muestra el panel dentro de la suya (para engañar con clics), no se ve nada -->
 <script>if (window.top !== window.self) document.documentElement.style.display = 'none';</script>
@@ -105,18 +105,22 @@ main.in{padding-bottom:28px}
 .r-comp{font-size:14px;color:var(--r-muted)}
 /* 2. Lo que mejor funcionó */
 .r-cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
-.r-sel{display:flex;gap:4px;background:var(--r-pista);padding:4px;border-radius:10px}
-.r-sel button{font:500 14px var(--ui);color:var(--r-muted);background:none;border:0;border-radius:8px;padding:9px 16px;cursor:pointer}
-.r-sel button.on{background:var(--card);color:var(--r-ink);font-weight:700;box-shadow:0 1px 3px rgba(11,31,77,.12)}
 .r-sub{margin:-6px 0 0;font-size:13px;color:var(--r-muted)}
-.r-tops{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
-.r-tops .empty{grid-column:1/-1}
-.r-post{display:flex;flex-direction:column;gap:6px;min-width:0;text-decoration:none;color:var(--r-ink)}
-.r-mini{position:relative;aspect-ratio:4/5;border-radius:10px;overflow:hidden;background:var(--r-foto);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--r-muted)}
+.r-dos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.r-lista{list-style:none;margin:0;padding:0}
+.r-lista li+li{border-top:1px solid var(--r-pista)}
+.r-lista .empty{padding:12px 0}
+.r-item{display:grid;grid-template-columns:20px 56px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;text-decoration:none;color:var(--r-ink)}
+.r-pos{font:400 22px/1 var(--titulo);color:var(--r-muted);text-align:center}
+.r-mini{position:relative;aspect-ratio:4/5;border-radius:8px;overflow:hidden;background:var(--r-foto);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--r-muted)}
 .r-mini img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-.r-post:hover .r-mini,.r-post:focus-visible .r-mini{outline:3px solid var(--r-fuerte);outline-offset:2px}
-.r-cifra{font:400 28px/1 var(--titulo);letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.r-det{font-size:13px;line-height:1.4;color:var(--r-muted)}
+.r-info{display:flex;flex-direction:column;gap:3px;min-width:0}
+.r-tit{font-size:14px;font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.r-item:hover .r-tit{text-decoration:underline}
+.r-item:focus-visible{outline:3px solid var(--r-fuerte);outline-offset:2px;border-radius:8px}
+.r-cifra{font:400 26px/1 var(--titulo);letter-spacing:.5px;text-align:right;white-space:nowrap}
+.r-cifra small{display:block;font:600 11px var(--ui);letter-spacing:.2px;color:var(--r-muted);margin-top:4px}
+.r-det{font-size:12px;line-height:1.4;color:var(--r-muted)}
 /* 3. Nuestro público */
 .r-pub{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
 .r-pub .r-card{gap:12px}
@@ -283,10 +287,6 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
 
 /* Pantallas medianas: dos columnas */
 @media (max-width:1199px){
-  .r-tops{grid-template-columns:repeat(3,minmax(0,1fr))}
-  /* 5 publicaciones en 3 columnas sin hueco: la primera ocupa dos, con la misma altura */
-  .r-tops .r-post:first-child{grid-column:span 2}
-  .r-tops .r-post:first-child .r-mini{aspect-ratio:auto;height:0;flex:1}
   .portada{grid-template-columns:1fr;gap:20px}
   .cifra{border-left:0;padding-left:0}
   .cifra-n{font-size:clamp(52px,18cqi,104px)}
@@ -313,11 +313,11 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .r-cif:nth-child(even){border-left:1px solid var(--r-linea);padding-left:12px}
   .r-cif b{font-size:38px}
   .r-linea{height:120px}
-  .r-sel{width:100%}
-  .r-sel button{flex:1;padding:10px 8px}
-  .r-tops{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px}
-  .r-tops .r-post:first-child{grid-column:span 2}
-  .r-tops .r-post:first-child .r-mini{aspect-ratio:4/3;height:auto;flex:none}
+  .r-dos{grid-template-columns:minmax(0,1fr)}
+  .r-item{grid-template-columns:14px 48px minmax(0,1fr) auto;gap:10px}
+  .r-pos{font-size:18px}
+  .r-tit{font-size:13px}
+  .r-cifra{font-size:22px}
   .r-pub{grid-template-columns:minmax(0,1fr)}
   .munis td.pv,.munis th.pv{display:none}
   .munis th,.munis td{padding:6px 4px}
@@ -394,12 +394,11 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
     </section>
     <section class="r-sec">
       <h2 class="r-h2">2. Lo que mejor funcionó</h2>
-      <div class="r-card">
-        <div class="r-cab"><h3 id="topTit">Lo más visto</h3>
-          <div class="r-sel" role="group" aria-label="Ordenar publicaciones"><button type="button" data-top="vistas">Más vistas</button><button type="button" data-top="compartidos">Más compartidas</button></div></div>
-        <p class="r-sub" id="topSub"></p>
-        <div class="r-tops" id="top5"></div>
+      <div class="r-dos">
+        <div class="r-card"><h3>Lo más visto</h3><p class="r-sub">Las 5 publicaciones del periodo con más vistas desde que salieron.</p><ol class="r-lista" id="topVistas"></ol></div>
+        <div class="r-card"><h3>Lo más compartido</h3><p class="r-sub">Las 5 publicaciones del periodo que más veces le pasaron a otros.</p><ol class="r-lista" id="topComp"></ol></div>
       </div>
+      <p class="r-nota">Toca una publicación para abrirla en Instagram.</p>
     </section>
     <section class="r-sec">
       <h2 class="r-h2">3. Nuestro público</h2>
@@ -764,7 +763,6 @@ function preparar(refresco) {
     render();
   });
   document.querySelectorAll('.chip[data-r]').forEach(b => b.onclick = () => rango(b.dataset.r));
-  document.querySelectorAll('.r-sel button').forEach(b => b.onclick = () => { topModo = b.dataset.top; render(); });
   ['cat', 'form', 'prov'].forEach(id => $(id).onchange = render);
   document.querySelectorAll('.comparar .chip').forEach(b => b.onclick = () => {
     compEdad = b.dataset.e;
@@ -984,24 +982,23 @@ function renderSeguidores(desde, hasta, cu, neto, netoPrev, enCurso, deBoton) {
   });
 }
 
-// 2. Lo que mejor funcionó: las 5 publicaciones del periodo con más vistas o más compartidas (botones arriba)
-let topModo = 'vistas';
+// 2. Lo que mejor funcionó: las 5 publicaciones del periodo con más vistas y las 5 más compartidas, lado a lado
 function renderTop(posts) {
-  const vis = topModo === 'vistas';
-  const l = vis ? posts.slice().sort((a, b) => b.vistas - a.vistas)
-    : posts.filter(p => p.compartidos > 0).sort((a, b) => b.compartidos - a.compartidos || b.vistas - a.vistas);
-  document.querySelectorAll('.r-sel button').forEach(b => { b.classList.toggle('on', b.dataset.top === topModo); b.setAttribute('aria-pressed', b.dataset.top === topModo); });
-  $('topTit').textContent = vis ? 'Lo más visto' : 'Lo más compartido';
-  $('topSub').textContent = (vis ? 'Las 5 publicaciones del periodo con más vistas desde que salieron.' : 'Las 5 publicaciones del periodo que más veces le pasaron a otros.') +
-    ' Toca una para abrirla en Instagram.';
-  $('top5').innerHTML = l.slice(0, 5).map(p => {
-    const n = vis ? p.vistas : p.compartidos;
-    const cifra = vis ? `${corta(n)} ${n === 1 ? 'vista' : 'vistas'}` : `${fmt(n)} ${n === 1 ? 'vez' : 'veces'}`;
+  // Qué cuenta la publicación: el primer párrafo después del encabezado («#DENUNCIA CIUDADANA | LUGAR»), que ya va en el detalle
+  const resumen = p => { const l = p.texto.split('\n').map(x => x.trim()).filter(Boolean); return (l.length > 1 && l[0].includes('|') ? l[1] : l[0]) || p.titulo; };
+  const fila = (p, i, num, unidad) => {
     const det = [p.tema, p.municipio || p.provincia, fechaPost(p)].filter(Boolean).map(esc).join(' · ');
-    return `<a class="r-post" href="${esc(p.enlace)}" rel="noopener" title="${esc(p.titulo)}">
-      <div class="r-mini">${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}<span>${esc(FORMATO[p.formato] || p.formato)}</span></div>
-      <span class="r-cifra">${cifra}</span><span class="r-det">${det}</span></a>`;
-  }).join('') || `<div class="empty">${vis ? 'No hay publicaciones en este periodo.' : 'Nadie compartió las publicaciones de este periodo.'}</div>`;
+    return `<li><a class="r-item" href="${esc(p.enlace)}" rel="noopener"><span class="r-pos">${i + 1}</span>
+      <span class="r-mini">${p.miniatura ? `<img src="${esc(p.miniatura)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}<span>${esc(FORMATO[p.formato] || p.formato)}</span></span>
+      <span class="r-info"><span class="r-tit">${esc(recortar(resumen(p), 160))}</span><span class="r-det">${det}</span></span>
+      <span class="r-cifra">${num}<small>${unidad}</small></span></a></li>`;
+  };
+  $('topVistas').innerHTML = posts.slice().sort((a, b) => b.vistas - a.vistas).slice(0, 5)
+    .map((p, i) => fila(p, i, corta(p.vistas), p.vistas === 1 ? 'vista' : 'vistas')).join('') ||
+    '<li class="empty">No hay publicaciones en este periodo.</li>';
+  $('topComp').innerHTML = posts.filter(p => p.compartidos > 0).sort((a, b) => b.compartidos - a.compartidos || b.vistas - a.vistas).slice(0, 5)
+    .map((p, i) => fila(p, i, fmt(p.compartidos), p.compartidos === 1 ? 'vez' : 'veces')).join('') ||
+    `<li class="empty">${posts.length ? 'Nadie compartió las publicaciones de este periodo.' : 'No hay publicaciones en este periodo.'}</li>`;
 }
 
 // Barra partida con su frase debajo: "85 % aún no nos sigue · 15 % ya nos sigue"
