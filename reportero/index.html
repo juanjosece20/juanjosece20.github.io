@@ -7,7 +7,7 @@
 <meta name="description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
 <meta name="robots" content="noindex">
 <!-- Solo se permite cargar código de este sitio y de cdnjs, y hablar solo con la API de Apps Script -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-ZThIgvwUCh3+jU7k9SWFcRJwvrdmkeNtKu3zP+Wpovs=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-u0y9J0ieNyErbgazURT6N+GK5uNrPj4bkwh1SqH2F5Q=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Si otra página muestra el panel dentro de la suya (para engañar con clics), no se ve nada -->
 <script>if (window.top !== window.self) document.documentElement.style.display = 'none';</script>
@@ -794,6 +794,7 @@ function preparar(refresco) {
   calcularCrecimiento();
   D.seguidores.sort((a, b) => a.f < b.f ? -1 : 1);
   D.cuenta.sort((a, b) => a.f < b.f ? -1 : 1);
+  D.totales = totalesDiarios();
 
   $('cat').innerHTML = ['Todas las noticias'].concat(CATEGORIAS.map(c => c.nombre), OTRA.nombre).map(x => `<option>${x}</option>`).join('');
   $('form').innerHTML = ['Todos los formatos'].concat([...new Set(D.posts.map(p => p.formato))].sort()).map(x => `<option>${esc(x)}</option>`).join('');
@@ -914,6 +915,19 @@ function netoDeHoy() {
 }
 const conSigno = n => (n >= 0 ? '+' : '−') + fmt(Math.abs(n));
 
+// Total de seguidores al cierre de cada día: los guardados (pestaña Seguidores) y, antes del primero, calculados hacia
+// atrás con la pestaña Cuenta: total del día anterior = total del día − llegaron + se fueron. Los calculados llevan calc
+function totalesDiarios() {
+  const l = D.seguidores.map(s => ({ f: s.f, n: s.n }));
+  if (!l.length) return l;
+  const cuentaDe = {};
+  D.cuenta.forEach(c => cuentaDe[c.f] = c);
+  const atras = [];
+  for (let t = l[0], c = cuentaDe[t.f]; c; t = atras[0], c = cuentaDe[t.f])
+    atras.unshift({ f: ymd(new Date(new Date(t.f + 'T12:00') - 864e5)), n: t.n - c.nuevos + c.perdidos, calc: true });
+  return atras.concat(l);
+}
+
 function renderGeneral(desde, hasta, posts) {
   const cu = D.cuenta.filter(c => c.f >= desde && c.f <= hasta);
   const dias = diasEntre(desde, hasta);
@@ -1008,13 +1022,13 @@ function renderSeguidores(desde, hasta, cu, neto, netoPrev, enCurso, deBoton) {
 
   // Total día a día (la pestaña Seguidores guarda uno por día); con Hoy sería un solo punto
   $('segGraf').style.display = enCurso ? 'none' : '';
-  const puntos = D.seguidores.filter(s => s.f >= desde && s.f <= hasta);
+  const T = D.totales, puntos = T.filter(s => s.f >= desde && s.f <= hasta);
   $('segLinea').style.display = puntos.length >= 2 ? '' : 'none';
   if (enCurso || puntos.length < 2) {
     if (charts.cSeg) { charts.cSeg.destroy(); delete charts.cSeg; }
     $('segTit').textContent = 'Total de seguidores día a día';
     $('segNota').textContent = enCurso ? '' : puntos.length ? `Solo hay el total del ${corto(puntos[0].f)}: ${fmt(puntos[0].n)} seguidores. ` +
-      `Los totales diarios se guardan desde el ${corto(D.seguidores[0].f)}.` : `No hay totales guardados para estas fechas: se guardan desde el ${corto(D.seguidores[0].f)}.`;
+      `Hay totales diarios desde el ${corto(T[0].f)}.` : `No hay totales diarios para estas fechas: los hay desde el ${corto(T[0].f)}.`;
     return;
   }
   const v = puntos.map(s => s.n), primero = puntos[0], ultimo = puntos[puntos.length - 1];
@@ -1025,10 +1039,10 @@ function renderSeguidores(desde, hasta, cu, neto, netoPrev, enCurso, deBoton) {
   // «se mantuvo en 612» / «bajamos de 612 a 611» / «pasamos de 611 a 617»
   const cambio = (a, b) => a === b ? `el total se mantuvo en ${fmt(b)}` : `${b < a ? 'bajamos' : 'pasamos'} de ${fmt(a)} a ${fmt(b)}`;
   // El periodo empieza con el total del cierre del día anterior: así la nota cuadra con Llegaron, Se fueron y Crecimos
-  const antes = D.seguidores.find(s => s.f === ymd(new Date(new Date(desde + 'T12:00') - 864e5)));
+  const antes = T.find(s => s.f === ymd(new Date(new Date(desde + 'T12:00') - 864e5)));
   $('segNota').textContent = !incompleto ? (antes ? `Del inicio del ${corto(desde)} al cierre del ${corto(hasta)} ${cambio(antes.n, ultimo.n)}.`
       : `Del ${corto(primero.f)} al ${corto(ultimo.f)} ${cambio(primero.n, ultimo.n)}.`)
-    : (primero.f > desde && primero.f === D.seguidores[0].f ? `Solo hay totales diarios desde el ${corto(primero.f)}` : 'Faltan totales diarios de algunos días') +
+    : (primero.f > desde && primero.f === T[0].f ? `Solo hay totales diarios desde el ${corto(primero.f)}` : 'Faltan totales diarios de algunos días') +
       `, así que la línea muestra del ${corto(primero.f)} al ${corto(ultimo.f)}. Entre esas fechas ${cambio(primero.n, ultimo.n)}.` +
       ` Las cifras de arriba sí cubren todo el periodo (${periodo(desde, hasta)}).`;
   // Instagram cuenta aparte a quienes llegan y se van; si no coincide con el cambio del total en las fechas de la nota, se aclara
@@ -1044,11 +1058,15 @@ function renderSeguidores(desde, hasta, cu, neto, netoPrev, enCurso, deBoton) {
   Object.assign(o.scales.y, { beginAtZero: false, min: Math.floor((medio - mitad) / paso) * paso, max: Math.ceil((medio + mitad) / paso) * paso });
   Object.assign(o.scales.y.ticks, { precision: 0, stepSize: paso });
   o.scales.x.ticks.maxTicksLimit = 6;
-  o.plugins.tooltip.callbacks.label = c => fmt(c.parsed.y) + ' seguidores';
-  const color = getComputedStyle($('general')).getPropertyValue('--r-fuerte').trim();
+  o.plugins.tooltip.callbacks.label = c => (puntos[c.dataIndex].calc ? 'Unos ' : '') + fmt(c.parsed.y) + ' seguidores' + (puntos[c.dataIndex].calc ? ' (calculado)' : '');
+  // Los días calculados, con línea punteada y más clara; los guardados, con línea normal
+  const estilo = getComputedStyle($('general')), color = estilo.getPropertyValue('--r-fuerte').trim(), claro = estilo.getPropertyValue('--r-suave').trim();
+  const calc = i => puntos[i].calc, colorDe = i => calc(i) ? claro : color;
   grafica('cSeg', {
     type: 'line',
     data: { labels: puntos.map(s => corto(s.f)), datasets: [{ data: v, borderColor: color, backgroundColor: color, borderWidth: 2, tension: .25,
+      segment: { borderColor: s => colorDe(s.p0DataIndex), borderDash: s => calc(s.p0DataIndex) ? [5, 4] : undefined },
+      pointBackgroundColor: puntos.map((s, i) => colorDe(i)), pointBorderColor: puntos.map((s, i) => colorDe(i)),
       pointRadius: puntos.length > 14 ? 0 : 2.5, pointHoverRadius: 4, fill: false }] },
     options: o
   });
