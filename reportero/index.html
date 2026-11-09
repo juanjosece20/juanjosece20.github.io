@@ -7,7 +7,7 @@
 <meta name="description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
 <meta name="robots" content="noindex">
 <!-- Solo se permite cargar código de este sitio y de cdnjs, y hablar solo con la API de Apps Script -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-mQsKQapCKMyJRafrAz9PerCsGyvdpVQoUegvZ2IhGAI=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-ZThIgvwUCh3+jU7k9SWFcRJwvrdmkeNtKu3zP+Wpovs=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Si otra página muestra el panel dentro de la suya (para engañar con clics), no se ve nada -->
 <script>if (window.top !== window.self) document.documentElement.style.display = 'none';</script>
@@ -884,13 +884,18 @@ const SIN_DATOS = 'Sin datos en este periodo.';
 const diasEntre = (desde, hasta) => Math.round((new Date(hasta + 'T12:00') - new Date(desde + 'T12:00')) / 864e5) + 1;
 const periodo = (desde, hasta) => desde === hasta ? (desde === D.hoy ? 'Hoy, ' : '') + diaMes(desde) : corto(desde) + ' – ' + corto(hasta);
 
-// ▲ verde / ▼ rojo frente al periodo anterior; sin periodo anterior (o con el día en curso) no se dice nada
-function compara(actual, anterior, dias, absoluto) {
+// ▲ verde / ▼ rojo frente al periodo anterior; sin periodo anterior (o con el día en curso) no se dice nada.
+// Con cifras pequeñas (menos de POCO en alguno de los dos periodos) el porcentaje engaña: se muestran las dos cifras.
+// signo: las cifras llevan + o − (p. ej. seguidores ganados)
+const POCO = 10;
+const pequenas = (a, b) => Math.abs(a) < POCO || Math.abs(b) < POCO;
+function compara(actual, anterior, dias, signo) {
   if (typeof anterior !== 'number') return '';
-  const d = absoluto ? actual - anterior : (anterior ? (actual - anterior) / anterior * 100 : null);
-  if (d === null) return '';
-  const txt = absoluto ? fmt(Math.abs(d)) : Math.abs(Math.round(d)) + ' %';
-  return `<span class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '▲' : '▼'} ${txt} ${d >= 0 ? 'más' : 'menos'}</span> que ${dias === 1 ? 'el día anterior' : 'los ' + dias + ' días anteriores'}`;
+  const antes = dias === 1 ? 'el día anterior' : 'los ' + dias + ' días anteriores';
+  if (pequenas(actual, anterior)) { const n = signo ? conSigno : fmt; return `Frente ${dias === 1 ? 'al día anterior' : 'a ' + antes}: antes ${n(anterior)}, ahora ${n(actual)}`; }
+  if (!anterior) return '';
+  const d = (actual - anterior) / anterior * 100;
+  return `<span class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '▲' : '▼'} ${Math.abs(Math.round(d))} % ${d >= 0 ? 'más' : 'menos'}</span> que ${antes}`;
 }
 // Filas con barra: la mayor, en el azul fuerte; las demás, en el suave
 const barrasHTML = (filas, total, nombreFn) => {
@@ -991,8 +996,8 @@ function renderSeguidores(desde, hasta, cu, neto, netoPrev, enCurso, deBoton) {
   // Hoy: lo que da Instagram o, si aún no lo da, el cambio del total desde ayer
   const cHoy = enCurso ? cu.find(c => c.f === D.hoy) : null, tarde = enCurso && !(cHoy && cHoy.nuevos);
   const llegaron = enCurso ? (tarde ? Math.max(0, netoDeHoy() || 0) : cHoy.nuevos) : sum(cu, 'nuevos');
-  // El porcentaje solo tiene sentido si el periodo anterior también creció
-  const comp = typeof netoPrev === 'number' && netoPrev > 0 && neto >= 0 ? compara(neto, netoPrev, dias) : '';
+  // El porcentaje solo tiene sentido si el periodo anterior también creció; con cifras pequeñas se muestran las dos (también si alguna bajó)
+  const comp = typeof netoPrev === 'number' && (pequenas(neto, netoPrev) || (netoPrev > 0 && neto >= 0)) ? compara(neto, netoPrev, dias, true) : '';
   const cifra = (lbl, num, nota, clase) => `<div class="r-cif"><span class="r-lbl">${lbl}</span><b${clase ? ` class="${clase}"` : ''}>${num}</b><span class="r-nota">${nota}</span></div>`;
   $('segCifras').innerHTML =
     cifra(alCierre ? 'Teníamos' : 'Tenemos', total ? fmt(total.n) : '—', (total && total.n === 1 ? 'seguidor' : 'seguidores') +
