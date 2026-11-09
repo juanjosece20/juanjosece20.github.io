@@ -43,7 +43,8 @@
   --radio:14px}
 *{box-sizing:border-box}
 body{margin:0;font-family:var(--ui);background:var(--fondo);color:var(--ink);-webkit-text-size-adjust:100%}
-.in{max-width:1400px;margin:0 auto;padding:0 24px}
+/* Ancho del contenido: 1400 px (1760 en pantallas anchas, más abajo) con márgenes que crecen con la pantalla (32 px en laptop, 48 en 1920) */
+.in{max-width:1400px;margin:0 auto;padding:0 clamp(20px,2.5vw,56px)}
 
 /* Barra superior compacta */
 .barra{background:var(--card);border-bottom:1px solid var(--linea)}
@@ -302,6 +303,10 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .filtros .in{padding-top:8px;padding-bottom:8px}
 }
 
+/* Pantallas anchas (1920 o más): contenido más ancho */
+@media (min-width:1800px){
+  .in{max-width:1760px}
+}
 /* Pantallas medianas: dos columnas */
 @media (max-width:1199px){
   .portada{grid-template-columns:1fr;gap:20px}
