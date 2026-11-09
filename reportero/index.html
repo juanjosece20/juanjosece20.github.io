@@ -7,7 +7,7 @@
 <meta name="description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
 <meta name="robots" content="noindex">
 <!-- Solo se permite cargar código de este sitio y de cdnjs, y hablar solo con la API de Apps Script -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-rn/SEMO4TjNla46YxY2vcAPgCnIMBcr+usaBwzb89yw=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-HghwzeJj35CnrA0rzDMBJP5WoVoTZPslcXCByfdpgrY=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Si otra página muestra el panel dentro de la suya (para engañar con clics), no se ve nada -->
 <script>if (window.top !== window.self) document.documentElement.style.display = 'none';</script>
@@ -982,7 +982,10 @@ function renderGeneral(desde, hasta, posts) {
 // y debajo el total de seguidores día a día del periodo
 function renderSeguidores(desde, hasta, cu, neto, netoPrev, enCurso, deBoton) {
   const dias = diasEntre(desde, hasta);
-  const total = D.seguidores[D.seguidores.length - 1];
+  // Total al final del periodo si hay dato guardado ese día; si no (o si termina hoy), el de hoy, y se dice
+  const actual = D.seguidores[D.seguidores.length - 1];
+  const alCierre = hasta < D.hoy ? D.seguidores.find(s => s.f === hasta) : null;
+  const total = alCierre || actual;
   const cuando = enCurso ? 'hoy' : deBoton ? `en estos ${dias} días` : 'en estas fechas';
   // Hoy: lo que da Instagram o, si aún no lo da, el cambio del total desde ayer
   const cHoy = enCurso ? cu.find(c => c.f === D.hoy) : null, tarde = enCurso && !(cHoy && cHoy.nuevos);
@@ -991,7 +994,8 @@ function renderSeguidores(desde, hasta, cu, neto, netoPrev, enCurso, deBoton) {
   const comp = typeof netoPrev === 'number' && netoPrev > 0 && neto >= 0 ? compara(neto, netoPrev, dias) : '';
   const cifra = (lbl, num, nota, clase) => `<div class="r-cif"><span class="r-lbl">${lbl}</span><b${clase ? ` class="${clase}"` : ''}>${num}</b><span class="r-nota">${nota}</span></div>`;
   $('segCifras').innerHTML =
-    cifra('Tenemos', total ? fmt(total.n) : '—', total && total.n === 1 ? 'seguidor' : 'seguidores') +
+    cifra(alCierre ? 'Teníamos' : 'Tenemos', total ? fmt(total.n) : '—', (total && total.n === 1 ? 'seguidor' : 'seguidores') +
+      (alCierre ? ' el ' + corto(hasta) : hasta < D.hoy ? ' hoy' : '')) +
     cifra('Llegaron', fmt(llegaron), tarde ? RETRASO : `empezaron a seguirnos ${cuando}`) +
     cifra('Se fueron', fmt(sum(cu, 'perdidos')), `dejaron de seguirnos ${cuando}`) +
     cifra(neto >= 0 ? 'Crecimos' : 'Bajamos', conSigno(neto), comp || 'los que llegaron menos los que se fueron', neto >= 0 ? 'up' : 'down');
