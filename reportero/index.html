@@ -7,7 +7,7 @@
 <meta name="description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
 <meta name="robots" content="noindex">
 <!-- Solo se permite cargar código de este sitio y de cdnjs, y hablar solo con la API de Apps Script -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-7T9Rb583/8RIK/T+BODox6CAwiDHyFRqk4zqQlF/eyY=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-mQsKQapCKMyJRafrAz9PerCsGyvdpVQoUegvZ2IhGAI=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Si otra página muestra el panel dentro de la suya (para engañar con clics), no se ve nada -->
 <script>if (window.top !== window.self) document.documentElement.style.display = 'none';</script>
@@ -982,9 +982,10 @@ function renderGeneral(desde, hasta, posts) {
 // y debajo el total de seguidores día a día del periodo
 function renderSeguidores(desde, hasta, cu, neto, netoPrev, enCurso, deBoton) {
   const dias = diasEntre(desde, hasta);
-  // Total al final del periodo si hay dato guardado ese día; si no (o si termina hoy), el de hoy, y se dice
+  // Fechas elegidas a mano que terminan antes de hoy: total de ese último día si está guardado. Con los botones
+  // (30 y 7 días terminan ayer) o sin dato ese día, el total de hoy, y se dice «hoy»
   const actual = D.seguidores[D.seguidores.length - 1];
-  const alCierre = hasta < D.hoy ? D.seguidores.find(s => s.f === hasta) : null;
+  const alCierre = !deBoton && hasta < D.hoy ? D.seguidores.find(s => s.f === hasta) : null;
   const total = alCierre || actual;
   const cuando = enCurso ? 'hoy' : deBoton ? `en estos ${dias} días` : 'en estas fechas';
   // Hoy: lo que da Instagram o, si aún no lo da, el cambio del total desde ayer
