@@ -7,7 +7,7 @@
 <meta name="description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
 <meta name="robots" content="noindex">
 <!-- Solo se permite cargar código de este sitio y de cdnjs, y hablar solo con la API de Apps Script -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-u0y9J0ieNyErbgazURT6N+GK5uNrPj4bkwh1SqH2F5Q=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-ctNftVyoHZazqALXf7aOdEjgkPKtwjOYvaoE6bAyVnw=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Si otra página muestra el panel dentro de la suya (para engañar con clics), no se ve nada -->
 <script>if (window.top !== window.self) document.documentElement.style.display = 'none';</script>
@@ -1050,6 +1050,10 @@ function renderSeguidores(desde, hasta, cu, neto, netoPrev, enCurso, deBoton) {
   const netoNota = cu.filter(c => c.f > desdeNota.f && c.f <= ultimo.f).reduce((a, c) => a + (c.f === D.hoy && segHoy !== null ? segHoy : c.nuevos - c.perdidos), 0);
   if (netoNota !== ultimo.n - desdeNota.n) $('segNota').textContent += ` Instagram cuenta por separado a quienes llegan y se van, así que puede no coincidir exacto con el cambio del total` +
     (incompleto ? ' en esas fechas.' : ` (${conSigno(netoNota)} frente a ${conSigno(ultimo.n - desdeNota.n)}).`);
+  // Si la línea tiene días calculados, se dice en una frase
+  const guardadoDesde = D.seguidores[0].f;
+  if (puntos.every(s => s.calc)) $('segNota').textContent += ` Estos totales (línea punteada) son un cálculo a partir de quienes llegaron y se fueron cada día; los guardados empiezan el ${corto(guardadoDesde)}.`;
+  else if (puntos.some(s => s.calc)) $('segNota').textContent += ` Antes del ${corto(guardadoDesde)} (línea punteada) el total es un cálculo a partir de quienes llegaron y se fueron cada día.`;
   // El eje no empieza en cero (la línea quedaría plana), pero abarca al menos 10 seguidores o el 2 % del total para no exagerar cambios pequeños
   const min = Math.min(...v), max = Math.max(...v), medio = (min + max) / 2, mitad = Math.max((max - min) * .65, 5, max * .01);
   // Marcas redondas del eje (de 1, 2, 5, 10, 20, 50… seguidores), unas cuatro
