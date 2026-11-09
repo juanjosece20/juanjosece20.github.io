@@ -165,7 +165,7 @@ main.in{padding-bottom:28px}
 .hd .l{font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--r-muted)}
 .hd .v{font:400 32px/1.1 var(--titulo);letter-spacing:.5px}
 .ins{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
-.ins li{position:relative;padding-left:20px;font-size:14px;line-height:1.5}
+.ins li{position:relative;padding-left:20px;font-size:14px;line-height:1.5;max-width:90ch}
 .ins li:before{content:"";position:absolute;left:0;top:.5em;width:8px;height:8px;border-radius:50%;background:var(--r-fuerte)}
 .ins b{font-weight:700}
 
@@ -303,9 +303,22 @@ footer{background:var(--navy);color:rgba(255,255,255,.75);font-size:12px;text-al
   .filtros .in{padding-top:8px;padding-bottom:8px}
 }
 
-/* Pantallas anchas (1920 o más): contenido más ancho */
+/* Pantallas anchas (1920 o más): contenido más ancho y columnas en vez de estirar.
+   1: las cifras en 2×2 a la izquierda y la gráfica al lado; 4: cuatro cuadros en fila y debajo lo que hay que saber en columnas */
 @media (min-width:1800px){
   .in{max-width:1760px}
+  .r-seg{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:0 28px;align-items:center}
+  .r-cifras{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 16px}
+  .r-cif+.r-cif{border-left:0;padding-left:0}
+  .r-cif:nth-child(even){border-left:1px solid var(--r-linea);padding-left:16px}
+  .r-graf{border-top:0;padding-top:0;border-left:1px solid var(--r-linea);padding-left:28px}
+  /* Con Hoy no hay gráfica: las cuatro cifras en fila, como siempre */
+  .r-seg:has(>.r-graf[style*="none"]){display:flex;align-items:stretch}
+  .r-seg:has(>.r-graf[style*="none"]) .r-cifras{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .r-seg:has(>.r-graf[style*="none"]) .r-cif+.r-cif{border-left:1px solid var(--r-linea);padding-left:16px}
+  .r-mas{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .r-ancha{grid-column:1/-1}
+  .r-ancha .ins{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px 32px}
 }
 /* Pantallas medianas: dos columnas */
 @media (max-width:1199px){
