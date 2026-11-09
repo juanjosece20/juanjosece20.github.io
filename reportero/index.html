@@ -7,7 +7,7 @@
 <meta name="description" content="Métricas de Instagram de @elreporterosantander: vistas, seguidores, público y publicaciones, actualizadas cada hora.">
 <meta name="robots" content="noindex">
 <!-- Solo se permite cargar código de este sitio y de cdnjs, y hablar solo con la API de Apps Script -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-iRypSQ8jhmGF6aYQsuVaa0EOWAn+hgWJ6pHoSXFvLRM=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sceIOt0gpxLDvytZNnuUxyoiETSsYgsc3dvZy9iKEdg=' 'sha256-rn/SEMO4TjNla46YxY2vcAPgCnIMBcr+usaBwzb89yw=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Si otra página muestra el panel dentro de la suya (para engañar con clics), no se ve nada -->
 <script>if (window.top !== window.self) document.documentElement.style.display = 'none';</script>
@@ -1007,7 +1007,10 @@ function renderSeguidores(desde, hasta, cu, neto, netoPrev, enCurso, deBoton) {
     return;
   }
   const v = puntos.map(s => s.n), primero = puntos[0], ultimo = puntos[puntos.length - 1];
-  $('segTit').textContent = `Total de seguidores día a día · ${deBoton ? 'últimos ' + dias + ' días' : periodo(desde, hasta)}`;
+  // Si los totales guardados empiezan después del inicio del periodo, el título dice el rango real
+  const incompleto = primero.f > desde;
+  $('segTit').textContent = 'Total de seguidores día a día · ' + (incompleto ? (deBoton ? 'desde el ' + corto(primero.f) : periodo(primero.f, hasta))
+    : deBoton ? 'últimos ' + dias + ' días' : periodo(desde, hasta));
   $('segNota').textContent = `Del ${corto(primero.f)} al ${corto(ultimo.f)} pasamos de ${fmt(primero.n)} a ${fmt(ultimo.n)}.` +
     (primero.f > desde ? ` Los totales se guardan desde el ${corto(D.seguidores[0].f)}.` : '');
   // El eje no empieza en cero (la línea quedaría plana), pero abarca al menos 10 seguidores o el 2 % del total para no exagerar cambios pequeños
